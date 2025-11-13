@@ -1,0 +1,259 @@
+#include "block.hpp"
+
+#include "math.hpp"
+
+#include "logger.hpp"
+
+#define min(a, b) (((a) <= (b)) ? (a) : (b))
+#define max(a, b) (((a) >= (b)) ? (a) : (b))
+
+LOGGER("block")
+namespace wibot {
+
+Block::Block(Slice &buffer) : _buffer(buffer) {};
+
+Result Block::setConfig(const BlockConfig &config) {
+    _config = config;
+    return _calculateConfig();
+};
+Result Block::_calculateConfig() {
+    ASSERT(_config.readMode != BlockMode::kRandomBlock, "readReg should not RANDOM_BLOCK");
+    ASSERT(_config.writeMode != BlockMode::kRandomBlock, "writeReg should not RANDOM_BLOCK");
+    ASSERT(_config.writeBlockSize <= _config.eraseBlockSize,
+           "writeReg block should not be great then erase block size.");
+    ASSERT(_buffer.size >= max(_config.readBlockSize, _config.eraseBlockSize),
+           "Not enough buffer size.");
+
+    u32 maxBlockSize = (_config.readBlockSize > _config.writeBlockSize) ? _config.readBlockSize
+                                                                        : _config.writeBlockSize;
+    maxBlockSize = (maxBlockSize > _config.eraseBlockSize) ? maxBlockSize : _config.eraseBlockSize;
+    _calculatedConfig.maxBlockSize = maxBlockSize;
+
+    _calculatedConfig.readBlockSizeBits  = Math::fastLog2(_config.readBlockSize);
+    _calculatedConfig.writeBlockSizeBits = Math::fastLog2(_config.writeBlockSize);
+    _calculatedConfig.eraseBlockSizeBits = Math::fastLog2(_config.eraseBlockSize);
+    _calculatedConfig.readBlockSizeMask  = _config.readBlockSize - 1;
+    _calculatedConfig.writeBlockSizeMask = _config.writeBlockSize - 1;
+    _calculatedConfig.eraseBlockSizeMask = _config.eraseBlockSize - 1;
+    return Result::kOk;
+};
+
+Result Block::read(void *data, u32 address, u32 size) {
+    Result rst;
+
+    do {
+        if (_config.readMode == BlockMode::kRandom) {
+            rst = readMedia(data, address, size);
+            if (rst != Result::kOk) {
+                break;
+            }
+        } else if (_config.readMode == BlockMode::kBlockwise) {
+            u32 blkAddress = address & ~(_calculatedConfig.readBlockSizeMask);
+            u32 blkSize    = size & ~(_calculatedConfig.readBlockSizeMask);
+            if ((address != blkAddress) || (size != blkSize)) {
+                // not aligned
+                return Result::kInvalidParameter;
+            }
+            rst = readMedia(data, address >> _calculatedConfig.readBlockSizeBits,
+                            size >> _calculatedConfig.readBlockSizeBits);
+            if (rst != Result::kOk) {
+                break;
+            }
+        } else if (_config.readMode == BlockMode::kBlock) {
+            rst = readMedia(data, address, size);
+            if (rst != Result::kOk) {
+                break;
+            }
+        } else if (_config.readMode == BlockMode::kWrap) {
+            u32 sizeInBlock, remainSize;
+            remainSize = size;
+
+            u8 *curDataPtr = (u8 *)data;
+            do {
+                sizeInBlock =
+                    _config.readBlockSize - (address & (_calculatedConfig.readBlockSizeMask));
+                if (sizeInBlock > remainSize) {
+                    sizeInBlock = remainSize;
+                }
+
+                remainSize -= sizeInBlock;
+
+                rst = readMedia(curDataPtr, address, sizeInBlock);
+
+                if (rst != Result::kOk) {
+                    break;
+                }
+
+                curDataPtr += sizeInBlock;
+                address += sizeInBlock;
+            } while (remainSize > 0);
+
+            rst = Result::kOk;
+            break;
+        } else {
+            rst = Result::kNotSupport;
+            break;
+        }
+    } while (0);
+    return rst;
+};
+Result Block::write(void *data, u32 address, u32 size) {
+    Result rst;
+
+    do {
+        if (_config.writeMode == BlockMode::kBlockwise) {
+            u32 blkAddress = address & ~(_calculatedConfig.writeBlockSizeMask);
+            u32 blkSize    = size & ~(_calculatedConfig.writeBlockSizeMask);
+            if ((address != blkAddress) || (size != blkSize)) {
+                // not aligned
+                rst = Result::kInvalidParameter;
+                break;
+            }
+        }
+        if (_config.needEraseBeforeWrite) {
+            u8 *buffer = this->_buffer.data;
+
+            u32 wRemainSize = size;
+            u32 wAddr       = address;
+
+            u8 *wData     = (u8 *)data;
+            u32 erBlkSize = max(_config.eraseBlockSize, _config.readBlockSize);
+            u32 erBlkMask = erBlkSize - 1;
+            do {
+                u32 erBlkAddr  = wAddr & ~erBlkMask;
+                u32 wPosInBlk  = wAddr & erBlkMask;
+                u32 wSizeInBlk = min(wRemainSize, erBlkSize - wPosInBlk);
+
+                if ((erBlkAddr != wAddr) || (wRemainSize < erBlkSize)) {
+                    // address not aligned to erBlock or tail fragment.
+                    // read->memcpy->erase->write.
+                    rst = read(buffer, erBlkAddr, erBlkSize);  // read entire block
+                    if (rst != Result::kOk) {
+                        break;
+                    }
+                    memcpy((void *)(buffer + wPosInBlk), (const void *)wData, wSizeInBlk);
+                    rst = erase(erBlkAddr, erBlkSize);
+                    if (rst != Result::kOk) {
+                        break;
+                    }
+                    rst = _writeDirectly(buffer, erBlkAddr, erBlkSize);  // write entire block
+                    if (rst != Result::kOk) {
+                        break;
+                    }
+                } else {
+                    // address aligned to erBlock. middle entire blocks. directly
+                    // erase->write.
+                    u32 blkCount = wRemainSize / erBlkSize;
+                    rst          = erase(erBlkAddr, erBlkSize * blkCount);
+                    if (rst != Result::kOk) {
+                        break;
+                    }
+                    rst = _writeDirectly(wData, erBlkAddr, erBlkSize * blkCount);
+                    if (rst != Result::kOk) {
+                        break;
+                    }
+                }
+
+                wAddr += wSizeInBlk;
+                wData += wSizeInBlk;
+                wRemainSize -= wSizeInBlk;
+            } while (wRemainSize > 0);
+            return Result::kOk;
+        } else {
+            rst = _writeDirectly(data, address, size);
+            if (rst != Result::kOk) {
+                break;
+            }
+        }
+    } while (0);
+
+    return rst;
+};
+Result Block::erase(u32 address, u32 size) {
+    Result rst;
+
+    do {
+        // TODO: simplfy these mode.
+        if (_config.eraseMode == BlockMode::kRandomBlock) {
+            rst = eraseMedia(address, size);
+            if (rst != Result::kOk) {
+                break;
+            }
+        } else if (_config.eraseMode == BlockMode::kRandom) {
+            rst = eraseMedia(address, size);
+            if (rst != Result::kOk) {
+                break;
+            }
+        } else if (_config.eraseMode == BlockMode::kBlock) {
+            rst = eraseMedia(address, size);
+            if (rst != Result::kOk) {
+                break;
+            }
+        } else if (_config.eraseMode == BlockMode::kBlockwise) {
+            u32 blkAddress = address & ~(_calculatedConfig.eraseBlockSizeMask);
+            u32 blkSize    = size & ~(_calculatedConfig.eraseBlockSizeMask);
+            if ((address != blkAddress) || (size != blkSize)) {
+                // not aligned
+                rst = Result::kInvalidParameter;
+                break;
+            }
+            rst = eraseMedia(address >> (_calculatedConfig.eraseBlockSizeBits),
+                             size >> (_calculatedConfig.eraseBlockSizeBits));
+            if (rst != Result::kOk) {
+                break;
+            }
+        } else if (_config.eraseMode == BlockMode::kWrap) {
+            rst = Result::kOk;
+        } else {
+            rst = Result::kNotSupport;
+        }
+    } while (0);
+
+    return rst;
+};
+
+Result Block::_writeDirectly(void *data, u32 address, u32 size) {
+    Result rst;
+    if (_config.writeMode == BlockMode::kRandom) {
+        rst = writeMedia(data, address, size);
+        if (rst != Result::kOk) {
+            return rst;
+        }
+    } else if (_config.writeMode == BlockMode::kBlockwise) {
+        rst = writeMedia(data, address >> (_calculatedConfig.writeBlockSizeBits),
+                         size >> (_calculatedConfig.writeBlockSizeBits));
+        if (rst != Result::kOk) {
+            return rst;
+        }
+    } else if (_config.writeMode == BlockMode::kBlock) {
+        rst = writeMedia(data, address, size);
+        if (rst != Result::kOk) {
+            return rst;
+        }
+    } else if (_config.writeMode == BlockMode::kWrap) {
+        u32 sizeInBlock, remainSize;
+        remainSize = size;
+
+        u8 *curDataPtr = (u8 *)data;
+        do {
+            sizeInBlock = _config.writeBlockSize - (address & _calculatedConfig.writeBlockSizeMask);
+            if (sizeInBlock > remainSize) {
+                sizeInBlock = remainSize;
+            }
+            rst = writeMedia(curDataPtr, address, sizeInBlock);
+            if (rst != Result::kOk) {
+                return rst;
+            }
+
+            remainSize -= sizeInBlock;
+            curDataPtr += sizeInBlock;
+            address += sizeInBlock;
+        } while (remainSize > 0);
+
+        return Result::kOk;
+    }
+
+    return Result::kNotSupport;
+};
+
+}  // namespace wibot

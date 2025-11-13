@@ -6,6 +6,8 @@
 *.lo
 *.o
 *.obj
+*.ko
+*.elf
 
 # Precompiled Headers
 *.gch
@@ -13,6 +15,8 @@
 
 # Linker files
 *.ilk
+*.map
+*.exp
 
 # Debugger Files
 *.pdb
@@ -31,11 +35,39 @@
 *.la
 *.a
 *.lib
+*.lo
+
 
 # Executables
 *.exe
 *.out
 *.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
 
 # debug information files
 *.dwo
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+# log
+*.log
+
+# 编译输出
+build
+cmake-build-debug/
+/debug/
