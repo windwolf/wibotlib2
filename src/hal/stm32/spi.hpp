@@ -19,10 +19,10 @@ namespace wibot {
 
 class Spi : public SpiMaster, private PeripheralBase {
    public:
-    explicit Spi(SPI_HandleTypeDef& handle, Pin* csPin);
+    explicit Spi(SPI_HandleTypeDef& handle, Pin* csPin, const SpiConfig& config);
     ~Spi();
 
-    Result setConfig(SpiConfig& config) override;
+    Result setConfig(const SpiConfig& config) override;
 
    public:
     AsyncResult read(const Slice& data) override;

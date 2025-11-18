@@ -60,7 +60,7 @@ struct SpiConfig {
 
 class SpiMaster : public AsyncReader<const Slice>, public AsyncWriter<const Slice> {
    public:
-    virtual Result      setConfig(SpiConfig& config)                        = 0;
+    virtual Result      setConfig(const SpiConfig& config)                  = 0;
     virtual AsyncResult writeRead(const Slice& txData, const Slice& rxData) = 0;
     virtual Result      begin()                                             = 0;
     virtual Result      end()                                               = 0;

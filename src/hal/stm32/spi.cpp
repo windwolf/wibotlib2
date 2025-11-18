@@ -54,11 +54,6 @@ void Spi::_onError(SPI_HandleTypeDef* handle) {
 static void bits_switch(SPI_HandleTypeDef* handle, DataWidth dataWidth) {
 #if defined(STM32G4) || defined(STM32H0)
 
-    auto txDmaBase         = handle->hdmatx->DmaBaseAddress;
-    auto txDmaChannelIndex = (handle->hdmatx->ChannelIndex >> 2U) + 1;
-    auto rxDmaBese         = handle->hdmarx->DmaBaseAddress;
-    auto rxDmaChannelIndex = (handle->hdmarx->ChannelIndex >> 2U) + 1;
-
     auto initDataSize = (dataWidth == DataWidth::k8Bits) ? SPI_DATASIZE_8BIT : SPI_DATASIZE_16BIT;
     auto llDataWidth =
         (dataWidth == DataWidth::k8Bits) ? LL_SPI_DATAWIDTH_8BIT : LL_SPI_DATAWIDTH_16BIT;
@@ -67,23 +62,43 @@ static void bits_switch(SPI_HandleTypeDef* handle, DataWidth dataWidth) {
     auto llAlign =
         (dataWidth == DataWidth::k8Bits) ? LL_DMA_MDATAALIGN_BYTE : LL_DMA_MDATAALIGN_HALFWORD;
 
+    if (handle->hdmatx != nullptr) {
+        auto txDmaBase         = handle->hdmatx->DmaBaseAddress;
+        auto txDmaChannelIndex = (handle->hdmatx->ChannelIndex >> 2U) + 1;
+
+        LL_DMA_SetMemorySize(txDmaBase, txDmaChannelIndex, llAlign);
+        LL_DMA_SetPeriphSize(txDmaBase, txDmaChannelIndex, llAlign);
+
+        auto& init1               = handle->hdmatx->Init;
+        init1.MemDataAlignment    = initAlignment;
+        init1.MemDataAlignment    = initAlignment;
+        init1.PeriphDataAlignment = initAlignment;
+        init1.PeriphDataAlignment = initAlignment;
+    }
+
+    if (handle->hdmarx != nullptr) {
+        auto rxDmaBese         = handle->hdmarx->DmaBaseAddress;
+        auto rxDmaChannelIndex = (handle->hdmarx->ChannelIndex >> 2U) + 1;
+
+        LL_DMA_SetMemorySize(rxDmaBese, rxDmaChannelIndex, llAlign);
+        LL_DMA_SetPeriphSize(rxDmaBese, rxDmaChannelIndex, llAlign);
+
+        auto& init1               = handle->hdmarx->Init;
+        init1.MemDataAlignment    = initAlignment;
+        init1.MemDataAlignment    = initAlignment;
+        init1.PeriphDataAlignment = initAlignment;
+        init1.PeriphDataAlignment = initAlignment;
+    }
+
     handle->Init.DataSize = initDataSize;
     LL_SPI_SetDataWidth(handle->Instance, llDataWidth);
-    auto& init1               = handle->hdmatx->Init;
-    init1.MemDataAlignment    = initAlignment;
-    init1.MemDataAlignment    = initAlignment;
-    init1.PeriphDataAlignment = initAlignment;
-    init1.PeriphDataAlignment = initAlignment;
-
-    LL_DMA_SetMemorySize(txDmaBase, txDmaChannelIndex, llAlign);
-    LL_DMA_SetMemorySize(rxDmaBese, rxDmaChannelIndex, llAlign);
-    LL_DMA_SetPeriphSize(txDmaBase, txDmaChannelIndex, llAlign);
-    LL_DMA_SetPeriphSize(rxDmaBese, rxDmaChannelIndex, llAlign);
 
 #endif
 };
 
-Spi::Spi(SPI_HandleTypeDef& handle, Pin* csPin) : _handle(&handle), _csPin(csPin) {
+Spi::Spi(SPI_HandleTypeDef& handle, Pin* csPin, const SpiConfig& config)
+    : _handle(&handle), _csPin(csPin) {
+    setConfig(config);
     HAL_SPI_RegisterCallback(&handle, HAL_SPI_TX_COMPLETE_CB_ID, &_onWriteCplt);
     HAL_SPI_RegisterCallback(&handle, HAL_SPI_RX_COMPLETE_CB_ID, &_onReadCplt);
     HAL_SPI_RegisterCallback(&handle, HAL_SPI_TX_RX_COMPLETE_CB_ID, &_onWriteReadCplt);
@@ -155,9 +170,10 @@ AsyncResult Spi::writeRead(const Slice& txData, const Slice& rxData) {
 
     return _asyncSource.getResult();
 }
-Result Spi::setConfig(SpiConfig& config) {
+Result Spi::setConfig(const SpiConfig& config) {
     ASSERT(config.dataWidth == DataWidth::k8Bits || config.dataWidth == DataWidth::k16Bits,
            "SPI only support 8 or 16 bits data width");
+    _config = config;
     HAL_SPI_DeInit(_handle);
     _handle->Init.Mode      = SPI_MODE_MASTER;
     _handle->Init.Direction = SPI_DIRECTION_2LINES;

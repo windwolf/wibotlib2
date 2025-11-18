@@ -118,3 +118,10 @@ target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/ap
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/app)
 
 
+# ------------------------------
+
+target_link_libraries(${CMAKE_PROJECT_NAME}
+    wibotlib_impl
+    wibotlib
+    # Add user defined libraries
+)

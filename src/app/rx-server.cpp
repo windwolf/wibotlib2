@@ -3,6 +3,7 @@
 #include "model.hpp"
 
 #include "logger.hpp"
+#include "os.hpp"
 LOGGER("cmdsrv")
 
 namespace wibot {
@@ -39,6 +40,7 @@ void RxServer::run() {
 Result RxServer::startServer(bool retry) {
     Result rst;
     do {
+        rst = _reader.open();
         if (!rst.isOk()) {
             if (retry) {
                 LOG_E("Failed to start serve. Retrying...");
@@ -46,8 +48,8 @@ Result RxServer::startServer(bool retry) {
                 LOG_E("Failed to start server.");
                 return rst;
             }
+            os::sleep(1);
         }
-        rst = _reader.open();
     } while (!rst.isOk() && retry);
     LOG_I("Command server started.");
     return rst;
