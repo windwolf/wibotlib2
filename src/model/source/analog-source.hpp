@@ -20,22 +20,13 @@ class AnalogSource : public SyncPipeline<i16> {
         u8 adcResolution;  ///< ADC分辨率位数: 8=8位(0-255), 12=12位(0-4095), 16=16位(0-65535)
     };
 
-    /**
-     * @brief 自动校准配置
-    */
-    struct AutoCalibrationConfig {
-        u32 sampleIntervalMs;  ///< 采样间隔时间（毫秒）
-        u16 sampleCount;       ///< 采样次数
-    };
-
    public:
     /**
      * @brief 构造内存数据源
      * 
      * @param config ADC配置参数
-     * @param buffer 外部缓冲区指针，由ADC通过DMA更新的原始值数据
      */
-    explicit AnalogSource(const Config& config, const u16 buffer[CHANNELS]);
+    explicit AnalogSource(const Config& config);
 
     // Pipeline接口实现
     void update() override;
@@ -52,51 +43,41 @@ class AnalogSource : public SyncPipeline<i16> {
     }
 
     /**
-     * @brief 手动设置校准偏移
+     * @brief 获取外部缓冲区
      * 
-     * @param offset 偏移量 (原始值)
+     * @return u16* 外部缓冲区指针
      */
-    void setCalibration(u8 channel, i16 offset);
+    u16* getBuffer();
 
     /**
-     * @brief 获取校准偏移
+     * @brief 设置通道偏移量
      * 
-     * @return i16 偏移量 (原始值)
+     * @param channel 通道索引
+     * @param offset 偏移量
      */
-    i16 getCalibration(u8 channel) const;
+    void setOffset(u8 channel, i16 offset);
 
     /**
-     * @brief 设置外部缓冲区
+     * @brief 获取通道偏移量
      * 
-     * @param buffer 外部缓冲区指针，由ADC通过DMA更新的原始值数据
+     * @param channel 通道索引
+     * @return i16 偏移量
      */
-    void setBuffer(const u16 buffer[CHANNELS]);
+    i16 getOffset(u8 channel) const;
 
     /**
-     * @brief 开始自动校准
+     * @brief 设置所有通道的偏移量
      * 
-     * @param config 自动校准配置参数
+     * @param offsets 偏移量数组（长度必须为 CHANNELS）
      */
-    void startAutoCalibration(const AutoCalibrationConfig& config);
+    void setOffsets(const i16 offsets[CHANNELS]);
 
     /**
-     * @brief 停止自动校准
-     */
-    void stopAutoCalibration();
-
-    /**
-     * @brief 获取自动校准状态
+     * @brief 获取所有通道的偏移量
      * 
-     * @return true 正在校准中，false 校准已完成或未开始
+     * @return const i16* 偏移量数组指针
      */
-    bool isCalibrating() const;
-
-    /**
-     * @brief 获取自动校准进度
-     * 
-     * @return 当前采样进度（0-100%）
-     */
-    f32 getCalibrationProgress() const;
+    const i16* getOffsets() const;
 
    private:
     /**
@@ -108,35 +89,13 @@ class AnalogSource : public SyncPipeline<i16> {
      */
     i16 _convertToInt16(u32 raw) const;
 
-    /**
-     * @brief 应用校准
-     * 
-     * @param value 待校准的值
-     * @param channel 通道索引
-     */
-    i16 _applyCalibration(i16 value, u8 channel) const;
-
-    /**
-     * @brief 处理自动校准逻辑
-     * 
-     * @param currentTimeMs 当前时间（毫秒）
-     * @param accumulator 各通道累加器（栈中分配）
-     */
-    void _processAutoCalibration(u32 currentTimeMs);
-
    private:
-    Config     _config;                    ///< ADC配置
-    u32        _maxAdcValue;               ///< ADC最大值
-    i16        _values[CHANNELS];          ///< 各通道校准后的值
-    const u16* _buffer;                    ///< 外部缓冲区指针
-    i16        _channelOffsets[CHANNELS];  ///< 各通道独立的校准偏移
+    Config _config;       ///< ADC配置
+    u32    _maxAdcValue;  ///< ADC最大值
 
-    // 自动校准相关
-    bool                  _isCalibrating;     ///< 是否正在校准
-    u16                   _calibSampleCount;  ///< 当前采样计数
-    u32                   _lastSampleTime;    ///< 上次采样时间（毫秒）
-    AutoCalibrationConfig _autoCalConfig;
-    u32                   _calibAccumulator[CHANNELS];  ///< 校准累加器
+    u16 _buffer[CHANNELS];   ///< 原始值缓冲区
+    i16 _values[CHANNELS];   ///< 各通道校准后的值
+    i16 _offsets[CHANNELS];  ///< 各通道偏移量
 };
 
 // ============================================================================
@@ -144,17 +103,12 @@ class AnalogSource : public SyncPipeline<i16> {
 // ============================================================================
 
 template <u8 CHANNELS>
-AnalogSource<CHANNELS>::AnalogSource(const Config& config, const u16 buffer[CHANNELS])
-    : _config(config),
-      _buffer(buffer),
-      _isCalibrating(false),
-      _calibSampleCount(0),
-      _lastSampleTime(0) {
+AnalogSource<CHANNELS>::AnalogSource(const Config& config) : _config(config) {
     _maxAdcValue = (1U << _config.adcResolution) - 1;
 
-    // 初始化各通道偏移为0
+    // 初始化偏移量为0
     for (u8 ch = 0; ch < CHANNELS; ch++) {
-        _channelOffsets[ch] = 0;
+        _offsets[ch] = 0;
     }
 
     reset();
@@ -162,82 +116,19 @@ AnalogSource<CHANNELS>::AnalogSource(const Config& config, const u16 buffer[CHAN
 
 template <u8 CHANNELS>
 void AnalogSource<CHANNELS>::update() {
-    if (_isCalibrating) {
-        _processAutoCalibration(System::getTickMs());
-    }
-
-    // 从外部缓冲区读取原始值并转换
-    if (_buffer != nullptr) {
-        for (u8 ch = 0; ch < CHANNELS; ch++) {
-            i16 converted = _convertToInt16(_buffer[ch]);
-            _values[ch]   = _applyCalibration(converted, ch);
-        }
-    }
-}
-
-template <u8 CHANNELS>
-void AnalogSource<CHANNELS>::reset() {
+    // 从外部缓冲区读取原始值并转换，然后应用偏移量
     for (u8 ch = 0; ch < CHANNELS; ch++) {
-        _values[ch] = 0;
+        i16 converted = _convertToInt16(_buffer[ch]);
+
+        // 应用偏移校准: calibratedValue = rawValue + offset
+        i32 result = static_cast<i32>(converted) + static_cast<i32>(_offsets[ch]);
+
+        // 限制到 int16_t 范围
+        if (result > 32767) result = 32767;
+        if (result < -32768) result = -32768;
+
+        _values[ch] = static_cast<i16>(result);
     }
-    _isCalibrating    = false;
-    _calibSampleCount = 0;
-    _lastSampleTime   = 0;
-}
-
-template <u8 CHANNELS>
-i16 AnalogSource<CHANNELS>::getValue(u8 channel) const {
-    if (channel >= CHANNELS) {
-        return 0;  // 返回无效值
-    }
-    return _values[channel];
-}
-
-template <u8 CHANNELS>
-i16* AnalogSource<CHANNELS>::getValues() const {
-    return const_cast<i16*>(_values);
-}
-
-template <u8 CHANNELS>
-void AnalogSource<CHANNELS>::setCalibration(u8 channel, i16 offset) {
-    _channelOffsets[channel] = offset;
-}
-
-template <u8 CHANNELS>
-i16 AnalogSource<CHANNELS>::getCalibration(u8 channel) const {
-    return _channelOffsets[channel];
-}
-
-template <u8 CHANNELS>
-void AnalogSource<CHANNELS>::setBuffer(const u16 buffer[CHANNELS]) {
-    _buffer = buffer;
-}
-
-template <u8 CHANNELS>
-void AnalogSource<CHANNELS>::startAutoCalibration(const AutoCalibrationConfig& config) {
-    _autoCalConfig    = config;
-    _isCalibrating    = true;
-    _calibSampleCount = 0;
-    _lastSampleTime   = 0;
-}
-
-template <u8 CHANNELS>
-void AnalogSource<CHANNELS>::stopAutoCalibration() {
-    _isCalibrating    = false;
-    _calibSampleCount = 0;
-}
-
-template <u8 CHANNELS>
-bool AnalogSource<CHANNELS>::isCalibrating() const {
-    return _isCalibrating;
-}
-
-template <u8 CHANNELS>
-f32 AnalogSource<CHANNELS>::getCalibrationProgress() const {
-    if (!_isCalibrating || _autoCalConfig.sampleCount == 0) {
-        return 0.0f;
-    }
-    return (f32)_calibSampleCount / (f32)_autoCalConfig.sampleCount * 100.0f;
 }
 
 template <u8 CHANNELS>
@@ -261,56 +152,55 @@ i16 AnalogSource<CHANNELS>::_convertToInt16(u32 raw) const {
 }
 
 template <u8 CHANNELS>
-i16 AnalogSource<CHANNELS>::_applyCalibration(i16 value, u8 channel) const {
-    if (channel >= CHANNELS) return value;
-
-    // 应用全局偏移和通道独立偏移: value = value + globalOffset + channelOffset
-    i32 result = static_cast<i32>(value) + static_cast<i32>(_channelOffsets[channel]);
-
-    // 限制到int16_t范围
-    if (result > 32767) result = 32767;
-    if (result < -32768) result = -32768;
-
-    return static_cast<i16>(result);
+void AnalogSource<CHANNELS>::reset() {
+    for (u8 ch = 0; ch < CHANNELS; ch++) {
+        _values[ch] = 0;
+    }
 }
 
 template <u8 CHANNELS>
-void AnalogSource<CHANNELS>::_processAutoCalibration(u32 currentTimeMs) {
-    if (!_isCalibrating || _buffer == nullptr) {
-        return;
+i16 AnalogSource<CHANNELS>::getValue(u8 channel) const {
+    if (channel >= CHANNELS) {
+        return 0;  // 返回无效值
     }
+    return _values[channel];
+}
 
-    // 检查是否到了采样时间
-    if (currentTimeMs - _lastSampleTime >= _autoCalConfig.sampleIntervalMs) {
-        _lastSampleTime = currentTimeMs;
+template <u8 CHANNELS>
+i16* AnalogSource<CHANNELS>::getValues() const {
+    return const_cast<i16*>(_values);
+}
 
-        // 累加当前所有通道的原始值
-        for (u8 ch = 0; ch < CHANNELS; ch++) {
-            _calibAccumulator[ch] += _buffer[ch];
-        }
+template <u8 CHANNELS>
+u16* AnalogSource<CHANNELS>::getBuffer() {
+    return _buffer;
+}
 
-        _calibSampleCount++;
-
-        // 检查是否完成所有采样
-        if (_calibSampleCount >= _autoCalConfig.sampleCount) {
-            // 计算各通道的平均值作为偏移量
-            for (u8 ch = 0; ch < CHANNELS; ch++) {
-                u32 average         = _calibAccumulator[ch] / _autoCalConfig.sampleCount;
-                // 将原始值平均转换为int16_t范围的偏移
-                i16 avgConverted    = _convertToInt16(average);
-                // 设置通道偏移量为负值，这样可以将当前值校准到0附近
-                _channelOffsets[ch] = -avgConverted;
-            }
-
-            // 校准完成，重置累加器
-            for (u8 ch = 0; ch < CHANNELS; ch++) {
-                _calibAccumulator[ch] = 0;
-            }
-
-            _isCalibrating    = false;
-            _calibSampleCount = 0;
-        }
+template <u8 CHANNELS>
+void AnalogSource<CHANNELS>::setOffset(u8 channel, i16 offset) {
+    if (channel < CHANNELS) {
+        _offsets[channel] = offset;
     }
+}
+
+template <u8 CHANNELS>
+i16 AnalogSource<CHANNELS>::getOffset(u8 channel) const {
+    if (channel >= CHANNELS) {
+        return 0;
+    }
+    return _offsets[channel];
+}
+
+template <u8 CHANNELS>
+void AnalogSource<CHANNELS>::setOffsets(const i16 offsets[CHANNELS]) {
+    for (u8 ch = 0; ch < CHANNELS; ch++) {
+        _offsets[ch] = offsets[ch];
+    }
+}
+
+template <u8 CHANNELS>
+const i16* AnalogSource<CHANNELS>::getOffsets() const {
+    return _offsets;
 }
 
 }  // namespace wibot

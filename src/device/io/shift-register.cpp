@@ -28,7 +28,7 @@ PinSoutShiftRegister::PinSoutShiftRegister(SpiMaster* spi, Pin& plPin) : _spi(sp
     _plPin->setValue(true);
 };
 
-Result PinSoutShiftRegister::read(Slice& data) {
+Result PinSoutShiftRegister::read(const Slice& data) {
     Result rst;
     _plPin->setValue(false);
     System::delayUs(1);  // 确保数据准备好

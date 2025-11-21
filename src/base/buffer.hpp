@@ -7,14 +7,6 @@
 
 namespace wibot {
 
-#define BUFFER(name, size)  \
-    u8    name##Data[size]; \
-    Slice name = Slice(name##Data, size)
-
-#define STATIC_BUFFER(name, size)  \
-    static u8    name##Data[size]; \
-    static Slice name = Slice(name##Data, size)
-
 struct Slice {
    public:
     Slice() = default;
@@ -55,19 +47,19 @@ struct Slice {
     u8* data;
     u16 size;
 
-    //    private:
-    //     u32 _idx;
+   private:
+    u8 _shift;
 };
 
-template <u16 CAP>
+template <u16 CAP, typename T = u8>
 struct Buffer {
     u16 size = CAP;
-    u8  data[CAP];
+    T   data[CAP];
 
     constexpr static u16 cap = CAP;
 
     operator Slice() {
-        return Slice(data, size);
+        return Slice(data, sizeof(T) * size);
     };
 };
 

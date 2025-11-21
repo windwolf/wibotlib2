@@ -70,6 +70,7 @@ target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/mo
 target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/model/adapter)
 target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/model/rw)
 target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/model/controller)
+target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/model/util)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/model)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/model/filter)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/model/source)
@@ -77,6 +78,7 @@ target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/model/mapper)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/model/adapter)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/model/rw)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/model/controller)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/model/util)
 
 
 target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/camera)

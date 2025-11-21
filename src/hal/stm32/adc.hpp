@@ -100,14 +100,6 @@ class AdcRegularSource : public AnalogSource<CHANNELS> {
      */
     Result reconfigure(const AdcRegularSourceConfig& config);
 
-    /**
-     * @brief 获取ADC句柄
-     * 
-     * @return ADC句柄指针
-     */
-    ADC_HandleTypeDef* getAdcHandle() const;
-
-
     void calibrate();
 
    private:
@@ -259,13 +251,7 @@ Result AdcRegularSource<CHANNELS>::reconfigure(const AdcRegularSourceConfig& con
 }
 
 template <u8 CHANNELS>
-ADC_HandleTypeDef* AdcRegularSource<CHANNELS>::getAdcHandle() const {
-    return _ins;
-}
-
-template <u8 CHANNELS>
 void AdcRegularSource<CHANNELS>::calibrate() {
-
     // 校准ADC（如果支持）
     if (HAL_ADCEx_Calibration_Start(_ins, ADC_SINGLE_ENDED) != HAL_OK) {
         // 校准失败，但不一定是致命错误，继续初始化

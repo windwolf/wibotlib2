@@ -19,7 +19,7 @@ class PinSoutShiftRegister {
    public:
     PinSoutShiftRegister(SpiMaster* spi, Pin& plPin);
 
-    Result read(Slice& data);
+    Result read(const Slice& data);
 
    private:
     SpiMaster* _spi;
