@@ -40,7 +40,7 @@ class Uart : public UartStream, public PeripheralBase {
      * @param data 
      * @return AsyncResult 
      */
-    AsyncResult read(Slice &data) override;
+    AsyncResult read(const Slice &data) override;
     /**
      * @brief 写入tx数据, 直到完成才发出完成通知.
      * @note `write`不能并行使用
@@ -72,7 +72,7 @@ class Uart : public UartStream, public PeripheralBase {
     //CircularBuffer8    &_txBuffer;
     CircularBuffer8    *_rxBuffer;
     // const Slice       *_txUserBuffer;
-    Slice              *_rxUserBuffer;
+    const Slice        *_rxUserBuffer;
     u16                 _lastPos;
     u16                 _readedLength;
 

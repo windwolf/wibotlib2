@@ -136,7 +136,7 @@ AsyncResult Uart::subscribe() {
     return _rxAsyncSource.getResult(true);
 };
 
-AsyncResult Uart::read(Slice &data) {
+AsyncResult Uart::read(const Slice &data) {
     if (_isCircularMode()) {
         return AsyncResult::fromError(Result::kNotSupport);
     }

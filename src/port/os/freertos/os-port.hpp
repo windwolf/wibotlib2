@@ -10,10 +10,11 @@ namespace wibot {
 
 using THREAD_TYPEDEF                = StaticTask_t;
 using THREAD_FUNCTION_ARGUMENT_TYPE = void*;
-using MESSAGEQUEUE_TYPEDEF          = StaticQueue_t;
-using MUTEX_TYPEDEF                 = StaticSemaphore_t;
-using EVENTGROUP_TYPEDEF            = StaticEventGroup_t;
-using SEMAPHORE_TYPEDEF             = StaticSemaphore_t;
+
+using MESSAGEQUEUE_TYPEDEF = StaticQueue_t;
+using MUTEX_TYPEDEF        = StaticSemaphore_t;
+using EVENTGROUP_TYPEDEF   = StaticEventGroup_t;
+using SEMAPHORE_TYPEDEF    = StaticSemaphore_t;
 
 #define TIMER_TYPEDEF \
     u32 _period;      \

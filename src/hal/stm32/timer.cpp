@@ -2,7 +2,6 @@
 #include "async.hpp"
 #
 #include "peripheral.hpp"
-#include "stm32g4xx_ll_tim.h"
 #include "system.hpp"
 
 namespace wibot {

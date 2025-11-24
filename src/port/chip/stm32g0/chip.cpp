@@ -1,13 +1,13 @@
 //
 // Created by zhouj on 2023/9/12.
 //
+#include "stm32g031xx.h"
 #include "system.hpp"
 namespace wibot {
 
 __STATIC_INLINE u32 LL_SYSTICK_IsActiveCounterFlag() {
     return ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) == (SysTick_CTRL_COUNTFLAG_Msk));
 }
-
 
 u32 System::getSysClockFreq() {
     return HAL_RCC_GetSysClockFreq();
@@ -21,35 +21,38 @@ u32 System::getPCLK1Freq() {
     return HAL_RCC_GetPCLK1Freq();
 }
 
+// u32 System::getPCLK2Freq() {
+//     return HAL_RCC_GetPCLK2Freq();
+// }
+
+constexpr u8 GetTimerAPBIndex(TIM_TypeDef* instance) {
+    return 1;
+}
+
 u32 System::getPCLK1TimFreq() {
     u32 pclk1 = getPCLK1Freq();
-    if ( READ_BIT(RCC->CFGR, RCC_CFGR_PPRE1_Msk) == RCC_CFGR_PPRE1_DIV1) {
+
+    if (READ_BIT(RCC->CFGR, RCC_CFGR_PPRE_2) == 0x00) {
         return pclk1;
     } else {
         return pclk1 * 2;
     }
 }
 
-u32 System::getPCLK2Freq() {
-    return HAL_RCC_GetPCLK2Freq();
-}
-
-u32 System::getPCLK2TimFreq() {
-    u32 pclk2 = getPCLK2Freq();
-    if (READ_BIT(RCC->CFGR, RCC_CFGR_PPRE2_Msk) & RCC_CFGR_PPRE2_DIV1) {
-        return pclk2;
-    } else {
-        return pclk2 * 2;
-    }
-}
+// u32 System::getPCLK2TimFreq() {
+//     u32 pclk2 = getPCLK2Freq();
+//     if (READ_BIT(RCC->CFGR, RCC_CFGR_PPRE2_Msk) & RCC_CFGR_PPRE2_DIV1) {
+//         return pclk2;
+//     } else {
+//         return pclk2 * 2;
+//     }
+// }
 
 u32 System::getTIMFreq(TIM_TypeDef* tim) {
     auto apbIdx = GetTimerAPBIndex(tim);
     ASSERT(apbIdx != 0, "Invalid TIM instance");
     return (apbIdx == 1) ? getPCLK1TimFreq() : getPCLK2TimFreq();
 }
-
-
 
 u32 System::getTickMs() {
     return HAL_GetTick();

@@ -1,81 +1,24 @@
 ﻿#pragma once
 
-#include "stm32g431xx.h"
 #include "type.hpp"
 #include "../port.hpp"
 
 #if defined(STM32F1xx)
-#include "stm32f1xx_hal.h"
-#include "stm32f1xx_hal_tim.h"
-#include "stm32f1xx_ll_adc.h"
-#include "stm32f1xx_ll_dac.h"
-#include "stm32f1xx_ll_dma.h"
-#include "stm32f1xx_ll_gpio.h"
-#include "stm32f1xx_ll_i2c.h"
-#include "stm32f1xx_ll_rcc.h"
-#include "stm32f1xx_ll_spi.h"
-#include "stm32f1xx_ll_tim.h"
-#include "stm32f1xx_ll_usart.h"
+#include "stm32f1/chip.hpp"
 
 #endif
 
 #if defined(STM32G4xx)
-#include "stm32g4xx_hal.h"
-#include "stm32g4xx_ll_adc.h"
-#include "stm32g4xx_ll_dac.h"
-#include "stm32g4xx_ll_dma.h"
-#include "stm32g4xx_ll_gpio.h"
-#include "stm32g4xx_ll_i2c.h"
-#include "stm32g4xx_ll_rcc.h"
-#include "stm32g4xx_ll_spi.h"
-#include "stm32g4xx_ll_tim.h"
-#include "stm32g4xx_ll_usart.h"
-
-constexpr u8 GetTimerAPBIndex(TIM_TypeDef *instance) {
-    if (instance == TIM1 || instance == TIM8 || instance == TIM15 || instance == TIM16 ||
-        instance == TIM17) {
-        return 2;
-    } else if (instance == TIM2 || instance == TIM3 || instance == TIM4 || instance == TIM6 ||
-               instance == TIM7) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
+#include "stm32g4/chip.hpp"
 #endif
 
 #if defined(STM32G0xx)
-#include "stm32g0xx_hal.h"
-#include "stm32g0xx_hal_adc.h"
-#include "stm32g0xx_hal_dac.h"
-#include "stm32g0xx_hal_i2c.h"
-#include "stm32g0xx_hal_rcc.h"
-#include "stm32g0xx_hal_spi.h"
-#include "stm32g0xx_hal_uart.h"
-#include "stm32g0xx_ll_adc.h"
-#include "stm32g0xx_ll_dac.h"
-#include "stm32g0xx_ll_dma.h"
-#include "stm32g0xx_ll_gpio.h"
-#include "stm32g0xx_ll_i2c.h"
-#include "stm32g0xx_ll_rcc.h"
-#include "stm32g0xx_ll_spi.h"
-#include "stm32g0xx_ll_tim.h"
-#include "stm32g0xx_ll_usart.h"
+#include "stm32g0/chip.hpp"
 
 #endif
 
 #if defined(STM32H7xx)
-#include "stm32h7xx_hal.h"
-#include "stm32h7xx_ll_adc.h"
-#include "stm32h7xx_ll_dac.h"
-#include "stm32h7xx_ll_dma.h"
-#include "stm32h7xx_ll_gpio.h"
-#include "stm32h7xx_ll_i2c.h"
-#include "stm32h7xx_ll_rcc.h"
-#include "stm32h7xx_ll_spi.h"
-#include "stm32h7xx_ll_tim.h"
-#include "stm32h7xx_ll_usart.h"
+#include "stm32h7/chip.hpp"
 
 #endif
 
@@ -193,45 +136,3 @@ constexpr static u32 kWriteSize      = 0x0008;  // 8 bytes
 #endif  // HAL_FLASH_MODULE_ENABLED
 
 /********** DMA **************************/
-
-/********** MEMORY SECTION & ALIGNMENT  **************************/
-#define CACHE_LINE_SIZE 4
-#define DMA_ALIGN       __attribute__((aligned(CACHE_LINE_SIZE)))
-
-#ifdef STM32H7xx
-#define AXI_BUFFER \
-    __attribute__((section(".AXI_RAM1.bss"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-#define RAM1_BUFFER __attribute__((section(".RAM1.bss"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-#define RAM2_BUFFER __attribute__((section(".RAM2.bss"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-#define RAM3_BUFFER __attribute__((section(".RAM3.bss"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-#define RAM4_BUFFER __attribute__((section(".RAM4.bss"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-#define BACKUP_BUFFER \
-    __attribute__((section(".Backup_RAM1.bss"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-
-#define AXI_DATA \
-    __attribute__((section(".AXI_RAM1.data"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-#define RAM1_DATA __attribute__((section(".RAM1.data"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-#define RAM2_DATA __attribute__((section(".RAM2.data"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-#define RAM3_DATA __attribute__((section(".RAM3.data"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-#define RAM4_DATA __attribute__((section(".RAM4.data"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-#define BACKUP_DATA \
-    __attribute__((section(".Backup_RAM1.data"))) __attribute__((aligned(CACHE_LINE_SIZE)))
-#else
-
-#define AXI_BUFFER
-#define RAM1_BUFFER
-#define RAM2_BUFFER
-#define RAM3_BUFFER
-#define RAM4_BUFFER
-#define BACKUP_BUFFER
-
-#define AXI_DATA
-#define RAM1_DATA
-#define RAM2_DATA
-#define RAM3_DATA
-#define RAM4_DATA
-#define BACKUP_DATA
-
-/************ MEMORY SECTION & ALIGNMENT  **************************/
-
-#endif

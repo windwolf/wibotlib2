@@ -1,5 +1,4 @@
 #include "gpio.hpp"
-#include "stm32g4xx_hal_gpio.h"
 #include "system.hpp"
 
 namespace wibot {

@@ -48,6 +48,8 @@ target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/log/rtt)
 
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/port/arch)
 
+target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/port/chip)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/port/chip)
 
 target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/port/os)
 target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/os)

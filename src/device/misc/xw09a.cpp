@@ -3,6 +3,7 @@
 //
 
 #include "xw09a.hpp"
+#include "buffer.hpp"
 
 namespace wibot {
 
@@ -10,7 +11,7 @@ XW09A::XW09A(I2cMaster* i2c) : _i2c(i2c) {
 }
 
 u16 XW09A::refreshState() {
-    BUFFER(data, 2);
+    Buffer<2> data;
     auto ar = _i2c->readReg(0x00, data);
     ar.wait(TIMEOUT_FOREVER);
     _state = data.data[0] << 8 | data.data[1];

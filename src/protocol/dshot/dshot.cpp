@@ -4,7 +4,7 @@
 
 #include "dshot.hpp"
 #include "peripheral.hpp"
-#include "stm32g4xx_hal_tim.h"
+
 #include "system.hpp"
 
 namespace wibot {

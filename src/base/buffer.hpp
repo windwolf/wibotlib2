@@ -9,8 +9,16 @@ namespace wibot {
 
 struct Slice {
    public:
-    Slice() = default;
-    Slice(u8* data, u16 size);
+    Slice(u8 &data) : Slice(&data, 1) {};
+    Slice(u16 &data) : Slice((u8 *)&data, 2) {};
+    Slice(u32 &data) : Slice((u8 *)&data, 4) {};
+    Slice(u64 &data) : Slice((u8 *)&data, 8) {};
+    Slice(i8 &data) : Slice((u8 *)&data, 1) {};
+    Slice(i16 &data) : Slice((u8 *)&data, 2) {};
+    Slice(i32 &data) : Slice((u8 *)&data, 4) {};
+    Slice(i64 &data) : Slice((u8 *)&data, 8) {};
+    Slice(float &data) : Slice((u8 *)&data, 4) {};
+    Slice(u8 *data, u16 size);
 
     void clear();
 
@@ -44,11 +52,8 @@ struct Slice {
     void setFloat(u16 index, f32 value, Endian endian = Endian::kBig);
     //void setFloat(f32 value, Endian endian = Endian::kBig);
 
-    u8* data;
+    u8 *data;
     u16 size;
-
-   private:
-    u8 _shift;
 };
 
 template <u16 CAP, typename T = u8>

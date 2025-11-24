@@ -107,12 +107,12 @@ RolaE22Config& RolaE22Uart::getConfig() {
     os::sleep(1);
     waitAux();
 
-    BUFFER(cmd, 3);
+    Buffer<3> cmd;
     cmd.data[0] = 0xC1;
     cmd.data[1] = 0x00;
     cmd.data[2] = 0x09;
 
-    BUFFER(rcv, 12);
+    Buffer<12> rcv;
     auto rar = _uart->read(rcv);
     auto war = _uart->write(cmd);
     war.wait(TIMEOUT_FOREVER);

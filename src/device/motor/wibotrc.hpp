@@ -8,8 +8,6 @@
 #include "message-reader.hpp"
 #include "rx-server.hpp"
 #include "slope-trajectory.hpp"
-#include "stm32g4xx_hal_tim.h"
-#include "stm32g4xx_hal_uart.h"
 #include "type.hpp"
 #include "uart.hpp"
 

@@ -36,7 +36,7 @@ struct UartConfig {
     bool           notIgnoreNoiseError   : 1;
 };
 
-class UartStream : public AsyncEventSource, public AsyncReader<Slice>, public AsyncWriter<Slice> {
+class UartStream : public AsyncEventSource, public AsyncReader<const Slice>, public AsyncWriter<const Slice> {
    public:
     virtual Result setConfig(UartConfig& config) = 0;
 };

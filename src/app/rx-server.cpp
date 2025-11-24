@@ -14,9 +14,9 @@ RxServer::~RxServer() {
 }
 
 void RxServer::run() {
-    BUFFER(_frameBuffer, MAX_RX_SERVER_FRAME_SIZE);
-    MessageFrame frame(_frameBuffer);
-    Result       rst;
+    Buffer<MAX_RX_SERVER_FRAME_SIZE> _frameBuffer;
+    MessageFrame                     frame(_frameBuffer);
+    Result                           rst;
 
     startServer(true);
 

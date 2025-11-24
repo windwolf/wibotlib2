@@ -1,6 +1,5 @@
 #include "wibotrc.hpp"
 #include "os.hpp"
-#include "stm32g4xx_hal_tim.h"
 #include "type.hpp"
 
 namespace wibot {

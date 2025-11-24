@@ -20,8 +20,8 @@ f32 Mt6701I2c::GetAngle() {
 }
 
 u32 Mt6701I2c::GetData() {
-    BUFFER(h8, 1);
-    BUFFER(l6, 1);
+    u8 h8;
+    u8 l6;
 
     auto   ar    = _i2c->readReg(MT6701_I2C_ANGLE_H8, h8);
     Result rsth8 = ar.wait(TIMEOUT_FOREVER);
@@ -32,7 +32,7 @@ u32 Mt6701I2c::GetData() {
     Result rstl6 = ar.wait(TIMEOUT_FOREVER);
 
     if (rstl6 == Result::kOk) {
-        this->_value = (h8.data[0] << 6) + (l6.data[0] >> 2);
+        this->_value = (h8 << 6) + (l6 >> 2);
     }
     return this->_value;
 }
