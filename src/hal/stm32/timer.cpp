@@ -4,6 +4,8 @@
 #include "peripheral.hpp"
 #include "system.hpp"
 
+#ifdef HAL_TIM_MODULE_ENABLED
+
 namespace wibot {
 
 Timer::Timer(TIM_HandleTypeDef& htim) : _instance(&htim), _updateEventSource() {
@@ -76,3 +78,5 @@ Result Timer::stop() {
 }
 
 }  // namespace wibot
+
+#endif  // HAL_TIM_MODULE_ENABLED

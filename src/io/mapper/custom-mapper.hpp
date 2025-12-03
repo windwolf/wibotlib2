@@ -41,27 +41,55 @@ class CustomMapper : public SyncPipeline<TOut> {
      * @param upstream 上游管道
      * @param config 共享的映射配置
      */
-    CustomMapper(SyncPipeline<TIn>& upstream, const Config& config);
+    CustomMapper(SyncPipeline<TIn>& upstream, const Config& config)
+        : _upstream(upstream), _config(config) {
+        // 验证配置有效性
+        if (!isConfigValid(config)) {
+            // 如果配置无效，提供一个默认的恒等映射函数
+            _config.mappingFunc = [](TIn input, u8 /*channel*/) -> TOut {
+                return static_cast<TOut>(input);
+            };
+        }
+    }
 
     /**
      * @brief 获取映射后的值
      */
-    TOut getValue(u8 channel) const override;
+    TOut getValue(u8 channel) const override {
+        if (channel >= CHANNELS) {
+            return TOut{};  // 无效通道返回默认值
+        }
+
+        // 获取上游值并直接调用映射函数
+        TIn input = _upstream.getValue(channel);
+        return _config.mappingFunc(input, channel);
+    }
 
     /**
      * @brief 重置管道状态
      */
-    void reset() override;
+    void reset() override {
+        // 无状态映射器，无需重置，但需要重置上游
+        _upstream.reset();
+    }
 
     /**
      * @brief 更新管道状态
      */
-    void update() override;
+    void update() override {
+        // 无状态映射器，只需要更新上游
+        _upstream.update();
+    }
 
     /**
      * @brief 更新映射配置（影响所有通道）
      */
-    void updateConfig(const Config& config);
+    void updateConfig(const Config& config) {
+        if (isConfigValid(config)) {
+            _config = config;
+        }
+        // 如果配置无效，保持原有配置不变
+    }
 
     /**
      * @brief 验证配置是否有效
@@ -70,7 +98,10 @@ class CustomMapper : public SyncPipeline<TOut> {
      * @return true 配置有效
      * @return false 配置无效（映射函数为空等）
      */
-    static bool isConfigValid(const Config& config);
+    static bool isConfigValid(const Config& config) {
+        // 检查映射函数是否有效
+        return static_cast<bool>(config.mappingFunc);
+    }
 
    private:
    private:

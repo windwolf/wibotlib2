@@ -14,12 +14,16 @@ void ControlLoop::run() {
     }
 };
 
+#if defined(HAL_TIM_MODULE_ENABLED)
+
 TimerControlLoop::TimerControlLoop(TIM_HandleTypeDef& handle, u32 freqency)
     : _timer(handle), _frequency(freqency) {};
 
 AsyncResult TimerControlLoop::getLoopSignal() {
     return _timer.start(_frequency);
 };
+
+#endif  // HAL_TIM_MODULE_ENABLED
 
 void TriggerControlLoop::trigger() {
     _asyncSource.setDone();

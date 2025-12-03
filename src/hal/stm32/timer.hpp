@@ -2,7 +2,6 @@
 
 #include "async.hpp"
 #include "chip.hpp"
-#
 #include "peripheral.hpp"
 
 #ifdef HAL_TIM_MODULE_ENABLED

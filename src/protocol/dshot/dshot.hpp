@@ -4,7 +4,7 @@
 #include "chip.hpp"
 #include "peripheral.hpp"
 
-#
+#if defined(HAL_TIM_MODULE_ENABLED)
 
 namespace wibot {
 
@@ -46,3 +46,5 @@ class DShot : private PeripheralBase {
 };
 
 }  // namespace wibot
+
+#endif  // HAL_TIM_MODULE_ENABLED

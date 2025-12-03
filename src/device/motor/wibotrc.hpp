@@ -11,6 +11,8 @@
 #include "type.hpp"
 #include "uart.hpp"
 
+#if defined(HAL_TIM_MODULE_ENABLED) && defined(HAL_UART_MODULE_ENABLED)
+
 namespace wibot {
 extern "C" struct WibotRcState {
     /**
@@ -98,3 +100,5 @@ class WibotRcController : public Worker {
 };
 
 }  // namespace wibot
+
+#endif // HAL_TIM_MODULE_ENABLED && HAL_UART_MODULE_ENABLED

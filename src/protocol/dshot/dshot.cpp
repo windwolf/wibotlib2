@@ -7,6 +7,8 @@
 
 #include "system.hpp"
 
+#if defined(HAL_TIM_MODULE_ENABLED)
+
 namespace wibot {
 DShot::DShot(TIM_HandleTypeDef* tim, DShotProtocol protocol) : _tim(tim), _protocol(protocol) {
     PeripheralManager::getInstance().registerPeripheral(this, tim);
@@ -146,3 +148,5 @@ void DShot::onError(TIM_HandleTypeDef* tim) {
 };
 
 }  // namespace wibot
+
+#endif  // HAL_TIM_MODULE_ENABLED

@@ -21,10 +21,11 @@ class ControlLoop : public Worker {
    private:
 };
 
+#if defined(HAL_TIM_MODULE_ENABLED)
+
 class TimerControlLoop : public ControlLoop {
    public:
     TimerControlLoop(TIM_HandleTypeDef& handle, u32 freqency = 1000);
-
 
    protected:
     AsyncResult getLoopSignal() override;
@@ -34,10 +35,10 @@ class TimerControlLoop : public ControlLoop {
     u32   _frequency;
 };
 
+#endif  // HAL_TIM_MODULE_ENABLED
+
 class TriggerControlLoop : public ControlLoop {
    public:
-
-
    public:
     void trigger();
 

@@ -2,6 +2,8 @@
 #include "os.hpp"
 #include "type.hpp"
 
+#if defined(HAL_TIM_MODULE_ENABLED) && defined(HAL_UART_MODULE_ENABLED)
+
 namespace wibot {
 
 typedef struct __attribute__((packed)) {
@@ -53,3 +55,5 @@ void WibotRcController::run() {
 }
 
 }  // namespace wibot
+
+#endif  // HAL_TIM_MODULE_ENABLED && HAL_UART_MODULE_ENABLED

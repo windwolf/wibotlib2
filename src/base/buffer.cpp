@@ -1,4 +1,5 @@
 #include "buffer.hpp"
+#include "string.h"
 
 // #include "logger.hpp"
 // LOGGER("buffer")
@@ -16,7 +17,7 @@ u8 Slice::getUint8(u16 index) const {
     return data[index];
 };
 
-void Slice::setUint8(u16 index, u8 value) {
+void Slice::setUint8(u16 index, u8 value) const {
     ASSERT(index < size, "index out of range.");
     data[index] = value;
 };
@@ -31,7 +32,7 @@ i8 Slice::getInt8(u16 index) const {
     return *castPointer<i8>(data + index);
 };
 
-void Slice::setInt8(u16 index, i8 value) {
+void Slice::setInt8(u16 index, i8 value) const {
     ASSERT(index < size, "index out of range.");
     data[index] = *castPointer<u8>(&value);
 };
@@ -46,7 +47,7 @@ u16 Slice::getUint16(u16 index, Endian endian) const {
     return arch::getUint16(data + index, endian);
 };
 
-void Slice::setUint16(u16 index, u16 value, Endian endian) {
+void Slice::setUint16(u16 index, u16 value, Endian endian) const {
     ASSERT(index < size, "index out of range.");
     arch::setUint16(data + index, value, endian);
 };
@@ -63,7 +64,7 @@ i16 Slice::getInt16(u16 index, Endian endian) const {
     return *castPointer<i16>(&v);
 };
 
-void Slice::setInt16(u16 index, i16 value, Endian endian) {
+void Slice::setInt16(u16 index, i16 value, Endian endian) const {
     ASSERT(index < size, "index out of range.");
     arch::setUint16(data + index, *castPointer<u16>(&value), endian);
 }
@@ -79,7 +80,7 @@ u32 Slice::getUint32(u16 index, Endian endian) const {
     return arch::getUint32(data + index, endian);
 };
 
-void Slice::setUint32(u16 index, u32 value, Endian endian) {
+void Slice::setUint32(u16 index, u32 value, Endian endian) const {
     ASSERT(index < size, "index out of range.");
     arch::setUint32(data + index, value, endian);
 };
@@ -96,7 +97,7 @@ i32 Slice::getInt32(u16 index, Endian endian) const {
     return *castPointer<i32>(&v);
 };
 
-void Slice::setInt32(u16 index, i32 value, Endian endian) {
+void Slice::setInt32(u16 index, i32 value, Endian endian) const {
     ASSERT(index < size, "index out of range.");
     arch::setUint32(data + index, *castPointer<u32>(&value), endian);
 };
@@ -113,7 +114,7 @@ f32 Slice::getFloat(u16 index, Endian endian) const {
     return *castPointer<f32>(&v);
 };
 
-void Slice::setFloat(u16 index, f32 value, Endian endian) {
+void Slice::setFloat(u16 index, f32 value, Endian endian) const {
     ASSERT(index < size, "index out of range.");
     arch::setUint32(data + index, *castPointer<u32>(&value), endian);
 };

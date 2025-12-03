@@ -1,9 +1,8 @@
 #include "i2c.hpp"
-#
 
 #ifdef HAL_I2C_MODULE_ENABLED
 namespace wibot {
-HardI2cMaster::HardI2cMaster(I2C_HandleTypeDef* handle) : _handle(handle) {
+HardI2cMaster::HardI2cMaster(I2C_HandleTypeDef& handle) : _handle(&handle) {
     HAL_I2C_RegisterCallback(_handle, HAL_I2C_MEM_TX_COMPLETE_CB_ID, &HardI2cMaster::onWriteCplt);
     HAL_I2C_RegisterCallback(_handle, HAL_I2C_MEM_RX_COMPLETE_CB_ID, &HardI2cMaster::onReadCplt);
     HAL_I2C_RegisterCallback(_handle, HAL_I2C_ERROR_CB_ID, &HardI2cMaster::onError);

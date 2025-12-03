@@ -3,9 +3,8 @@
 //
 // Created by zhouj on 2023/9/8.
 //
-#include "string.h"
-#include <cstdint>
-#include <type_traits>
+#include <stdint.h>
+#include <stddef.h>
 
 using u8  = uint8_t;
 using u16 = uint16_t;
@@ -44,10 +43,11 @@ using f64 = double;
     }
 
 namespace wibot {
-template <typename E>
-constexpr auto toUnderlying(E e) noexcept {
-    return static_cast<std::underlying_type_t<E>>(e);
-};
+// 移除模板函数以避免std依赖问题
+// template <typename E>
+// constexpr auto toUnderlying(E e) noexcept {
+//     return static_cast<std::underlying_type_t<E>>(e);
+// };
 
 template <typename T>
 constexpr auto castPointer(void *ptr) {

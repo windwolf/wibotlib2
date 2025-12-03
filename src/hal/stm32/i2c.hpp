@@ -9,7 +9,7 @@ namespace wibot {
 #ifdef HAL_I2C_MODULE_ENABLED
 class HardI2cMaster : public I2cMaster, private PeripheralBase {
    public:
-    explicit HardI2cMaster(I2C_HandleTypeDef* handle);
+    explicit HardI2cMaster(I2C_HandleTypeDef& handle);
     ~HardI2cMaster();
 
    public:
