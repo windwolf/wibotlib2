@@ -21,9 +21,9 @@ u32 Mt6816Spi::getAngle() {
     _cmd[0]   = MT6816_SPI_READ_ANGLE1_REG;
     _cmd[1]   = 0;
     _cmd[2]   = 0;
-    _spi->begin();
-    auto ar = _spi->writeRead(Slice(_cmd, 3), Slice(_cmd, 3));
-    _spi->end();
+    _spi.begin();
+    auto ar = _spi.writeRead(Slice(_cmd, 3), Slice(_cmd, 3));
+    _spi.end();
     _parity.reset();
     ar.wait(TIMEOUT_FOREVER);
     _parity.calculate(&_cmd[1], 2);

@@ -10,12 +10,10 @@
 
 namespace wibot {
 
-
-
 struct Mt6701I2cConfig {};
 class Mt6701I2c {
    public:
-    Mt6701I2c(I2cMaster* i2c);
+    Mt6701I2c(I2cMaster& i2c);
 
     u16 getConfig();
 
@@ -24,7 +22,7 @@ class Mt6701I2c {
     u32 GetData();
 
    private:
-    I2cMaster* _i2c;
+    I2cMaster& _i2c;
     u32        _value;
 };
 

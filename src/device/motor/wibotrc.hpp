@@ -78,7 +78,7 @@ class WibotRcTelemetry : public RxServer {
 
 class WibotRcController : public Worker {
    public:
-    WibotRcController(TIM_HandleTypeDef* tim, u8 timChannel)
+    WibotRcController(TIM_HandleTypeDef& tim, u8 timChannel)
         : _dshot(tim),
           _timChannel(timChannel),
           _throttleSource(0.0f),

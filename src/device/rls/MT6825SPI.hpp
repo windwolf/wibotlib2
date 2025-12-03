@@ -15,14 +15,14 @@ struct MT6825SpiConfig {};
 
 class Mt6825Spi {
    public:
-    Mt6825Spi(SpiMaster* spi) : _spi(spi) {};
+    Mt6825Spi(SpiMaster& spi) : _spi(spi) {};
 
     u32 GetAngle();
 
     u32 GetData();
 
    private:
-    SpiMaster* _spi;
+    SpiMaster& _spi;
     u8         _cmd[4];
 };
 

@@ -67,15 +67,15 @@ LOGGER("rx8010")
 #define RX8010_DEVICE_EVENT_DONE 0x01
 
 Result Rx8010::_readI2c(u16 address, void* data, u32 dataSize) {
-    auto ar = _i2c->readReg(address, Slice((uint8_t*)data, dataSize));
+    auto ar = _i2c.readReg(address, Slice((uint8_t*)data, dataSize));
     return ar.wait(TIMEOUT_FOREVER);
 };
 Result Rx8010::_writeI2c(u16 address, void* data, u32 dataSize) {
-    auto ar = _i2c->writeReg(address, Slice((uint8_t*)data, dataSize));
+    auto ar = _i2c.writeReg(address, Slice((uint8_t*)data, dataSize));
     return ar.wait(TIMEOUT_FOREVER);
 };
-Rx8010::Rx8010(I2cMaster* i2c) : _i2c(i2c) {
-    _i2c->setTransitionConfig(RX8010_ADDRESS >> 1);
+Rx8010::Rx8010(I2cMaster& i2c) : _i2c(i2c) {
+    _i2c.setTransitionConfig(RX8010_ADDRESS >> 1);
 };
 
 Result Rx8010::porInit() {

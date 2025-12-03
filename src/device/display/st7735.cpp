@@ -286,7 +286,7 @@ Result ST7735::readId(u32 *id) {
 
     return Result::kOk;
 }
-ST7735::ST7735(SpiMaster *spi, Pin *dcPin)
+ST7735::ST7735(SpiMaster &spi, Pin &dcPin)
     : St77xx(spi, dcPin) {
 
       };

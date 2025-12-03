@@ -94,7 +94,7 @@ enum ST7735_DISPLAY_REFRESH_ORDER {
 
 class ST7735 : public St77xx {
    public:
-    ST7735(SpiMaster *spi, Pin *dcPin);
+    ST7735(SpiMaster &spi, Pin &dcPin);
     Result init();
 
     Result reset();

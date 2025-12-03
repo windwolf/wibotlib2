@@ -10,13 +10,14 @@
 #if defined(HAL_TIM_MODULE_ENABLED)
 
 namespace wibot {
-DShot::DShot(TIM_HandleTypeDef* tim, DShotProtocol protocol) : _tim(tim), _protocol(protocol) {
-    PeripheralManager::getInstance().registerPeripheral(this, tim);
-    HAL_TIM_RegisterCallback(tim, HAL_TIM_PWM_PULSE_FINISHED_CB_ID, onCplt);
-    HAL_TIM_RegisterCallback(tim, HAL_TIM_ERROR_CB_ID, onError);
+DShot::DShot(TIM_HandleTypeDef& tim, DShotProtocol protocol) : _tim(tim), _protocol(protocol) {
+    PeripheralManager::getInstance().registerPeripheral(this, &tim);
+    ;
+    HAL_TIM_RegisterCallback(&tim, HAL_TIM_PWM_PULSE_FINISHED_CB_ID, onCplt);
+    HAL_TIM_RegisterCallback(&tim, HAL_TIM_ERROR_CB_ID, onError);
 
     // 根据TIM外设编号, 获取TIM的总线始终频率
-    u32 timerClock  = System::getTIMFreq(tim->Instance);
+    u32 timerClock  = System::getTIMFreq(tim.Instance);
     // DShot位持续时间 (µs)
     f32 bitDuration = 0;
 
@@ -57,8 +58,8 @@ DShot::DShot(TIM_HandleTypeDef* tim, DShotProtocol protocol) : _tim(tim), _proto
 
     // 配置定时器
 
-    LL_TIM_SetPrescaler(_tim->Instance, prescaler - 1);
-    LL_TIM_SetAutoReload(_tim->Instance, period - 1);
+    LL_TIM_SetPrescaler(_tim.Instance, prescaler - 1);
+    LL_TIM_SetAutoReload(_tim.Instance, period - 1);
 
     // 存储脉宽值以便在send函数中使用
     _pulse0 = pulse0;
@@ -129,7 +130,7 @@ AsyncResult DShot::send(u8 channel, u16 command, bool telemetry) {
     }
     _framebuffer[16] = 0;
 
-    auto rst = HAL_TIM_PWM_Start_DMA(_tim, halChannel, (u32*)_framebuffer, 17);
+    auto rst = HAL_TIM_PWM_Start_DMA(&_tim, halChannel, (u32*)_framebuffer, 17);
     if (rst != HAL_OK) {
         return AsyncResult::fromResult((Result)rst);
     }

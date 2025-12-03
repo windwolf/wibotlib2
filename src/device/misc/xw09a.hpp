@@ -12,7 +12,7 @@ class XW09A {
     const static constexpr u8 I2C_ADDR = 0x40;
 
    public:
-    XW09A(I2cMaster* i2c);
+    XW09A(I2cMaster& i2c);
 
     /**
      * @return A bitwise combination of the 10 pads' state.
@@ -26,8 +26,8 @@ class XW09A {
     bool isPadPressed(u8 padNum);
 
    private:
-    I2cMaster* _i2c;
-    u16           _state;
+    I2cMaster& _i2c;
+    u16        _state;
 };
 
 }  // namespace wibot

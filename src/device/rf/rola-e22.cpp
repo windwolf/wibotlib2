@@ -37,7 +37,7 @@ void RolaE22Uart::setMode(RolaE22Mode mode) {
     }
     _mode = mode;
 }
-RolaE22Uart::RolaE22Uart(UartStream* uart, Pin& m0, Pin& m1, Pin& aux)
+RolaE22Uart::RolaE22Uart(UartStream& uart, Pin& m0, Pin& m1, Pin& aux)
     : _uart(uart), _m0(m0), _m1(m1), _aux(aux) {
     _config.address         = 0x0000;
     _config.netId           = 0x00;
@@ -81,7 +81,7 @@ Result RolaE22Uart::setConfig(RolaE22Config& config) {
              (u8)config.lbtMode & (u8)config.worMode & (u8)config.worCycle;
     cmd[10]  = (config.key >> 8) & 0xFF;
     cmd[11]  = (config.key) & 0xFF;
-    auto ar  = _uart->write(Slice(cmd, 12));
+    auto ar  = _uart.write(Slice(cmd, 12));
     auto rst = ar.wait(TIMEOUT_FOREVER);
     waitAux();
     setMode(old_mode);
@@ -92,13 +92,13 @@ AsyncResult RolaE22Uart::send(const Slice& data) {
     setMode(RolaE22Mode::kTransmition);
     waitAux();
     os::sleep(1);
-    return _uart->write(data);
+    return _uart.write(data);
 }
 AsyncResult RolaE22Uart::receive(Slice& data) {
     setMode(RolaE22Mode::kTransmition);
     waitAux();
     os::sleep(1);
-    return _uart->read(data);
+    return _uart.read(data);
 }
 RolaE22Config& RolaE22Uart::getConfig() {
     auto old_mode = _mode;
@@ -113,8 +113,8 @@ RolaE22Config& RolaE22Uart::getConfig() {
     cmd.data[2] = 0x09;
 
     Buffer<12> rcv;
-    auto rar = _uart->read(rcv);
-    auto war = _uart->write(cmd);
+    auto       rar = _uart.read(rcv);
+    auto       war = _uart.write(cmd);
     war.wait(TIMEOUT_FOREVER);
     rar.wait(TIMEOUT_FOREVER);
     _config.address         = rcv.data[3] << 8 | rcv.data[4];

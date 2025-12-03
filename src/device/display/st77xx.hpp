@@ -17,7 +17,7 @@ struct St77xxConfig {
 
 class St77xx {
    public:
-    St77xx(SpiMaster *spi, Pin *dcPin);
+    St77xx(SpiMaster &spi, Pin &dcPin);
 
    protected:
     u8 _cmdData[16];
@@ -34,8 +34,8 @@ class St77xx {
     St77xxConfig config;
 
    private:
-    SpiMaster *_spi;
-    Pin       *_dcPin;
+    SpiMaster &_spi;
+    Pin       &_dcPin;
 };
 
 }  // namespace wibot

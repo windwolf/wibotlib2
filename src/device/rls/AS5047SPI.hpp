@@ -31,7 +31,7 @@ struct As5047State {
  */
 class As5047Spi : public Rls {
    public:
-    As5047Spi(SpiMaster* spi) : _spi(spi), _parity(true) {};
+    As5047Spi(SpiMaster& spi) : _spi(spi), _parity(true) {};
 
     u32 getAngle() override;
 
@@ -48,7 +48,7 @@ class As5047Spi : public Rls {
     As5047SpiConfig config;
 
    private:
-    SpiMaster* _spi;
+    SpiMaster& _spi;
     u16        _cmd[2];
 
     u16             _angle;

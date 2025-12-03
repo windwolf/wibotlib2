@@ -24,7 +24,7 @@ namespace wibot {
 struct As5600I2cConfig {};
 class As5600I2c {
    public:
-    As5600I2c(I2cMaster* i2c);
+    As5600I2c(I2cMaster& i2c);
 
     void SetZero();
 
@@ -37,8 +37,7 @@ class As5600I2c {
 
     u32 GetData();
 
-
    private:
-    I2cMaster* _i2c;
+    I2cMaster& _i2c;
 };
 }  // namespace wibot

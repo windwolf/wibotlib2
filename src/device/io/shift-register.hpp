@@ -6,23 +6,23 @@
 namespace wibot {
 class SinPoutShiftRegister {
    public:
-    SinPoutShiftRegister(SpiMaster* spi, Pin& stcpPin);
+    SinPoutShiftRegister(SpiMaster& spi, Pin& stcpPin);
 
     Result write(Slice data);
 
    private:
-    SpiMaster* _spi;
+    SpiMaster& _spi;
     Pin*       _stcpPin;
 };
 
 class PinSoutShiftRegister {
    public:
-    PinSoutShiftRegister(SpiMaster* spi, Pin& plPin);
+    PinSoutShiftRegister(SpiMaster& spi, Pin& plPin);
 
     Result read(const Slice& data);
 
    private:
-    SpiMaster* _spi;
+    SpiMaster& _spi;
     Pin*       _plPin;
 };
 

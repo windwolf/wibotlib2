@@ -7,12 +7,12 @@
 
 namespace wibot {
 
-XW09A::XW09A(I2cMaster* i2c) : _i2c(i2c) {
+XW09A::XW09A(I2cMaster& i2c) : _i2c(i2c) {
 }
 
 u16 XW09A::refreshState() {
     Buffer<2> data;
-    auto ar = _i2c->readReg(0x00, data);
+    auto      ar = _i2c.readReg(0x00, data);
     ar.wait(TIMEOUT_FOREVER);
     _state = data.data[0] << 8 | data.data[1];
     return _state;

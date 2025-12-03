@@ -9,24 +9,24 @@
 
 namespace wibot {
 
-Ssd1306::Ssd1306(I2cMaster* i2c) : _i2c(i2c) {};
+Ssd1306::Ssd1306(I2cMaster& i2c) : _i2c(i2c) {};
 
 void Ssd1306::_sendCommand(u8 cmdSize) {
     if (cmdSize == 1) {
-        auto ar = _i2c->writeReg(SSD1306_COMMAND_SINGLE, Slice(_cmdBuffer, cmdSize));
+        auto ar = _i2c.writeReg(SSD1306_COMMAND_SINGLE, Slice(_cmdBuffer, cmdSize));
         ar.wait(TIMEOUT_FOREVER);
     } else {
-        auto ar = _i2c->writeReg(SSD1306_COMMAND_STREAM, Slice(_cmdBuffer, cmdSize));
+        auto ar = _i2c.writeReg(SSD1306_COMMAND_STREAM, Slice(_cmdBuffer, cmdSize));
         ar.wait(TIMEOUT_FOREVER);
     }
 };
 
 void Ssd1306::_sendData(const Slice& data) {
     if (data.size == 1) {
-        auto ar = _i2c->writeReg(SSD1306_DATA_SINGLE, data);
+        auto ar = _i2c.writeReg(SSD1306_DATA_SINGLE, data);
         ar.wait(TIMEOUT_FOREVER);
     } else {
-        auto ar = _i2c->writeReg(SSD1306_DATA_STREAM, data);
+        auto ar = _i2c.writeReg(SSD1306_DATA_STREAM, data);
         ar.wait(TIMEOUT_FOREVER);
     }
 };
@@ -104,7 +104,7 @@ void Ssd1306::clear() {
 
 // 初始化SSD1306
 void Ssd1306::init() {
-    _i2c->setTransitionConfig(0x78 >> 1);
+    _i2c.setTransitionConfig(0x78 >> 1);
 
     bufferSize = config.width * config.height / 8;
     os::sleep(100);

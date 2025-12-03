@@ -21,7 +21,7 @@ constexpr Fxl6408Pins PinAll  = 0xFF;
 constexpr Fxl6408Pins PinNone = 0x00;
 class Fxl6408I2c {
    public:
-    explicit Fxl6408I2c(I2cMaster* i2c, bool isAddr0 = true);
+    explicit Fxl6408I2c(I2cMaster& i2c, bool isAddr0 = true);
 
     void reset();
 
@@ -48,7 +48,7 @@ class Fxl6408I2c {
 
 
    private:
-    I2cMaster* _i2c;
+    I2cMaster& _i2c;
     bool       _isAddr0;
 };
 

@@ -93,7 +93,7 @@ class Ssd1306 {
     u8  dataBuffer[SSD1306_DATA_BUFFER_SIZE];
     u16 bufferSize;
 
-    Ssd1306(I2cMaster *i2c);
+    Ssd1306(I2cMaster &i2c);
 
     void init();
     void setPos(u8 page, u8 column);
@@ -111,7 +111,7 @@ class Ssd1306 {
     Ssd1306Config config;
 
    private:
-    I2cMaster *_i2c;
+    I2cMaster &_i2c;
     u8         _cmdBuffer[SSD1306_CMD_BUFFER_SIZE];
 };
 

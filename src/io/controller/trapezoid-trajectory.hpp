@@ -67,7 +67,7 @@ class TrapezoidTrajectory : public SyncPipeline<f32, f32*> {
      * @brief 构造函数
      * @param upstream 上游管道，提供设定值
      */
-    explicit TrapezoidTrajectory(SyncPipeline<f32, f32*>* upstream = nullptr)
+    explicit TrapezoidTrajectory(SyncPipeline<f32, f32*>& upstream)
         : _upstream(upstream), _config() {
         // 初始化所有通道的状态
         for (u8 i = 0; i < CHANNELS; ++i) {
@@ -92,18 +92,13 @@ class TrapezoidTrajectory : public SyncPipeline<f32, f32*> {
      * @brief 更新管道状态
      */
     void update() override {
-        if (_upstream == nullptr) {
-            // 没有上游管道，保持当前输出值不变
-            return;
-        }
-
         // 更新上游管道
-        _upstream->update();
+        _upstream.update();
 
         // 处理所有通道
         for (u8 channel = 0; channel < CHANNELS; ++channel) {
             // 获取该通道的设定值
-            f32 setPoint = _upstream->getValue(channel);
+            f32 setPoint = _upstream.getValue(channel);
             updateChannel(channel, setPoint);
         }
     }
@@ -181,14 +176,6 @@ class TrapezoidTrajectory : public SyncPipeline<f32, f32*> {
      */
     const TrapezoidTrajectoryConfig& getConfig() const {
         return _config;
-    }
-
-    /**
-     * @brief 设置上游管道
-     * @param upstream 上游管道指针
-     */
-    void setUpstream(SyncPipeline<f32, f32*>* upstream) {
-        _upstream = upstream;
     }
 
     /**
@@ -273,7 +260,7 @@ class TrapezoidTrajectory : public SyncPipeline<f32, f32*> {
     }
 
    private:
-    SyncPipeline<f32, f32*>*  _upstream;  ///< 上游管道指针
+    SyncPipeline<f32, f32*>&  _upstream;  ///< 上游管道引用
     TrapezoidTrajectoryConfig _config;    ///< 配置参数
 
     f32            _outputs[CHANNELS];     ///< 当前输出值数组

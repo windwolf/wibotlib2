@@ -6,7 +6,7 @@ using namespace wibot;
 
 class Tm1652 {
    public:
-    Tm1652(UartStream* uart) : _uart(uart) {
+    Tm1652(UartStream& uart) : _uart(uart) {
     }
     ~Tm1652();
 
@@ -24,6 +24,6 @@ class Tm1652 {
     AsyncResult updateDisplay(u8* data, u8 length);
 
    private:
-    UartStream* _uart;
+    UartStream& _uart;
     u8          _cmdBuf[7];
 };

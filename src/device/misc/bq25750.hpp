@@ -168,7 +168,7 @@ class Bq25750 {
     static const u8 I2C_ADDRESS = 0x6B;
 
    public:
-    Bq25750(I2cMaster* i2c);
+    Bq25750(I2cMaster& i2c);
     ~Bq25750();
 
     State getState();
@@ -183,6 +183,6 @@ class Bq25750 {
     Result feedDog();
 
    private:
-    I2cMaster* _i2c;
+    I2cMaster& _i2c;
 };
 }  // namespace wibot

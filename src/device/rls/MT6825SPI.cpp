@@ -20,9 +20,9 @@ namespace wibot {
 
 u32 Mt6825Spi::GetAngle() {
     _cmd[0] = MT6825_SPI_ANGLE1_REG | MT6825_SPI_READ_CMD;
-    _spi->begin();
-    auto ar = _spi->writeRead(Slice(_cmd, 4), Slice(_cmd, 4));
-    _spi->end();
+    _spi.begin();
+    auto ar = _spi.writeRead(Slice(_cmd, 4), Slice(_cmd, 4));
+    _spi.end();
     ar.wait(TIMEOUT_FOREVER);
     return (_cmd[1] << 10) | ((_cmd[2] & 0xfc) << 2) | (_cmd[3] >> 4);
 }

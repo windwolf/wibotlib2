@@ -61,7 +61,7 @@ class PidController : public SyncPipeline<f32> {
      * @brief 构造函数
      * @param upstream 上游管道，提供测量值
      */
-    explicit PidController(SyncPipeline<f32>* upstream) : _upstream(upstream), _config{} {
+    explicit PidController(SyncPipeline<f32>& upstream) : _upstream(upstream), _config{} {
         // 初始化所有通道的状态
         for (u8 i = 0; i < CHANNELS; ++i) {
             _integrator[i]      = 0.0f;
@@ -98,21 +98,13 @@ class PidController : public SyncPipeline<f32> {
      * 从上游获取测量值，计算PID控制输出
      */
     void update() override {
-        if (_upstream == nullptr) {
-            // 没有上游管道，所有通道输出0
-            for (u8 i = 0; i < CHANNELS; ++i) {
-                _outputs[i] = 0.0f;
-            }
-            return;
-        }
-
         // 更新上游管道
-        _upstream->update();
+        _upstream.update();
 
         // 处理所有通道
         for (u8 channel = 0; channel < CHANNELS; ++channel) {
             // 获取该通道的测量值
-            f32 measurement = _upstream->getValue(channel);
+            f32 measurement = _upstream.getValue(channel);
 
             // 计算误差
             f32 error = _config.setPoint - measurement;
@@ -219,14 +211,12 @@ class PidController : public SyncPipeline<f32> {
         _integrator[channel] = applyIntegratorLimit(_integrator[channel]);
 
         // 微分项 (使用测量值微分，避免设定值突变影响)
-        if (_upstream != nullptr) {
-            f32 measurement = _upstream->getValue(channel);
-            _differentiator[channel] =
-                -(2.0f * _config.Kd * (measurement - _prevMeasurement[channel]) +
-                  (2.0f * _config.tau - _config.sampleTime) * _differentiator[channel]) /
-                (2.0f * _config.tau + _config.sampleTime);
-            _prevMeasurement[channel] = measurement;
-        }
+        f32 measurement = _upstream.getValue(channel);
+        _differentiator[channel] =
+            -(2.0f * _config.Kd * (measurement - _prevMeasurement[channel]) +
+              (2.0f * _config.tau - _config.sampleTime) * _differentiator[channel]) /
+            (2.0f * _config.tau + _config.sampleTime);
+        _prevMeasurement[channel] = measurement;
 
         // 保存当前误差用于下次积分计算
         _prevError[channel] = error;
@@ -253,14 +243,12 @@ class PidController : public SyncPipeline<f32> {
         _integrator[channel] = applyIntegratorLimit(_integrator[channel]);
 
         // 微分项 (使用测量值微分，避免设定值突变影响)
-        if (_upstream != nullptr) {
-            f32 measurement = _upstream->getValue(channel);
-            _differentiator[channel] =
-                -(2.0f * _config.Kd * (measurement - _prevMeasurement[channel]) +
-                  (2.0f * _config.tau - _config.sampleTime) * _differentiator[channel]) /
-                (2.0f * _config.tau + _config.sampleTime);
-            _prevMeasurement[channel] = measurement;
-        }
+        f32 measurement = _upstream.getValue(channel);
+        _differentiator[channel] =
+            -(2.0f * _config.Kd * (measurement - _prevMeasurement[channel]) +
+              (2.0f * _config.tau - _config.sampleTime) * _differentiator[channel]) /
+            (2.0f * _config.tau + _config.sampleTime);
+        _prevMeasurement[channel] = measurement;
 
         // 保存当前误差用于下次积分计算
         _prevError[channel] = error;
@@ -297,7 +285,7 @@ class PidController : public SyncPipeline<f32> {
     }
 
    private:
-    SyncPipeline<f32>*  _upstream;  ///< 上游管道指针
+    SyncPipeline<f32>&  _upstream;  ///< 上游管道引用
     PidControllerConfig _config;    ///< PID配置参数（所有通道共享）
 
     /* 控制器内部状态 */

@@ -16,7 +16,7 @@ enum class DShotProtocol {
 
 class DShot : private PeripheralBase {
    public:
-    DShot(TIM_HandleTypeDef* tim, DShotProtocol protocol = DShotProtocol::DShot150);
+    DShot(TIM_HandleTypeDef& tim, DShotProtocol protocol = DShotProtocol::DShot150);
     ~DShot();
 
     /**
@@ -36,7 +36,7 @@ class DShot : private PeripheralBase {
     static void onError(TIM_HandleTypeDef* tim);
 
    private:
-    TIM_HandleTypeDef* _tim;
+    TIM_HandleTypeDef& _tim;
     DShotProtocol      _protocol;
 
     u32                             _pulse0;

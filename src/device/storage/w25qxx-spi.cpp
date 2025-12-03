@@ -123,24 +123,24 @@
 
 namespace wibot {
 
-W25qxxSpi::W25qxxSpi(SpiMaster *spi, u32 timeout) : _spi(spi), _timeout(timeout) {};
+W25qxxSpi::W25qxxSpi(SpiMaster &spi, u32 timeout) : _spi(spi), _timeout(timeout) {};
 
 Result W25qxxSpi::_spiWriteRead(u8 *writeData, u16 writeLength, u8 *readData, u16 readLength) {
     Result rst;
     do {
-        rst = _spi->begin();
+        rst = _spi.begin();
         if (rst != Result::kOk) {
             break;
         }
         if (writeLength > 0) {
-            auto ar = _spi->write(Slice(writeData, writeLength));
+            auto ar = _spi.write(Slice(writeData, writeLength));
             rst     = ar.wait(_timeout);
             if (rst != Result::kOk) {
                 break;
             }
         }
         if (readLength > 0) {
-            auto ar = _spi->read(Slice(readData, readLength));
+            auto ar = _spi.read(Slice(readData, readLength));
             rst     = ar.wait(_timeout);
             if (rst != Result::kOk) {
                 break;
@@ -148,25 +148,25 @@ Result W25qxxSpi::_spiWriteRead(u8 *writeData, u16 writeLength, u8 *readData, u1
         }
     } while (0);
 
-    _spi->end();
+    _spi.end();
     return rst;
 };
 Result W25qxxSpi::_spiWriteWrite(u8 *writeData, u16 writeLength, u8 *data, u16 length) {
     Result rst;
     do {
-        rst = _spi->begin();
+        rst = _spi.begin();
         if (rst != Result::kOk) {
             break;
         }
         if (writeLength > 0) {
-            auto ar = _spi->write(Slice(writeData, writeLength));
+            auto ar = _spi.write(Slice(writeData, writeLength));
             rst     = ar.wait(_timeout);
             if (rst != Result::kOk) {
                 break;
             }
         }
         if (length > 0) {
-            auto ar = _spi->write(Slice(data, length));
+            auto ar = _spi.write(Slice(data, length));
             rst     = ar.wait(_timeout);
             if (rst != Result::kOk) {
                 break;
@@ -174,7 +174,7 @@ Result W25qxxSpi::_spiWriteWrite(u8 *writeData, u16 writeLength, u8 *data, u16 l
         }
     } while (0);
 
-    _spi->end();
+    _spi.end();
     return rst;
 };
 Result W25qxxSpi::reset() {

@@ -9,9 +9,9 @@ namespace wibot {
 u32 As5047Spi::getAngle() {
     _cmd[0] = AS5047_CMD_READ_ANGLECOM;
     _cmd[1] = AS5047_CMD_READ_ANGLECOM;
-    _spi->begin();
-    auto ar = _spi->writeRead(Slice((u8*)_cmd, 4), Slice((u8*)_cmd, 4));
-    _spi->end();
+    _spi.begin();
+    auto ar = _spi.writeRead(Slice((u8*)_cmd, 4), Slice((u8*)_cmd, 4));
+    _spi.end();
     _parity.reset();
     ar.wait(TIMEOUT_FOREVER);
     _parity.calculate(static_cast<u8*>(static_cast<void*>(&_cmd[1])), 2);

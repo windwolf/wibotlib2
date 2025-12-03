@@ -68,7 +68,7 @@ union W25qxxStatus3Register {
 
 class W25qxxSpi {
    public:
-    W25qxxSpi(SpiMaster *spi, u32 timeout);
+    W25qxxSpi(SpiMaster &spi, u32 timeout);
 
     Result reset();
 
@@ -98,7 +98,7 @@ class W25qxxSpi {
     Result _spiWriteWrite(u8 *writeData, u16 writeLength, u8 *data, u16 length);
 
    private:
-    SpiMaster *_spi;
+    SpiMaster &_spi;
     u32        _timeout;
 };
 

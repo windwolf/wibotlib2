@@ -24,7 +24,7 @@ struct MT6835SpiConfig {};
 
 class Mt6835Spi {
    public:
-    Mt6835Spi(SpiMaster* spi) : _spi(spi), _crc(0x07) {};
+    Mt6835Spi(SpiMaster& spi) : _spi(spi), _crc(0x07) {};
 
     u32 getAngle();
 
@@ -39,7 +39,7 @@ class Mt6835Spi {
     }
 
    private:
-    SpiMaster*    _spi;
+    SpiMaster&    _spi;
     u8            _buf[6];
     u32           _angle;
     MT6835State   _state;

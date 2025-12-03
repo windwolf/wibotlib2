@@ -16,7 +16,7 @@ class ModbusMaster {
     };
 
    public:
-    ModbusMaster(UartStream* uart) : _uart(uart) {};
+    ModbusMaster(UartStream& uart) : _uart(uart) {};
     ~ModbusMaster();
 
    public:
@@ -34,10 +34,10 @@ class ModbusMaster {
 
    private:
     AsyncResult sendSimpleCommand(u8 deviceAddr, u8 functionCode, u16 regAddr, u16 lengthOrValue);
-    bool   validateCrc(const Slice& buf, u16 length);
+    bool        validateCrc(const Slice& buf, u16 length);
 
    private:
-    UartStream*                _uart;
+    UartStream&                _uart;
     Buffer<MODBUS_BUFFER_SIZE> _buffer;
     Crc16Validator             _crc16{Crc16Validator::CRC16_MODBUS};
 };

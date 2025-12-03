@@ -121,7 +121,7 @@ struct RolaE22Config {
  */
 class RolaE22Uart {
    public:
-    RolaE22Uart(UartStream* uart, Pin& m0, Pin& m1, Pin& aux);
+    RolaE22Uart(UartStream& uart, Pin& m0, Pin& m1, Pin& aux);
 
     Result         setConfig(RolaE22Config& config);
     RolaE22Config& getConfig();
@@ -136,7 +136,7 @@ class RolaE22Uart {
     void waitAux();
 
    private:
-    UartStream*   _uart;
+    UartStream&   _uart;
     RolaE22Config _config;
 
     Pin&        _m0;

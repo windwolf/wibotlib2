@@ -16,14 +16,14 @@ struct Mt6816SpiConfig {};
  */
 class Mt6816Spi : public Rls {
    public:
-    Mt6816Spi(SpiMaster* spi) : _spi(spi), _parity(true) {};
+    Mt6816Spi(SpiMaster& spi) : _spi(spi), _parity(true) {};
 
     u32 getAngle() override;
 
     u32 getData() override;
 
    private:
-    SpiMaster*      _spi;
+    SpiMaster&      _spi;
     u8              _cmd[4];
     u16             _angle;
     ParityValidator _parity;

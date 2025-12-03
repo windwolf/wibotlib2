@@ -12,9 +12,9 @@ namespace wibot {
 u32 Mt6835Spi::getAngle() {
     _buf[0] = MT6835SPI_READ_CMD;
     _buf[1] = MT6835SPI_ANGLE_REG;
-    _spi->begin();
-    auto ar = _spi->writeRead(Slice(_buf, 6), Slice(_buf, 6));
-    _spi->end();
+    _spi.begin();
+    auto ar = _spi.writeRead(Slice(_buf, 6), Slice(_buf, 6));
+    _spi.end();
     _crc.reset();
     ar.wait(TIMEOUT_FOREVER);
     _crc.calculate(_buf + 2, 3);

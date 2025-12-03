@@ -18,7 +18,7 @@ AsyncResult ModbusMaster::sendSimpleCommand(u8 deviceAddr, u8 functionCode, u16 
     _crc16.calculate(buf.data, 6);
     u16 crc = _crc16.get();
     buf.setUint16(6, crc);
-    return _uart->write(cmd);
+    return _uart.write(cmd);
 };
 
 Result ModbusMaster::readCoils(u8 deviceAddr, u16 addr, u16 length, const Slice& data) {
@@ -27,7 +27,7 @@ Result ModbusMaster::readCoils(u8 deviceAddr, u16 addr, u16 length, const Slice&
         return ar;
     }
     auto respLength = 6 + length / 8 + 1;
-    ar              = _uart->read(_buffer.toSlice(respLength)).wait(TIMEOUT_FOREVER);
+    ar              = _uart.read(_buffer.toSlice(respLength)).wait(TIMEOUT_FOREVER);
     if (!ar.isOk()) {
         return ar;
     }
@@ -57,7 +57,7 @@ Result ModbusMaster::readHoldingRegisters(u8 deviceAddr, u16 regAddr, u16 length
         return ar;
     }
     auto respLength = 6 + length * 2;
-    ar              = _uart->read(_buffer.toSlice(respLength)).wait(TIMEOUT_FOREVER);
+    ar              = _uart.read(_buffer.toSlice(respLength)).wait(TIMEOUT_FOREVER);
     if (!ar.isOk()) {
         return ar;
     }
@@ -74,7 +74,7 @@ Result ModbusMaster::writeHoldingRegister(u8 deviceAddr, u16 regAddr, u16 value)
         return ar;
     }
     auto respLength = 8;
-    ar              = _uart->read(_buffer.toSlice(respLength)).wait(TIMEOUT_FOREVER);
+    ar              = _uart.read(_buffer.toSlice(respLength)).wait(TIMEOUT_FOREVER);
     if (!ar.isOk()) {
         return ar;
     }
@@ -82,6 +82,14 @@ Result ModbusMaster::writeHoldingRegister(u8 deviceAddr, u16 regAddr, u16 value)
         return Result(Result::ResultStatus::kError, ErrorCode::kInvalidResponse);
     }
     return Result::kOk;
+};
+
+bool ModbusMaster::validateCrc(const Slice& buf, u16 length) {
+    _crc16.reset();
+    _crc16.calculate(buf.data, length);
+    u16 crc = _crc16.get();
+    u16 recvCrc = buf.getUint16(length, Endian::kLittle);
+    return crc == recvCrc;
 };
 
 AsyncResult ModbusMaster::writeHoldingRegisterWithoutResponse(u8 deviceAddr, u16 regAddr,
