@@ -120,10 +120,10 @@ void SoftI2cMaster::_i2cStop() {
         // Wait until the clock is high, the Slave could keep it low for clock stretching.
         // Clock pulse stretching during a stop condition seems odd, but when
         // the Slave is an Arduino, it might happen.
-        unsigned long prevMillis = System::getTickUs();
+        unsigned long prevMillis = System::getTickMs();
         //i2c_scl_in();
         while (i2c_scl_read() == 0) {
-            if (System::getTickUs() - prevMillis >= _baseConfig.timeout) break;
+            if (System::getTickMs() - prevMillis >= _baseConfig.timeout) break;
         };
         //i2c_scl_out();
     }
@@ -162,10 +162,10 @@ void SoftI2cMaster::_i2cWriteBit(u8 c) {
     if (_baseConfig.stretch) {
         // If the Slave was stretching the clock pulse, the clock would not go high immediately.
         // For example if the Slave is an Arduino, that has other interrupts running (for example Serial data).
-        unsigned long prevMillis = System::getTickUs();
+        unsigned long prevMillis = System::getTickMs();
         //i2c_scl_in();
         while (i2c_scl_read() == 0) {
-            if (System::getTickUs() - prevMillis >= _baseConfig.timeout) break;
+            if (System::getTickMs() - prevMillis >= _baseConfig.timeout) break;
         };
         //i2c_scl_out();
     }
@@ -190,10 +190,10 @@ u8 SoftI2cMaster::_i2cReadBit() {
     // Check if clock stretching by the Slave should be detected.
     if (_baseConfig.stretch) {
         // Wait until the clock is high, the Slave could keep it low for clock stretching.
-        unsigned long prevMillis = System::getTickUs();
+        unsigned long prevMillis = System::getTickMs();
         //i2c_scl_in();
         while (i2c_scl_read() == 0) {
-            if (System::getTickUs() - prevMillis >= _baseConfig.timeout) break;
+            if (System::getTickMs() - prevMillis >= _baseConfig.timeout) break;
         };
         //i2c_scl_out();
     }

@@ -151,15 +151,4 @@ class LinkList {
 // There is no difference between any two known u32 values greater than 0xFFFFFFFF.
 #define TIMEOUT_FOREVER 0xFFFFFFFF
 
-//------------------------
-// StopWatch
-class StopWatch {
-   public:
-    void start();
-    u64  tick();
-
-   private:
-    u64 _startTime;
-};
-
 }  // namespace wibot

@@ -15,14 +15,18 @@ struct DigitalSourceConfig {
 };
 
 /**
- * @brief 数字输入数据源
+ * @brief 多通道数字输入源
  * 
- * 基于Pipeline接口的数字输入处理器，支持多通道数字输入的消抖和反转处理
+ * 支持多通道数字输入的消抖和反转处理。
+ * 所有通道共享配置，适用于按键扫描等硬件多通道场景。
+ * 
+ * 继承 MultiChannelPipeline<bool, CHANNELS> 接口。
+ * 可通过 ChannelAdapter 将特定通道适配为单通道 SyncPipeline。
  * 
  * @tparam CHANNELS 通道数量（最多32个通道）
  */
 template <u8 CHANNELS>
-class DigitalSource : public SyncPipeline<bool, u32> {
+class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
    public:
     /**
      * @brief 构造数字输入数据源
@@ -58,20 +62,39 @@ class DigitalSource : public SyncPipeline<bool, u32> {
         }
     }
 
-    // Pipeline接口实现
-    void update() override {
+    /**
+     * @brief 更新所有通道数据
+     */
+    void update() {
         _processDigitalInput();
     }
-    bool getValue(u8 channel) const override {
+
+    /**
+     * @brief 获取指定通道的值
+     * 
+     * @param channel 通道索引
+     * @return bool 通道值
+     */
+    bool getValue(u8 channel) const {
         if (channel >= CHANNELS) {
             return false;  // 返回无效值
         }
         return (_lastOutputStatus >> channel) & 1U;
     }
-    u32 getValues() const override {
+
+    /**
+     * @brief 获取所有通道的值（位掩码格式）
+     * 
+     * @return u32 所有通道的状态，每位对应一个通道
+     */
+    u32 getValues() const {
         return _lastOutputStatus;
     }
-    void reset() override {
+
+    /**
+     * @brief 重置所有通道状态
+     */
+    void reset() {
         _isFirstValue       = true;
         _lastOutputStatus   = 0;
         _lastBufferedStatus = 0;
@@ -182,5 +205,6 @@ class DigitalSource : public SyncPipeline<bool, u32> {
    private:
     static constexpr u8 DEFAULT_DEBOUNCE_TIME_MS = 50;  ///< 默认消抖时间
 };
+
 
 }  // namespace wibot

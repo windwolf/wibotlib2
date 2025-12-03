@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <type_traits>
 #include "../model.hpp"
 
 namespace wibot {
@@ -7,8 +8,7 @@ namespace wibot {
 /**
  * @brief 中值滤波器管道
  * 
- * 将float输入值进行中值滤波处理。支持多通道实时状态滤波。
- * 所有通道共享同一套滤波配置，但各通道维护独立的滤波状态。
+ * 将float输入值进行中值滤波处理。
  * 
  * 中值滤波器通过维护一个滑动窗口，计算窗口内数据的中值：
  * - 对于奇数窗口大小，返回排序后中间位置的值
@@ -16,108 +16,145 @@ namespace wibot {
  * 
  * 中值滤波器特别适用于去除脉冲噪声，能够很好地保持信号的边缘特性。
  * 
- * @tparam CHANNELS 通道数量，编译时确定
+ * 配置使用引用方式，支持多个滤波器实例共享同一配置。
+ * 内部管理固定大小缓冲区(最大32个样本)。
  */
-template <u8 CHANNELS>
-class MedianFilter : public SyncPipeline<f32> {
+template <typename T>
+class MedianFilter : public SyncPipeline<T> {
+    static_assert(std::is_arithmetic<T>(), "T must be an arithmetic type");
+
    public:
     /**
      * @brief 中值滤波器配置
      */
     struct Config {
-        u8 windowSize;     ///< 滤波窗口大小，建议使用奇数
-        u8 maxWindowSize;  ///< 缓冲区最大窗口大小（用于验证）
+        u8 windowSize;  ///< 滤波窗口大小，建议使用奇数 (1-32)
     };
+
+    static constexpr u8 MAX_WINDOW_SIZE = 32;  ///< 最大窗口大小
 
    public:
     /**
-     * @brief 构造中值滤波器（所有通道使用相同配置）
+     * @brief 构造中值滤波器
      * 
      * @param upstream 上游管道
-     * @param config 共享的滤波配置
-     * @param buffers 外部提供的缓冲区指针数组[CHANNELS]，每个指向[maxWindowSize]的数组
-     * @param tempBuffer 外部提供的临时缓冲区[maxWindowSize]
+     * @param config 滤波配置（引用方式，支持共享）
      */
-    MedianFilter(SyncPipeline<f32>& upstream, const Config& config, f32* buffers[CHANNELS],
-                 f32* tempBuffer);
+    MedianFilter(SyncPipeline<T>& upstream, const Config& config)
+        : _upstream(upstream),
+          _config(config),
+          _bufferIndex(0),
+          _bufferCount(0),
+          _outputLast(static_cast<T>(0)) {
+        // 初始化缓冲区
+        for (u8 i = 0; i < MAX_WINDOW_SIZE; ++i) {
+            _buffer[i]     = static_cast<T>(0);
+            _tempBuffer[i] = static_cast<T>(0);
+        }
+    }
 
-    /**
-     * @brief 析构函数（无需手动内存管理）
-     */
-    ~MedianFilter() = default;
+    T getValue() const override {
+        return _outputLast;
+    }
 
-    /**
-     * @brief 获取滤波后的值
-     */
-    f32 getValue(u8 channel) const override;
+    void reset() override {
+        _bufferIndex = 0;
+        _bufferCount = 0;
+        _outputLast  = static_cast<T>(0);
+        for (u8 i = 0; i < MAX_WINDOW_SIZE; ++i) {
+            _buffer[i] = 0.0f;
+        }
+        _upstream.reset();
+    }
 
-    /**
-     * @brief 重置管道状态
-     */
-    void reset() override;
+    void update() override {
+        _upstream.update();
 
-    /**
-     * @brief 更新管道状态
-     */
-    void update() override;
+        // 获取新输入
+        T input = _upstream.getValue();
 
-    /**
-     * @brief 更新滤波配置（影响所有通道）
-     * 
-     * @param config 新的滤波配置
-     * @note 更新配置会重置所有通道状态（无内存重分配）
-     */
-    void updateConfig(const Config& config);
+        // 添加到环形缓冲区
+        _buffer[_bufferIndex] = input;
+        _bufferIndex          = (_bufferIndex + 1) % _config.windowSize;
 
-    /**
-     * @brief 验证配置是否有效
-     * 
-     * @param config 要验证的配置
-     * @return true 配置有效
-     * @return false 配置无效（窗口大小为0或超出最大窗口大小等）
-     */
-    static bool isConfigValid(const Config& config);
+        if (_bufferCount < _config.windowSize) {
+            _bufferCount++;
+        }
+
+        // 计算中值
+        _outputLast = _calculateMedian();
+    }
+
+    static bool isConfigValid(const Config& config) {
+        return config.windowSize > 0 && config.windowSize <= MAX_WINDOW_SIZE;
+    }
 
    private:
-    /**
-     * @brief 对单个通道的缓冲区进行中值计算
-     * 
-     * @param channel 通道索引
-     * @return f32 中值滤波后的输出值
-     */
-    f32 _calculateMedian(u8 channel);
+    T _calculateMedian() {
+        if (_bufferCount == 0) return 0.0f;
 
-    /**
-     * @brief 初始化缓冲区状态
-     */
-    void _initializeBuffers();
+        // 复制有效数据到临时缓冲区
+        for (u8 i = 0; i < _bufferCount; ++i) {
+            _tempBuffer[i] = _buffer[i];
+        }
 
-    /**
-     * @brief 快速选择算法计算中值（避免完整排序）
-     * 
-     * @param arr 数据数组
-     * @param left 起始索引
-     * @param right 结束索引
-     * @param k 目标位置
-     * @return f32 第k小的元素
-     */
-    f32 _quickSelect(f32* arr, int left, int right, int k);
+        // 使用快速选择算法找中值
+        u8 mid = _bufferCount / 2;
 
-    /**
-     * @brief 数组分区函数（快速选择算法辅助函数）
-     */
-    int _partition(f32* arr, int left, int right);
+        if (_bufferCount % 2 == 1) {
+            // 奇数个元素，返回中间值
+            return _quickSelect(_tempBuffer, 0, _bufferCount - 1, mid);
+        } else {
+            // 偶数个元素，返回中间两个值的平均
+            T val1 = _quickSelect(_tempBuffer, 0, _bufferCount - 1, mid - 1);
+            T val2 = _quickSelect(_tempBuffer, 0, _bufferCount - 1, mid);
+            return (val1 + val2) / 2.0f;
+        }
+    }
+
+    T _quickSelect(T* arr, int left, int right, int k) {
+        if (left == right) return arr[left];
+
+        int pivotIndex = _partition(arr, left, right);
+
+        if (k == pivotIndex) {
+            return arr[k];
+        } else if (k < pivotIndex) {
+            return _quickSelect(arr, left, pivotIndex - 1, k);
+        } else {
+            return _quickSelect(arr, pivotIndex + 1, right, k);
+        }
+    }
+
+    int _partition(T* arr, int left, int right) {
+        T   pivot = arr[right];
+        int i     = left;
+
+        for (int j = left; j < right; ++j) {
+            if (arr[j] <= pivot) {
+                T temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+                i++;
+            }
+        }
+
+        T temp     = arr[i];
+        arr[i]     = arr[right];
+        arr[right] = temp;
+
+        return i;
+    }
 
    private:
-    SyncPipeline<f32>& _upstream;  ///< 上游管道引用
-    Config             _config;    ///< 共享的滤波配置
+    SyncPipeline<T>& _upstream;  ///< 上游管道引用
+    const Config&    _config;    ///< 滤波配置引用（支持共享）
 
-    // 各通道的滤波状态（外部缓冲区）
-    f32* _buffers[CHANNELS];      ///< 各通道的环形缓冲区指针（外部提供）
-    u8   _bufferIndex[CHANNELS];  ///< 各通道的缓冲区当前索引
-    u8   _bufferCount[CHANNELS];  ///< 各通道的缓冲区有效数据数量
-    f32  _outputLast[CHANNELS];   ///< 各通道上次的输出值
-    f32* _tempBuffer;             ///< 临时缓冲区指针（外部提供）
+    T  _buffer[MAX_WINDOW_SIZE];      ///< 环形缓冲区
+    T  _tempBuffer[MAX_WINDOW_SIZE];  ///< 临时缓冲区(用于排序)
+    u8 _bufferIndex;                  ///< 缓冲区当前索引
+    u8 _bufferCount;                  ///< 缓冲区有效数据数量
+    T  _outputLast;                   ///< 上次的输出值
 };
 
 }  // namespace wibot

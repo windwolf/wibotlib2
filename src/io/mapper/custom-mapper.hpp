@@ -5,26 +5,25 @@
 
 namespace wibot {
 /**
-     * @brief 映射函数类型定义
-     * 
-     * @param input 输入值
-     * @param channel 通道索引（可选用于通道相关的映射）
-     * @return TOut 映射后的输出值
+ * @brief 映射函数类型定义
+ * 
+ * @param input 输入值
+ * @return TOut 映射后的输出值
  */
 template <typename TIn, typename TOut>
-using MappingFunction = std::function<TOut(TIn input, u8 channel)>;
+using MappingFunction = std::function<TOut(TIn input)>;
 /**
  * @brief 自定义映射管道
  * 
- * 提供用户自定义映射函数的映射器。支持多通道实时无状态映射。
+ * 提供用户自定义映射函数的映射器。
  * 用户可以提供自定义的映射函数来实现任意复杂的映射逻辑。
- * 所有通道共享同一个映射函数和配置。
+ * 
+ * 配置使用引用方式，支持多个映射器实例共享同一配置。
  * 
  * @tparam TIn 输入数据类型
  * @tparam TOut 输出数据类型
- * @tparam CHANNELS 通道数量，编译时确定
  */
-template <typename TIn, typename TOut, u8 CHANNELS>
+template <typename TIn, typename TOut>
 class CustomMapper : public SyncPipeline<TOut> {
    public:
     /**
@@ -36,59 +35,43 @@ class CustomMapper : public SyncPipeline<TOut> {
 
    public:
     /**
-     * @brief 构造自定义映射器（所有通道使用相同配置）
+     * @brief 构造自定义映射器
      * 
      * @param upstream 上游管道
-     * @param config 共享的映射配置
+     * @param config 映射配置（引用方式，支持共享）
      */
     CustomMapper(SyncPipeline<TIn>& upstream, const Config& config)
         : _upstream(upstream), _config(config) {
         // 验证配置有效性
         if (!isConfigValid(config)) {
             // 如果配置无效，提供一个默认的恒等映射函数
-            _config.mappingFunc = [](TIn input, u8 /*channel*/) -> TOut {
-                return static_cast<TOut>(input);
-            };
+            static const Config defaultConfig{
+                [](TIn input) -> TOut { return static_cast<TOut>(input); }};
+            _config = defaultConfig;
         }
     }
 
-    /**
-     * @brief 获取映射后的值
-     */
-    TOut getValue(u8 channel) const override {
-        if (channel >= CHANNELS) {
-            return TOut{};  // 无效通道返回默认值
-        }
-
+    TOut getValue() const override {
         // 获取上游值并直接调用映射函数
-        TIn input = _upstream.getValue(channel);
-        return _config.mappingFunc(input, channel);
+        TIn input = _upstream.getValue();
+        return _config.mappingFunc(input);
     }
 
-    /**
-     * @brief 重置管道状态
-     */
     void reset() override {
-        // 无状态映射器，无需重置，但需要重置上游
         _upstream.reset();
     }
 
-    /**
-     * @brief 更新管道状态
-     */
     void update() override {
-        // 无状态映射器，只需要更新上游
         _upstream.update();
     }
 
     /**
-     * @brief 更新映射配置（影响所有通道）
+     * @brief 更新映射配置
      */
     void updateConfig(const Config& config) {
         if (isConfigValid(config)) {
             _config = config;
         }
-        // 如果配置无效，保持原有配置不变
     }
 
     /**
@@ -104,9 +87,8 @@ class CustomMapper : public SyncPipeline<TOut> {
     }
 
    private:
-   private:
     SyncPipeline<TIn>& _upstream;  ///< 上游管道引用
-    Config             _config;    ///< 共享的映射配置
+    const Config&      _config;    ///< 映射配置引用（支持共享）
 };
 
 }  // namespace wibot

@@ -8,15 +8,13 @@ namespace wibot {
 /**
  * @brief 分段线性映射管道
  * 
- * 将int16_t输入按照分段线性函数映射到float输出。支持多通道实时无状态映射。
- * 所有通道共享同一套分段映射配置。
+ * 将int16_t输入按照分段线性函数映射到float输出。
  * 
  * 分段线性映射通过多个控制点定义，每两个相邻控制点之间进行线性插值。
  * 超出范围的输入可以选择钳位到边界值或进行外推。
  * 
- * @tparam CHANNELS 通道数量，编译时确定
+ * 配置使用引用方式，支持多个映射器实例共享同一配置。
  */
-template <u8 CHANNELS>
 class PiecewiseLinearMapper : public SyncPipeline<f32> {
    public:
     /**
@@ -32,10 +30,10 @@ class PiecewiseLinearMapper : public SyncPipeline<f32> {
 
    public:
     /**
-     * @brief 构造分段线性映射器（所有通道使用相同配置）
+     * @brief 构造分段线性映射器
      * 
      * @param upstream 上游管道
-     * @param config 共享的分段映射配置
+     * @param config 分段映射配置（引用方式，支持共享）
      */
     PiecewiseLinearMapper(SyncPipeline<i16>& upstream, const Config& config)
         : _upstream(upstream), _config(config) {
@@ -46,46 +44,18 @@ class PiecewiseLinearMapper : public SyncPipeline<f32> {
         }
     }
 
-    /**
-     * @brief 获取映射后的值
-     */
-    f32 getValue(u8 channel) const override {
-        if (channel >= CHANNELS) {
-            return 0.0f;  // 无效通道返回0
-        }
-
+    f32 getValue() const override {
         // 获取上游值并实时处理
-        i16 input = _upstream.getValue(channel);
+        i16 input = _upstream.getValue();
         return _mapPiecewiseLinear(static_cast<f32>(input));
     }
 
-    /**
-     * @brief 重置管道状态
-     */
     void reset() override {
-        // 无状态映射器，无需重置，但需要重置上游
         _upstream.reset();
     }
 
-    /**
-     * @brief 更新管道状态
-     */
     void update() override {
-        // 无状态映射器，只需要更新上游
         _upstream.update();
-    }
-
-    /**
-     * @brief 更新映射配置（影响所有通道）
-     * 
-     * @param config 新的分段映射配置
-     * @note 输入控制点必须按升序排列
-     */
-    void updateConfig(const Config& config) {
-        if (isConfigValid(config)) {
-            _config = config;
-        }
-        // 如果配置无效，保持原有配置不变
     }
 
     /**
@@ -220,7 +190,7 @@ class PiecewiseLinearMapper : public SyncPipeline<f32> {
 
    private:
     SyncPipeline<i16>& _upstream;  ///< 上游管道引用
-    Config             _config;    ///< 共享的分段映射配置
+    const Config&      _config;    ///< 分段映射配置引用（支持共享）
 
     // 常量定义
     static constexpr u8 INVALID_SEGMENT = 0xFF;  ///< 无效分段标识

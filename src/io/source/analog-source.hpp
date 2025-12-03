@@ -7,14 +7,18 @@
 namespace wibot {
 
 /**
- * @brief 内存数据源
+ * @brief 多通道模拟输入源
  * 
- * 用于读取由外部ADC通过DMA更新的原始值缓存
+ * 用于读取由外部ADC通过DMA更新的原始值缓存。
+ * 支持多通道共享配置，适用于硬件多通道ADC场景。
+ * 
+ * 继承 MultiChannelPipeline<i16, CHANNELS> 接口。
+ * 可通过 ChannelAdapter 将特定通道适配为单通道 SyncPipeline。
  * 
  * @tparam CHANNELS 通道数量
  */
 template <u8 CHANNELS>
-class AnalogSource : public SyncPipeline<i16> {
+class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
    public:
     struct Config {
         u8 resolution;  ///< ADC分辨率位数: 8=8位(0-255), 12=12位(0-4095), 16=16位(0-65535)
@@ -22,7 +26,7 @@ class AnalogSource : public SyncPipeline<i16> {
 
    public:
     /**
-     * @brief 构造内存数据源
+     * @brief 构造多通道模拟输入源
      * 
      * @param config ADC配置参数
      */
@@ -37,8 +41,10 @@ class AnalogSource : public SyncPipeline<i16> {
         reset();
     }
 
-    // Pipeline接口实现
-    void update() override {
+    /**
+     * @brief 更新所有通道数据
+     */
+    void update() {
         // 从外部缓冲区读取原始值并转换，然后应用偏移量
         for (u8 ch = 0; ch < CHANNELS; ch++) {
             i16 converted = _convertToInt16(_rawValue[ch]);
@@ -53,16 +59,24 @@ class AnalogSource : public SyncPipeline<i16> {
             _values[ch] = static_cast<i16>(result);
         }
     }
-    i16 getValue(u8 channel) const override {
+
+    /**
+     * @brief 获取指定通道的值
+     * 
+     * @param channel 通道索引
+     * @return i16 通道值
+     */
+    i16 getValue(u8 channel) const {
         if (channel >= CHANNELS) {
             return 0;  // 返回无效值
         }
         return _values[channel];
     }
-    i16* getValues() const override {
-        return const_cast<i16*>(_values);
-    }
-    void reset() override {
+
+    /**
+     * @brief 重置所有通道状态
+     */
+    void reset() {
         for (u8 ch = 0; ch < CHANNELS; ch++) {
             _values[ch] = 0;
         }
@@ -157,15 +171,14 @@ class AnalogSource : public SyncPipeline<i16> {
         }
     }
 
-    
    private:
-
     Config _config;       ///< ADC配置
     u32    _maxAdcValue;  ///< ADC最大值
 
-    u16 _rawValue[CHANNELS];   ///< 原始值缓冲区
-    i16 _values[CHANNELS];   ///< 各通道校准后的值
-    i16 _offsets[CHANNELS];  ///< 各通道偏移量
+    u16 _rawValue[CHANNELS];  ///< 原始值缓冲区
+    i16 _values[CHANNELS];    ///< 各通道校准后的值
+    i16 _offsets[CHANNELS];   ///< 各通道偏移量
 };
+
 
 }  // namespace wibot

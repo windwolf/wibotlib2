@@ -79,12 +79,7 @@ class WibotRcTelemetry : public RxServer {
 class WibotRcController : public Worker {
    public:
     WibotRcController(TIM_HandleTypeDef& tim, u8 timChannel)
-        : _dshot(tim),
-          _timChannel(timChannel),
-          _throttleSource(0.0f),
-          _trajectory(&_throttleSource) {
-        _trajectory.setConfig({.slopeRate = 1.0f, .sampleTime = 0.01f});
-    };
+        : _dshot(tim), _timChannel(timChannel) {};
 
    public:
     void setThrottle(f32 throttle);
@@ -93,12 +88,19 @@ class WibotRcController : public Worker {
     void run() override;
 
    private:
-    DShot                  _dshot;
-    u8                     _timChannel;
-    ConstantSource<f32, 1> _throttleSource;
-    SlopeTrajectory<1>     _trajectory;
+    DShot                      _dshot;
+    u8                         _timChannel;
+    ConstantSource<f32>        _throttleSource{0.0f};
+    SlopeTrajectoryConfig<f32> _slopeConfig{{
+                                                .slopeRate   = 1.0f,   // 1 unit per second
+                                                .sampleTime  = 0.02f,  // 20 ms
+                                                .enableClamp = false,
+                                            },
+                                            0.0f,
+                                            1.0f};
+    SlopeTrajectory<f32>       _trajectory{_throttleSource, _slopeConfig};
 };
 
 }  // namespace wibot
 
-#endif // HAL_TIM_MODULE_ENABLED && HAL_UART_MODULE_ENABLED
+#endif  // HAL_TIM_MODULE_ENABLED && HAL_UART_MODULE_ENABLED

@@ -51,40 +51,39 @@ struct PidControllerConfig {
  * 实现SyncPipeline接口的PID控制器，从上游管道获取测量值，
  * 输出控制量。支持串行和并行两种PID形式。
  * 
+ * 配置使用引用方式，支持多个控制器实例共享同一配置。
+ *
  * 管道流程：
  * 上游测量值 -> PID控制器 -> 控制输出
  */
-template <u8 CHANNELS = 1>
 class PidController : public SyncPipeline<f32> {
    public:
     /**
      * @brief 构造函数
      * @param upstream 上游管道，提供测量值
+     * @param config PID配置参数（引用方式，支持共享）
      */
-    explicit PidController(SyncPipeline<f32>& upstream) : _upstream(upstream), _config{} {
-        // 初始化所有通道的状态
-        for (u8 i = 0; i < CHANNELS; ++i) {
-            _integrator[i]      = 0.0f;
-            _prevError[i]       = 0.0f;
-            _differentiator[i]  = 0.0f;
-            _prevMeasurement[i] = 0.0f;
-            _outputs[i]         = 0.0f;
-        }
+    explicit PidController(SyncPipeline<f32>& upstream, const PidControllerConfig& config)
+        : _upstream(upstream),
+          _config(config),
+          _integrator(0.0f),
+          _prevError(0.0f),
+          _differentiator(0.0f),
+          _prevMeasurement(0.0f),
+          _output(0.0f) {
+    }
 
-        // 设置默认配置（所有通道共享）
-        _config.mode                  = PidControllerMode::kSerial;
-        _config.Kp                    = 1.0f;
-        _config.Ki                    = 0.0f;
-        _config.Kd                    = 0.0f;
-        _config.tau                   = 0.0f;
-        _config.outputLimitEnable     = false;
-        _config.outputLimitMax        = 100.0f;
-        _config.outputLimitMin        = -100.0f;
-        _config.integratorLimitEnable = false;
-        _config.integratorLimitMax    = 100.0f;
-        _config.integratorLimitMin    = -100.0f;
-        _config.sampleTime            = 0.01f;  // 10ms默认采样时间
-        _config.setPoint              = 0.0f;
+    /**
+     * @brief 构造函数(使用默认配置)
+     */
+    explicit PidController(SyncPipeline<f32>& upstream)
+        : _upstream(upstream),
+          _config(_defaultConfig),
+          _integrator(0.0f),
+          _prevError(0.0f),
+          _differentiator(0.0f),
+          _prevMeasurement(0.0f),
+          _output(0.0f) {
     }
 
     /**
@@ -98,163 +97,89 @@ class PidController : public SyncPipeline<f32> {
      * 从上游获取测量值，计算PID控制输出
      */
     void update() override {
-        // 更新上游管道
         _upstream.update();
 
-        // 处理所有通道
-        for (u8 channel = 0; channel < CHANNELS; ++channel) {
-            // 获取该通道的测量值
-            f32 measurement = _upstream.getValue(channel);
+        // 获取测量值
+        f32 measurement = _upstream.getValue();
 
-            // 计算误差
-            f32 error = _config.setPoint - measurement;
+        // 计算误差
+        f32 error = _config.setPoint - measurement;
 
-            // 根据模式计算PID输出
-            f32 pidOutput;
-            if (_config.mode == PidControllerMode::kSerial) {
-                pidOutput = updateSerial(error, channel);
-            } else {
-                pidOutput = updateParallel(error, channel);
-            }
-
-            // 应用输出限制
-            pidOutput = applyOutputLimit(pidOutput);
-
-            // 保存输出
-            _outputs[channel] = pidOutput;
+        // 根据模式计算PID输出
+        f32 pidOutput;
+        if (_config.mode == PidControllerMode::kSerial) {
+            pidOutput = updateSerial(error, measurement);
+        } else {
+            pidOutput = updateParallel(error, measurement);
         }
+
+        // 应用输出限制
+        _output = applyOutputLimit(pidOutput);
     }
 
-    /**
-     * @brief 获取控制输出值
-     * @param channel 通道索引
-     * @return f32 控制输出值
-     */
-    f32 getValue(u8 channel = 0) const override {
-        if (channel >= CHANNELS) {
-            return 0.0f;  // 超出范围返回0
-        }
-        return _outputs[channel];
+    f32 getValue() const override {
+        return _output;
     }
 
-    /**
-     * @brief 获取所有通道的输出值
-     * @return f32* 所有通道的输出值
-     */
-    f32* getValues() const override {
-        return const_cast<f32*>(_outputs);
-    }
-
-    /**
-     * @brief 重置控制器状态
-     * 
-     * 清除积分项、微分项等内部状态
-     */
     void reset() override {
-        for (u8 i = 0; i < CHANNELS; ++i) {
-            _integrator[i]      = 0.0f;
-            _prevError[i]       = 0.0f;
-            _differentiator[i]  = 0.0f;
-            _prevMeasurement[i] = 0.0f;
-            _outputs[i]         = 0.0f;
-        }
-    }
-
-    /**
-     * @brief 设置PID参数配置（所有通道共享）
-     * @param config PID配置参数
-     */
-    void setConfig(const PidControllerConfig& config) {
-        _config = config;
+        _integrator      = 0.0f;
+        _prevError       = 0.0f;
+        _differentiator  = 0.0f;
+        _prevMeasurement = 0.0f;
+        _output          = 0.0f;
     }
 
     /**
      * @brief 获取PID参数配置
-     * @return const PidControllerConfig& PID配置参数
      */
     const PidControllerConfig& getConfig() const {
         return _config;
     }
 
-    /**
-     * @brief 设置目标设定值
-     * @param setPoint 目标值（所有通道共享）
-     */
-    void setSetPoint(f32 setPoint) {
-        _config.setPoint = setPoint;
-    }
-
-    /**
-     * @brief 获取目标设定值
-     * @return f32 目标值
-     */
-    f32 getSetPoint() const {
-        return _config.setPoint;
-    }
-
    private:
     /**
      * @brief 串行PID更新计算
-     * @param error 误差值
-     * @param channel 通道索引
-     * @return f32 控制输出
      */
-    f32 updateSerial(f32 error, u8 channel) {
-        // 串行PID形式: u(k) = Kp * (e(k) + (1/Ti) * ∫e(t)dt + Td * de(t)/dt)
-
+    f32 updateSerial(f32 error, f32 measurement) {
         // 比例项
         f32 proportional = _config.Kp * error;
 
         // 积分项
-        _integrator[channel] +=
-            0.5f * _config.Ki * _config.sampleTime * (error + _prevError[channel]);
-        _integrator[channel] = applyIntegratorLimit(_integrator[channel]);
+        _integrator += 0.5f * _config.Ki * _config.sampleTime * (error + _prevError);
+        _integrator = applyIntegratorLimit(_integrator);
 
         // 微分项 (使用测量值微分，避免设定值突变影响)
-        f32 measurement = _upstream.getValue(channel);
-        _differentiator[channel] =
-            -(2.0f * _config.Kd * (measurement - _prevMeasurement[channel]) +
-              (2.0f * _config.tau - _config.sampleTime) * _differentiator[channel]) /
-            (2.0f * _config.tau + _config.sampleTime);
-        _prevMeasurement[channel] = measurement;
+        _differentiator = -(2.0f * _config.Kd * (measurement - _prevMeasurement) +
+                            (2.0f * _config.tau - _config.sampleTime) * _differentiator) /
+                          (2.0f * _config.tau + _config.sampleTime);
+        _prevMeasurement = measurement;
 
         // 保存当前误差用于下次积分计算
-        _prevError[channel] = error;
+        _prevError = error;
 
-        // 计算总输出
-        return proportional + _integrator[channel] + _differentiator[channel];
+        return proportional + _integrator + _differentiator;
     }
 
     /**
      * @brief 并行PID更新计算
-     * @param error 误差值
-     * @param channel 通道索引
-     * @return f32 控制输出
      */
-    f32 updateParallel(f32 error, u8 channel) {
-        // 并行PID形式: u(k) = Kp * e(k) + Ki * ∫e(t)dt + Kd * de(t)/dt
-
+    f32 updateParallel(f32 error, f32 measurement) {
         // 比例项
         f32 proportional = _config.Kp * error;
 
         // 积分项
-        _integrator[channel] +=
-            0.5f * _config.Ki * _config.sampleTime * (error + _prevError[channel]);
-        _integrator[channel] = applyIntegratorLimit(_integrator[channel]);
+        _integrator += 0.5f * _config.Ki * _config.sampleTime * (error + _prevError);
+        _integrator = applyIntegratorLimit(_integrator);
 
-        // 微分项 (使用测量值微分，避免设定值突变影响)
-        f32 measurement = _upstream.getValue(channel);
-        _differentiator[channel] =
-            -(2.0f * _config.Kd * (measurement - _prevMeasurement[channel]) +
-              (2.0f * _config.tau - _config.sampleTime) * _differentiator[channel]) /
-            (2.0f * _config.tau + _config.sampleTime);
-        _prevMeasurement[channel] = measurement;
+        // 微分项
+        _differentiator = -(2.0f * _config.Kd * (measurement - _prevMeasurement) +
+                            (2.0f * _config.tau - _config.sampleTime) * _differentiator) /
+                          (2.0f * _config.tau + _config.sampleTime);
+        _prevMeasurement = measurement;
 
-        // 保存当前误差用于下次积分计算
-        _prevError[channel] = error;
+        _prevError = error;
 
-        // 计算总输出
-        return proportional + _integrator[channel] + _differentiator[channel];
+        return proportional + _integrator + _differentiator;
     }
 
     /**
@@ -285,18 +210,32 @@ class PidController : public SyncPipeline<f32> {
     }
 
    private:
-    SyncPipeline<f32>&  _upstream;  ///< 上游管道引用
-    PidControllerConfig _config;    ///< PID配置参数（所有通道共享）
+    SyncPipeline<f32>&         _upstream;  ///< 上游管道引用
+    const PidControllerConfig& _config;    ///< PID配置参数引用（支持共享）
 
     /* 控制器内部状态 */
-    f32 _integrator[CHANNELS];       ///< 积分项
-    f32 _prevError[CHANNELS];        ///< 上一次误差 (用于积分计算)
-    f32 _differentiator[CHANNELS];   ///< 微分项
-    f32 _prevMeasurement[CHANNELS];  ///< 上一次测量值 (用于微分计算)
+    f32 _integrator;       ///< 积分项
+    f32 _prevError;        ///< 上一次误差
+    f32 _differentiator;   ///< 微分项
+    f32 _prevMeasurement;  ///< 上一次测量值
 
     /* 输出缓存 */
-    // f32  _output;             ///< 当前输出值
-    f32 _outputs[CHANNELS];  ///< 所有通道输出值 (当需要多通道时)
+    f32 _output;  ///< 当前输出值
+
+    /* 默认配置 */
+    static inline const PidControllerConfig _defaultConfig = {.mode = PidControllerMode::kSerial,
+                                                              .Kp   = 1.0f,
+                                                              .Ki   = 0.0f,
+                                                              .Kd   = 0.0f,
+                                                              .tau  = 0.0f,
+                                                              .outputLimitEnable     = false,
+                                                              .outputLimitMax        = 100.0f,
+                                                              .outputLimitMin        = -100.0f,
+                                                              .integratorLimitEnable = false,
+                                                              .integratorLimitMax    = 100.0f,
+                                                              .integratorLimitMin    = -100.0f,
+                                                              .sampleTime            = 0.01f,
+                                                              .setPoint              = 0.0f};
 };
 
 }  // namespace wibot

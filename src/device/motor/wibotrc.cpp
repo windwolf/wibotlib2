@@ -40,13 +40,13 @@ void WibotRcTelemetry::processCommandFrame(const MessageFrame& frame) {
 };
 
 void WibotRcController::setThrottle(f32 throttle) {
-    _throttleSource.setValue(0, throttle);
+    _throttleSource.setValue(throttle);
 };
 
 void WibotRcController::run() {
     while (true) {
         _trajectory.update();
-        auto throttle     = _trajectory.getValue(0);
+        auto throttle     = _trajectory.getValue();
         auto dshotCommand = static_cast<u16>(throttle * 2000.0f + 48.0f);
         auto rst          = _dshot.send(_timChannel, dshotCommand, false);
         rst.wait(TIMEOUT_NOWAIT);

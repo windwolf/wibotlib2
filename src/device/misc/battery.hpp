@@ -44,10 +44,10 @@ class Battery {
     u8                   getCapPercentAA(f32 voltage);
 };
 
-MappingFunction<u16, u16> createBatteryCapacityMapper(const Battery::Config& batteryConfig) {
-    Battery battery(batteryConfig);
-    return [battery](f32 voltage, u8 channel) mutable -> u8 {
-        return battery.getCapPercent(voltage);
-    };
-};
+// MappingFunction<f32, u8> createBatteryCapacityMapper(const Battery::Config& batteryConfig) {
+//     Battery battery(batteryConfig);
+//     return [battery](f32 voltage, u8 channel) mutable -> u8 {
+//         return battery.getCapPercent(voltage);
+//     };
+// };
 }  // namespace wibot

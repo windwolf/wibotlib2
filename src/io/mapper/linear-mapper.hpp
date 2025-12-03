@@ -7,13 +7,11 @@ namespace wibot {
 /**
  * @brief 线性映射管道
  * 
- * 将int16_t输入范围线性映射到float输出范围。支持多通道实时无状态映射。
- * 所有通道共享同一套映射配置。
+ * 将int16_t输入范围线性映射到float输出范围。
  * 公式：output = (input - inputMin) / (inputMax - inputMin) * (outputMax - outputMin) + outputMin
  * 
- * @tparam CHANNELS 通道数量，编译时确定
+ * 配置使用引用方式，支持多个映射器实例共享同一配置。
  */
-template <u8 CHANNELS>
 class LinearMapper : public SyncPipeline<f32> {
    public:
     /**
@@ -29,51 +27,32 @@ class LinearMapper : public SyncPipeline<f32> {
 
    public:
     /**
-     * @brief 构造线性映射器（所有通道使用相同配置）
+     * @brief 构造线性映射器
      * 
      * @param upstream 上游管道
-     * @param config 共享的映射配置
+     * @param config 映射配置（引用方式，支持共享）
      */
     LinearMapper(SyncPipeline<i16>& upstream, const Config& config)
         : _upstream(upstream), _config(config) {
     }
 
-    /**
-     * @brief 获取映射后的值
-     */
-    f32 getValue(u8 channel) const override {
-        if (channel >= CHANNELS) {
-            return 0.0f;  // 无效通道返回0
-        }
-
+    f32 getValue() const override {
         // 获取上游值并实时处理
-        i16 input = _upstream.getValue(channel);
+        i16 input = _upstream.getValue();
         return _mapLinear(static_cast<f32>(input));
     }
 
-    /**
-     * @brief 重置管道状态
-     */
     void reset() override {
-        // 无状态映射器，无需重置，但需要重置上游
         _upstream.reset();
     }
 
-    /**
-     * @brief 更新管道状态
-     */
     void update() override {
-        // 无状态映射器，只需要更新上游
         _upstream.update();
     }
 
     /**
-     * @brief 更新映射配置（影响所有通道）
+     * @brief 更新映射配置
      */
-    void updateConfig(const Config& config) {
-        _config = config;
-    }
-
    private:
     /**
      * @brief 执行线性映射
@@ -97,7 +76,7 @@ class LinearMapper : public SyncPipeline<f32> {
 
    private:
     SyncPipeline<i16>& _upstream;  ///< 上游管道引用
-    Config             _config;    ///< 共享的映射配置
+    const Config&      _config;    ///< 映射配置引用（支持共享）
 };
 
 }  // namespace wibot

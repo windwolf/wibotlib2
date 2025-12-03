@@ -51,7 +51,7 @@ u32 System::getPCLK1TimFreq() {
 u32 System::getTIMFreq(TIM_TypeDef* tim) {
     auto apbIdx = GetTimerAPBIndex(tim);
     ASSERT(apbIdx != 0, "Invalid TIM instance");
-    return (apbIdx == 1) ? getPCLK1TimFreq() : getPCLK2TimFreq();
+    return getPCLK1TimFreq();
 }
 
 u32 System::getTickMs() {
