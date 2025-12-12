@@ -34,6 +34,19 @@ class Bq25750 {
         PinFault = 0b10,
         Reserved = 0b11,
     };
+
+    enum struct DeadTime : u8 {
+        k45ns  = 0b00,
+        k75ns  = 0b01,
+        k105ns = 0b10,
+        k135ns = 0b11,
+    };
+    enum struct DriverStrength : u8 {
+        kFastist = 0b00,
+        kFast    = 0b01,
+        kSlow    = 0b10,
+        kSlowest = 0b11,
+    };
     struct State {
         union {
             struct {
@@ -165,6 +178,25 @@ class Bq25750 {
         } faultMask;
     };
 
+    struct GateDriverControl {
+        union {
+            struct {
+                DriverStrength buck  : 2;
+                DriverStrength boost : 2;
+                u8             _res  : 4;
+            };
+            u8 raw;
+        } driverStrength;
+        union {
+            struct {
+                DeadTime buck  : 2;
+                DeadTime boost : 2;
+                u8       _res  : 4;
+            };
+            u8 raw;
+        } deatTime;
+    };
+
     static const u8 I2C_ADDRESS = 0x6B;
 
    public:
@@ -179,6 +211,8 @@ class Bq25750 {
 
     Result enableCharging();
     Result disableCharging();
+
+    Result setGateDriver(GateDriverControl control);
 
     Result feedDog();
 

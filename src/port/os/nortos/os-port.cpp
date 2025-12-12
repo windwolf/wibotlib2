@@ -124,13 +124,14 @@ Result EventGroup::reset(u32 flags) {
 };
 
 Result EventGroup::wait(u32 flags, u32& actualFlags, EventOptions options, u32 timeout) {
+    auto   ins = this->_instance;
     Result rst = Result::kOk;
 
     if (timeout == TIMEOUT_NOWAIT) {
         if ((options & EventOptions_WaitFlag) == EventOptions_WaitForAll) {
-            rst = ((this->_instance & flags) == flags) ? Result::kOk : Result::kNoResource;
+            rst = ((ins & flags) == flags) ? Result::kOk : Result::kNoResource;
         } else {
-            rst = ((this->_instance & flags) != 0) ? Result::kOk : Result::kNoResource;
+            rst = ((ins & flags) != 0) ? Result::kOk : Result::kNoResource;
         }
     } else {
         if (arch::isIsr()) {
@@ -138,23 +139,25 @@ Result EventGroup::wait(u32 flags, u32& actualFlags, EventOptions options, u32 t
         } else {
             uint32_t start = System::getTickMs();
             if ((options & EventOptions_WaitFlag) == EventOptions_WaitForAll) {
-                while ((this->_instance & flags) != flags) {
+                while ((ins & flags) != flags) {
                     if (System::getDurationMs(start) > timeout) {
                         rst = Result::kTimeout;
                         break;
                     }
+                    ins = this->_instance;
                 };
             } else {
-                while ((this->_instance & flags) == 0) {
+                while ((ins & flags) == 0) {
                     if (System::getDurationMs(start) > timeout) {
                         rst = Result::kTimeout;
                         break;
                     }
+                    ins = this->_instance;
                 };
             }
         }
     }
-    actualFlags = this->_instance;
+    actualFlags = ins & flags;
     if ((rst == Result::kOk) && ((options & EventOptions_ClearFlag) == EventOptions_ClearFlag)) {
         reset(flags);
     }

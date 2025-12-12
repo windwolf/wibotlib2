@@ -3,6 +3,10 @@
 #include <type_traits>
 #include "../model.hpp"
 
+#ifndef MEDIAN_FILTER_MAX_WINDOW_SIZE
+#define MEDIAN_FILTER_MAX_WINDOW_SIZE 32
+#endif
+
 namespace wibot {
 
 /**
@@ -30,8 +34,6 @@ class MedianFilter : public SyncPipeline<T> {
     struct Config {
         u8 windowSize;  ///< 滤波窗口大小，建议使用奇数 (1-32)
     };
-
-    static constexpr u8 MAX_WINDOW_SIZE = 32;  ///< 最大窗口大小
 
    public:
     /**
@@ -86,7 +88,7 @@ class MedianFilter : public SyncPipeline<T> {
     }
 
     static bool isConfigValid(const Config& config) {
-        return config.windowSize > 0 && config.windowSize <= MAX_WINDOW_SIZE;
+        return config.windowSize > 0 && config.windowSize <= MEDIAN_FILTER_MAX_WINDOW_SIZE;
     }
 
    private:
@@ -150,8 +152,8 @@ class MedianFilter : public SyncPipeline<T> {
     SyncPipeline<T>& _upstream;  ///< 上游管道引用
     const Config&    _config;    ///< 滤波配置引用（支持共享）
 
-    T  _buffer[MAX_WINDOW_SIZE];      ///< 环形缓冲区
-    T  _tempBuffer[MAX_WINDOW_SIZE];  ///< 临时缓冲区(用于排序)
+    T  _buffer[MEDIAN_FILTER_MAX_WINDOW_SIZE];      ///< 环形缓冲区
+    T  _tempBuffer[MEDIAN_FILTER_MAX_WINDOW_SIZE];  ///< 临时缓冲区(用于排序)
     u8 _bufferIndex;                  ///< 缓冲区当前索引
     u8 _bufferCount;                  ///< 缓冲区有效数据数量
     T  _outputLast;                   ///< 上次的输出值

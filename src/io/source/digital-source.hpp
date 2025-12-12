@@ -27,6 +27,7 @@ struct DigitalSourceConfig {
  */
 template <u8 CHANNELS>
 class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
+    static_assert(CHANNELS <= 32, "CHANNELS must not exceed 32");
    public:
     /**
      * @brief 构造数字输入数据源
@@ -35,8 +36,6 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
      */
     explicit DigitalSource(const DigitalSourceConfig& config)
         : _config(config), _isFirstValue(true), _lastOutputStatus(0), _lastBufferedStatus(0) {
-        static_assert(CHANNELS <= 32, "CHANNELS must not exceed 32");
-
         // 初始化各通道消抖时间
         for (u8 i = 0; i < CHANNELS; i++) {
             _lastDebounceTime[i] = 0;
@@ -54,7 +53,6 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
           _isFirstValue(true),
           _lastOutputStatus(0),
           _lastBufferedStatus(0) {
-        static_assert(CHANNELS <= 32, "CHANNELS must not exceed 32");
 
         // 初始化各通道消抖时间
         for (u8 i = 0; i < CHANNELS; i++) {
@@ -201,9 +199,6 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
     u32                 _lastOutputStatus;            ///< 上次输出状态（消抖后的值）
     u32                 _lastBufferedStatus;          ///< 上次缓冲状态（原始输入值）
     u32                 _lastDebounceTime[CHANNELS];  ///< 各通道上次消抖时间
-
-   private:
-    static constexpr u8 DEFAULT_DEBOUNCE_TIME_MS = 50;  ///< 默认消抖时间
 };
 
 

@@ -17,7 +17,7 @@ HardI2cMaster::~HardI2cMaster() {
 };
 
 AsyncResult HardI2cMaster::readReg(u16 regAddr, const Slice& data) {
-    if (HAL_I2C_GetState(_handle) & HAL_I2C_STATE_BUSY_RX) {
+    if (HAL_I2C_GetState(_handle) != HAL_I2C_STATE_READY) {
         return AsyncResult::fromResult(Result::kBusy);
     }
 #if CHIP_I2C_READ_DMA_ENABLED
@@ -45,7 +45,7 @@ AsyncResult HardI2cMaster::readReg(u16 regAddr, const Slice& data) {
 };
 
 AsyncResult HardI2cMaster::writeReg(u16 regAddr, const Slice& data) {
-    if (HAL_I2C_GetState(_handle) & HAL_I2C_STATE_BUSY_TX) {
+    if (HAL_I2C_GetState(_handle) != HAL_I2C_STATE_READY) {
         return AsyncResult::fromResult(Result::kBusy);
     }
 #if CHIP_I2C_WRITE_DMA_ENABLED
@@ -73,7 +73,7 @@ AsyncResult HardI2cMaster::writeReg(u16 regAddr, const Slice& data) {
 };
 
 AsyncResult HardI2cMaster::read(const Slice& data) {
-    if (HAL_I2C_GetState(_handle) & HAL_I2C_STATE_BUSY_RX) {
+    if (HAL_I2C_GetState(_handle) != HAL_I2C_STATE_READY) {
         return AsyncResult::fromResult(Result::kBusy);
     }
 #if CHIP_I2C_READ_DMA_ENABLED
@@ -95,7 +95,7 @@ AsyncResult HardI2cMaster::read(const Slice& data) {
     return _asyncSource.getResult();
 };
 AsyncResult HardI2cMaster::write(const Slice& data) {
-    if (HAL_I2C_GetState(_handle) & HAL_I2C_STATE_BUSY_TX) {
+    if (HAL_I2C_GetState(_handle) != HAL_I2C_STATE_READY) {
         return AsyncResult::fromResult(Result::kBusy);
     }
 #if CHIP_I2C_WRITE_DMA_ENABLED

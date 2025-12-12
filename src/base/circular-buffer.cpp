@@ -23,13 +23,15 @@ u32 CircularBuffer<TE>::peek(TE *data, u32 start, u32 length) {
     if (length > size - start) {
         length = size - start;
     }
-    auto readMemIndex         = WrapMemIndex(_read + start);
-    auto roomFromReadToBotton = _capacity - readMemIndex;
-    if (length <= roomFromReadToBotton) {
-        memcpy(data, _buffer + readMemIndex, length * sizeof(TE));
-    } else {
-        memcpy(data, _buffer + readMemIndex, roomFromReadToBotton * sizeof(TE));
-        memcpy(data + roomFromReadToBotton, _buffer, (length - roomFromReadToBotton) * sizeof(TE));
+    const u32 readMemIndex         = WrapMemIndex(_read + start);
+    const u32 roomFromReadToBottom = _capacity - readMemIndex;
+    const u32 firstPart  = (length < roomFromReadToBottom) ? length : roomFromReadToBottom;
+    const u32 secondPart = length - firstPart;
+    if (firstPart) {
+        memcpy(data, _buffer + readMemIndex, firstPart * sizeof(TE));
+    }
+    if (secondPart) {
+        memcpy(data + firstPart, _buffer, secondPart * sizeof(TE));
     }
     return length;
 }
@@ -40,13 +42,15 @@ u32 CircularBuffer<TE>::read(TE *data, u32 length) {
     if (length > size) {
         length = size;
     }
-    auto readMemIndex         = WrapMemIndex(_read);
-    auto roomFromReadToBotton = _capacity - readMemIndex;
-    if (length <= roomFromReadToBotton) {
-        memcpy(data, _buffer + readMemIndex, length * sizeof(TE));
-    } else {
-        memcpy(data, _buffer + readMemIndex, roomFromReadToBotton * sizeof(TE));
-        memcpy(data + roomFromReadToBotton, _buffer, (length - roomFromReadToBotton) * sizeof(TE));
+    const u32 readMemIndex         = WrapMemIndex(_read);
+    const u32 roomFromReadToBottom = _capacity - readMemIndex;
+    const u32 firstPart  = (length < roomFromReadToBottom) ? length : roomFromReadToBottom;
+    const u32 secondPart = length - firstPart;
+    if (firstPart) {
+        memcpy(data, _buffer + readMemIndex, firstPart * sizeof(TE));
+    }
+    if (secondPart) {
+        memcpy(data + firstPart, _buffer, secondPart * sizeof(TE));
     }
     _read = WrapLogicIndex(_read + length);
     return length;
@@ -98,14 +102,15 @@ u32 CircularBuffer<TE>::write(const TE *data, u32 length, bool allowCover) {
         }
     } else {
     }
-    auto writeMemIndex          = WrapMemIndex(_write);
-    auto roomFrom_WriteToBotton = _capacity - writeMemIndex;
-    if (length <= roomFrom_WriteToBotton) {
-        memcpy(_buffer + writeMemIndex, data, length * sizeof(TE));
-    } else {
-        memcpy(_buffer + writeMemIndex, data, roomFrom_WriteToBotton * sizeof(TE));
-        memcpy(_buffer, data + roomFrom_WriteToBotton,
-               (length - roomFrom_WriteToBotton) * sizeof(TE));
+    const u32 writeMemIndex         = WrapMemIndex(_write);
+    const u32 roomFromWriteToBottom = _capacity - writeMemIndex;
+    const u32 firstPart  = (length < roomFromWriteToBottom) ? length : roomFromWriteToBottom;
+    const u32 secondPart = length - firstPart;
+    if (firstPart) {
+        memcpy(_buffer + writeMemIndex, data, firstPart * sizeof(TE));
+    }
+    if (secondPart) {
+        memcpy(_buffer, data + firstPart, secondPart * sizeof(TE));
     }
     _write = WrapLogicIndex(_write + length);
 
@@ -124,32 +129,39 @@ CircularBuffer<TE>::CircularBuffer(Slice buffer) : _buffer(buffer.data), _capaci
 
 template <typename TE>
 TE *CircularBuffer<TE>::getWritePtr() const {
-    return &_buffer[WrapMemIndex(_write)];
+    const u32 memMask = _capacity - 1;
+    return &_buffer[_write & memMask];
 };
 
 template <typename TE>
 TE *CircularBuffer<TE>::getReadPtr() const {
-    return &_buffer[WrapMemIndex(_read)];
+    const u32 memMask = _capacity - 1;
+    return &_buffer[_read & memMask];
 };
 template <typename TE>
 u32 CircularBuffer<TE>::getSizeWithoutMemWrap() const {
-    return std::min((_write - _read) & ((_capacity << 1) - 1), _capacity - WrapMemIndex(_read));
+    const u32 logicMask = (_capacity << 1) - 1;
+    const u32 memMask   = _capacity - 1;
+    return std::min(((_write - _read) & logicMask), _capacity - (_read & memMask));
 };
 template <typename TE>
 TE *CircularBuffer<TE>::peekPtr(u32 offset, bool force) {
     if (force) {
-        return &_buffer[WrapMemIndex(_read)];
+        const u32 memMask = _capacity - 1;
+        return &_buffer[_read & memMask];
     } else {
         if (offset >= getSize()) {
             return nullptr;
         }
-        return &_buffer[WrapMemIndex(_read + offset)];
+        const u32 memMask = _capacity - 1;
+        return &_buffer[(_read + offset) & memMask];
     }
 }
 
 template <typename TE>
 u32 CircularBuffer<TE>::getLengthByMemIndex(u32 end, u32 start) {
-    return (end - start) & (_capacity - 1);
+    const u32 memMask = _capacity - 1;
+    return (end - start) & memMask;
 };
 template <typename TE>
 u32 CircularBuffer<TE>::getMemCapacity() const {
@@ -169,7 +181,8 @@ bool CircularBuffer<TE>::isEmpty() const {
 };
 template <typename TE>
 u32 CircularBuffer<TE>::getSize() const {
-    return (_write - _read) & ((_capacity << 1) - 1);
+    const u32 logicMask = (_capacity << 1) - 1;
+    return (_write - _read) & logicMask;
 };
 
 template <typename TE>
