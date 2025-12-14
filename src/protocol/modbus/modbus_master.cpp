@@ -180,7 +180,7 @@ AsyncResult ModbusMaster::sendSimpleCommand(u8 deviceAddr, u8 functionCode, u16 
     _crc16.reset();
     _crc16.calculate(_buffer.data, kSimpleCmdSize);
     u16 crc = _crc16.get();
-    buf.setUint16(kSimpleCmdSize, crc);
+    buf.setUint16(kSimpleCmdSize, crc, Endian::kLittle);
     return _uart.write(buf);
 };
 
