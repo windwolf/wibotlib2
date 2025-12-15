@@ -44,7 +44,7 @@ class ModbusMaster {
    private:
     UartStream&                _uart;
     Buffer<MODBUS_BUFFER_SIZE> _buffer;
-    Crc16Validator             _crc16{Crc16Validator::CRC16_MODBUS, 0xFFFF, 0x0000, true, true};
+    Crc16Validator             _crc16{Crc16Validator::Modbus()};
 };
 
 // ============================================================================
@@ -137,7 +137,7 @@ class ModbusSlave {
     u8                         _slaveAddr;
     IModbusSlaveHandler&       _handler;
     Buffer<MODBUS_BUFFER_SIZE> _buffer;
-    Crc16Validator             _crc16{Crc16Validator::CRC16_MODBUS, 0xFFFF, 0x0000, true, true};
+    Crc16Validator             _crc16{Crc16Validator::Modbus()};
     u16                        _receivedLength;
 };
 

@@ -9,45 +9,81 @@
 
 namespace wibot {
 
+struct Crc16Config {
+    u16  poly;
+    u16  init;
+    u16  xorout;
+    bool ref_in;
+    bool ref_out;
+};
+
 class Crc16Validator : Validator<u8> {
    public:
     Crc16Validator(u16 poly, u16 init = 0x0000, u16 xorout = 0x0000, bool ref_in = false,
                    bool ref_out = false)
-        : _poly(poly), _init(init), _xorout(xorout), _ref_in(ref_in), _ref_out(ref_out) {};
+        : _cfg{poly, init, xorout, ref_in, ref_out} {};
+    // Config-based constructor
+    explicit Crc16Validator(const Crc16Config& cfg) : _cfg(cfg) {
+    }
     void reset() override;
     void calculate(u8* data, u32 length) override;
     bool validate(u8* sum) override;
     u16  get();
 
    private:
-    u16  _poly;
-    u16  _init;
-    u16  _xorout;
-    bool _ref_in;
-    bool _ref_out;
-    u16  _crc;
+    Crc16Config _cfg;
+    u16         _crc;
 
    public:
-    constexpr static u16 CRC16_CCITT    = 0x1021;
-    constexpr static u16 CRC16_ARC      = 0x8005;
-    constexpr static u16 CRC16_BUYPASS  = 0x8005;
-    constexpr static u16 CRC16_DDS_110  = 0x8005;
-    constexpr static u16 CRC16_DECT     = 0x0589;
-    constexpr static u16 CRC16_DNP      = 0x3D65;
-    constexpr static u16 CRC16_EN_13757 = 0x3D65;
-    constexpr static u16 CRC16_GENIBUS  = 0x1021;
-    constexpr static u16 CRC16_MAXIM    = 0x8005;
-    constexpr static u16 CRC16_MCRF4XX  = 0x1021;
-    constexpr static u16 CRC16_RIELLO   = 0x1021;
-    constexpr static u16 CRC16_T10_DIF  = 0x8BB7;
-    constexpr static u16 CRC16_TELEDISK = 0xA097;
-    constexpr static u16 CRC16_USB      = 0x8005;
-    constexpr static u16 CRC16_X25      = 0x1021;
-    constexpr static u16 CRC16_XMODEM   = 0x1021;
-    constexpr static u16 CRC16_MODBUS   = 0x8005;
-    constexpr static u16 CRC16_KERMIT   = 0x1189;
-    constexpr static u16 CRC16_TMS37157 = 0x1021;
-    constexpr static u16 CRC16_A        = 0x1021;
+    // Preset parameters as constexpr configs for common CRC-16 variants
+    // Reference: reveng CRC catalogue
+    // MODBUS: poly=0x8005, init=0xFFFF, xorout=0x0000, refin=true, refout=true
+    constexpr static Crc16Config MODBUS{0x8005, 0xFFFF, 0x0000, true, true};
+
+    // X25 (CRC-16/IBM-SDLC): poly=0x1021, init=0xFFFF, xorout=0xFFFF, refin=true, refout=true
+    constexpr static Crc16Config X25{0x1021, 0xFFFF, 0xFFFF, true, true};
+
+    // CCITT-FALSE: poly=0x1021, init=0xFFFF, xorout=0x0000, refin=false, refout=false
+    constexpr static Crc16Config CCITT_FALSE{0x1021, 0xFFFF, 0x0000, false, false};
+
+    // XMODEM: poly=0x1021, init=0x0000, xorout=0x0000, refin=false, refout=false
+    constexpr static Crc16Config XMODEM{0x1021, 0x0000, 0x0000, false, false};
+
+    // KERMIT: poly=0x1021 (reflected 0x8408), init=0x0000, xorout=0x0000, refin=true, refout=true
+    // KERMIT uses reflected representation of 0x1021; with refin/refout true, 0x1021 works
+    constexpr static Crc16Config KERMIT{0x1021, 0x0000, 0x0000, true, true};
+
+    // DNP: poly=0x3D65, init=0x0000, xorout=0xFFFF, refin=true, refout=true
+    constexpr static Crc16Config DNP{0x3D65, 0x0000, 0xFFFF, true, true};
+
+    // MAXIM: poly=0x8005, init=0x0000, xorout=0xFFFF, refin=true, refout=true
+    constexpr static Crc16Config MAXIM{0x8005, 0x0000, 0xFFFF, true, true};
+
+    // Convenience factories to avoid misconfiguration
+    static inline Crc16Validator From(const Crc16Config& cfg) {
+        return Crc16Validator(cfg);
+    }
+    static inline Crc16Validator Modbus() {
+        return Crc16Validator(MODBUS);
+    }
+    static inline Crc16Validator X25Validator() {
+        return Crc16Validator(X25);
+    }
+    static inline Crc16Validator CcittFalse() {
+        return Crc16Validator(CCITT_FALSE);
+    }
+    static inline Crc16Validator Xmodem() {
+        return Crc16Validator(XMODEM);
+    }
+    static inline Crc16Validator Kermit() {
+        return Crc16Validator(KERMIT);
+    }
+    static inline Crc16Validator Dnp() {
+        return Crc16Validator(DNP);
+    }
+    static inline Crc16Validator Maxim() {
+        return Crc16Validator(MAXIM);
+    }
 };
 
 }  // namespace wibot
