@@ -30,7 +30,7 @@ class Worker {
 template <u16 stack_size>
 class Thread {
    public:
-    Thread(const char* name, Worker* worker, uint32_t priority,
+    Thread(const char* name, Worker& worker, uint32_t priority,
            const ThreadConfig& config = ThreadConfig());
     ~Thread();
 
@@ -43,7 +43,7 @@ class Thread {
 
 class OsTimer {
    public:
-    OsTimer(const char* name, Worker* worker, uint32_t period, uint32_t firstDelay);
+    OsTimer(const char* name, Worker& worker, uint32_t period, uint32_t firstDelay);
     ~OsTimer();
 
     void start();

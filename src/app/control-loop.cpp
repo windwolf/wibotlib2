@@ -25,11 +25,11 @@ AsyncResult TimerControlLoop::getLoopSignal() {
 
 #endif  // HAL_TIM_MODULE_ENABLED
 
-void TriggerControlLoop::trigger() {
+void EventDrivenControlLoop::trigger() {
     _asyncSource.setDone();
 };
 
-AsyncResult TriggerControlLoop::getLoopSignal() {
+AsyncResult EventDrivenControlLoop::getLoopSignal() {
     return _asyncSource.getResult(true);
 };
 

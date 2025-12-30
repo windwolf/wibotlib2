@@ -13,9 +13,8 @@ void runStub(void* instance);
 
 namespace wibot {
 template <u16 stack_size>
-Thread<stack_size>::Thread(const char* name, Worker* worker, u32 priority,
+Thread<stack_size>::Thread(const char* name, Worker& worker, u32 priority,
                            const ThreadConfig& config) {
-    ASSERT(worker != nullptr, "Thread worker is null.");
 
     osThreadAttr_t attr = {
         .name       = name,
@@ -28,7 +27,7 @@ Thread<stack_size>::Thread(const char* name, Worker* worker, u32 priority,
         //.tz_module
     };
 
-    auto rst = osThreadNew(static_cast<void (*)(void*)>(runStub), worker, &attr);
+    auto rst = osThreadNew(static_cast<void (*)(void*)>(runStub), &worker, &attr);
     ASSERT(rst != NULL, "create Thread failed.")
 };
 template <u16 stack_size>

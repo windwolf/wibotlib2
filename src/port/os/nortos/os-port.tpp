@@ -4,9 +4,9 @@
 
 namespace wibot {
 template <u16 stack_size>
-Thread<stack_size>::Thread(const char* name, Worker* worker, u32 priority,
+Thread<stack_size>::Thread(const char* name, Worker& worker, u32 priority,
                            const ThreadConfig& config)
-    : _instance(worker) {
+    : _instance(&worker) {
     ASSERT(worker != nullptr, "Thread worker is null.");
 };
 template <u16 stack_size>

@@ -56,10 +56,9 @@ bool os::isInThread() {
     return tx_thread_identify() != TX_NULL;
 }
 
-OsTimer::OsTimer(const char* name, Worker* worker, u32 period, u32 firstDelay) {
-    ASSERT(worker != nullptr, "Thread worker is null.");
+OsTimer::OsTimer(const char* name, Worker& worker, u32 period, u32 firstDelay) {
     auto rst = tx_timer_create(&_instance, const_cast<CHAR*>(name), runStub,
-                               reinterpret_cast<ULONG>(worker), firstDelay, period, TX_NO_ACTIVATE);
+                               reinterpret_cast<ULONG>(&worker), firstDelay, period, TX_NO_ACTIVATE);
     ASSERT(rst == TX_SUCCESS, "create OsTimer failed.")
 };
 

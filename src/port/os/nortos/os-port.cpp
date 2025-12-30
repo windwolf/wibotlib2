@@ -231,7 +231,7 @@ Result MessageQueue::flush() {
     return Result::kOk;
 }
 
-OsTimer::OsTimer(const char* name, Worker* worker, u32 period, u32 firstDelay) : _instance(worker) {
+OsTimer::OsTimer(const char* name, Worker& worker, u32 period, u32 firstDelay) : _instance(&worker) {
     ASSERT(false, "OsTimer not support in NORTOS mode.");
 }
 OsTimer::~OsTimer() {

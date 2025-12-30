@@ -5,6 +5,7 @@ namespace wibot {
 template <typename T>
 class FsmExecutor {
    public:
+   
    public:
     void update() {
         T fromState = _currentState;

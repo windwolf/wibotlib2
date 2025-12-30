@@ -3,6 +3,7 @@
 #
 #include "peripheral.hpp"
 #include "system.hpp"
+#include <utility>
 
 #ifdef HAL_TIM_MODULE_ENABLED
 
@@ -20,9 +21,27 @@ Timer::~Timer() {
 void Timer::_onPeriodElapsedCplt(TIM_HandleTypeDef* htim) {
     auto ins = (Timer*)PeripheralManager::getInstance().getPeripheral(htim);
     ins->_updateEventSource.setDone();
+    if (ins->_updateEventHandler) {
+        ins->_updateEventHandler();
+    }
 }
 
 AsyncResult Timer::start(u32 freq) {
+    auto rst = startInternal(freq);
+    if (!rst.isOk()) {
+        return AsyncResult::fromError(rst);
+    }
+    return _updateEventSource.getResult(true);
+};
+
+void Timer::start(u32 freq, TimerInteruptHandler handler) {
+    _updateEventHandler = std::move(handler);
+
+    auto rst = startInternal(freq);
+    ASSERT(rst.isOk(), "Failed to start timer");
+};
+
+Result Timer::startInternal(u32 freq) {
     u32 pclkTimFreq = System::getTIMFreq(_instance->Instance);
 
     // 根据 PCLK 和要求的频率,计算 prescaler 和 period
@@ -68,9 +87,9 @@ AsyncResult Timer::start(u32 freq) {
 
     auto rst = HAL_TIM_Base_Start_IT(_instance);
     if (rst != HAL_OK) {
-        return AsyncResult::fromError(Result::kError);
+        return (Result)rst;
     }
-    return _updateEventSource.getResult(true);
+    return Result::kOk;
 };
 
 Result Timer::stop() {

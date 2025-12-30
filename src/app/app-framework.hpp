@@ -18,7 +18,7 @@ template <typename T>
 class BootFrom {
    public:
     static T   *app;
-    static void run(char const *name, char const *version) {
+    static void boot(char const *name, char const *version) {
 #ifdef USE_RTT_PRINT
         SEGGER_RTT_Init();
 #endif
@@ -26,7 +26,7 @@ class BootFrom {
         LOG_I("App name: %s, version: %s", name, version);
         static T _app;
         app = &_app;
-        _app.run();
+        _app.boot();
     }
 };
 

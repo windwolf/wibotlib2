@@ -172,14 +172,13 @@ MessageQueue::~MessageQueue() {
     osEventFlagsDelete(&(_instance));
 }
 
-OsTimer::OsTimer(const char* name, Worker* worker, u32 period, u32 firstDelay) : _period(period) {
-    ASSERT(worker != nullptr, "Thread worker is null.");
+OsTimer::OsTimer(const char* name, Worker& worker, u32 period, u32 firstDelay) : _period(period) {
     osTimerAttr_t attr = {
         .name = name, .attr_bits = 0, .cb_mem = &(_instance), .cb_size = sizeof(_instance),
         //.tz_module
     };
 
-    auto rst = osTimerNew(runStub, osTimerPeriodic, worker, &attr);
+    auto rst = osTimerNew(runStub, osTimerPeriodic, &worker, &attr);
     ASSERT(rst != NULL, "create OsTimer failed.")
 }
 OsTimer::~OsTimer() {
