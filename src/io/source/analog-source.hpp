@@ -6,20 +6,15 @@
 
 namespace wibot {
 
-/**
- * @brief 多通道模拟输入源
- * 
- * 用于读取由外部ADC通过DMA更新的原始值缓存。
- * 支持多通道共享配置，适用于硬件多通道ADC场景。
- * 
- * 继承 MultiChannelPipeline<i16, CHANNELS> 接口。
- * 可通过 ChannelAdapter 将特定通道适配为单通道 SyncPipeline。
- * 
- * @tparam CHANNELS 通道数量
- */
 template <u8 CHANNELS>
 class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
    public:
+    struct Storage {
+        u16 rawValue[CHANNELS]{};  ///< 原始值缓冲区, 由外部(如DMA)填充
+        i16 values[CHANNELS]{};    ///< 校准后的值
+        i16 offsets[CHANNELS]{};   ///< 偏移量
+    };
+
     struct Config {
         u8 resolution;  ///< ADC分辨率位数: 8=8位(0-255), 12=12位(0-4095), 16=16位(0-65535)
     };
@@ -30,14 +25,7 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
      * 
      * @param config ADC配置参数
      */
-    explicit AnalogSource(const Config& config) : _config(config) {
-        _maxAdcValue = (1U << _config.resolution) - 1;
-
-        // 初始化偏移量为0
-        for (u8 ch = 0; ch < CHANNELS; ch++) {
-            _offsets[ch] = 0;
-        }
-
+    AnalogSource(const Config& config, Storage& storage) : _config(config), _storage(storage) {
         reset();
     }
 
@@ -47,16 +35,16 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
     void update() {
         // 从外部缓冲区读取原始值并转换，然后应用偏移量
         for (u8 ch = 0; ch < CHANNELS; ch++) {
-            i16 converted = _convertToInt16(_rawValue[ch]);
+            i16 converted = _convertToInt16(_storage.rawValue[ch]);
 
             // 应用偏移校准: calibratedValue = rawValue + offset
-            i32 result = static_cast<i32>(converted) + static_cast<i32>(_offsets[ch]);
+            i32 result = static_cast<i32>(converted) + static_cast<i32>(_storage.offsets[ch]);
 
             // 限制到 int16_t 范围
             if (result > 32767) result = 32767;
             if (result < -32768) result = -32768;
 
-            _values[ch] = static_cast<i16>(result);
+            _storage.values[ch] = static_cast<i16>(result);
         }
     }
 
@@ -70,7 +58,7 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
         if (channel >= CHANNELS) {
             return 0;  // 返回无效值
         }
-        return _values[channel];
+        return _storage.values[channel];
     }
 
     /**
@@ -78,7 +66,8 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
      */
     void reset() {
         for (u8 ch = 0; ch < CHANNELS; ch++) {
-            _values[ch] = 0;
+            _storage.values[ch]  = 0;
+            _storage.offsets[ch] = 0;
         }
     }
 
@@ -96,7 +85,7 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
      * @return u16* 外部缓冲区指针
      */
     u16* getBuffer() {
-        return _rawValue;
+        return _storage.rawValue;
     }
 
     /**
@@ -107,7 +96,7 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
      */
     void setOffset(u8 channel, i16 offset) {
         if (channel < CHANNELS) {
-            _offsets[channel] = offset;
+            _storage.offsets[channel] = offset;
         }
     }
 
@@ -121,7 +110,7 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
         if (channel >= CHANNELS) {
             return 0;
         }
-        return _offsets[channel];
+        return _storage.offsets[channel];
     }
 
     /**
@@ -131,7 +120,7 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
      */
     void setOffsets(const i16 offsets[CHANNELS]) {
         for (u8 ch = 0; ch < CHANNELS; ch++) {
-            _offsets[ch] = offsets[ch];
+            _storage.offsets[ch] = offsets[ch];
         }
     }
 
@@ -141,7 +130,7 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
      * @return const i16* 偏移量数组指针
      */
     const i16* getOffsets() const {
-        return _offsets;
+        return _storage.offsets;
     }
 
    private:
@@ -172,13 +161,8 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
     }
 
    private:
-    Config _config;       ///< ADC配置
-    u32    _maxAdcValue;  ///< ADC最大值
-
-    u16 _rawValue[CHANNELS];  ///< 原始值缓冲区
-    i16 _values[CHANNELS];    ///< 各通道校准后的值
-    i16 _offsets[CHANNELS];   ///< 各通道偏移量
+    Config   _config;   ///< ADC配置
+    Storage& _storage;  ///< 外部存储
 };
-
 
 }  // namespace wibot

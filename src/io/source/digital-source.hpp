@@ -26,20 +26,32 @@ struct DigitalSourceConfig {
  * @tparam CHANNELS 通道数量（最多32个通道）
  */
 template <u8 CHANNELS>
+struct DigitalSourceStorage {
+    bool isFirstValue{true};
+    u32  rawStatus{0};
+    u32  lastOutputStatus{0};
+    u32  lastBufferedStatus{0};
+    u32  lastDebounceTime[CHANNELS]{};
+};
+
+template <u8 CHANNELS>
 class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
     static_assert(CHANNELS <= 32, "CHANNELS must not exceed 32");
+
    public:
+    using Storage = DigitalSourceStorage<CHANNELS>;
+
     /**
      * @brief 构造数字输入数据源
      * 
      * @param config 数字输入配置参数
      */
-    explicit DigitalSource(const DigitalSourceConfig& config)
-        : _config(config), _isFirstValue(true), _lastOutputStatus(0), _lastBufferedStatus(0) {
-        // 初始化各通道消抖时间
-        for (u8 i = 0; i < CHANNELS; i++) {
-            _lastDebounceTime[i] = 0;
-        }
+    DigitalSource(const DigitalSourceConfig& config, Storage& storage)
+        : _config(config), _storage(storage) {
+        reset();
+    }
+
+    explicit DigitalSource(Storage& storage) : DigitalSource(0, 50, storage) {
     }
 
     /**
@@ -48,16 +60,9 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
      * @param inverse 反转掩码，32位对应最多32个通道
      * @param debounceTimeMs 消抖时间（毫秒）
      */
-    DigitalSource(u32 inverse = 0, u8 debounceTimeMs = 50)
-        : _config{inverse, debounceTimeMs},
-          _isFirstValue(true),
-          _lastOutputStatus(0),
-          _lastBufferedStatus(0) {
-
-        // 初始化各通道消抖时间
-        for (u8 i = 0; i < CHANNELS; i++) {
-            _lastDebounceTime[i] = 0;
-        }
+    DigitalSource(u32 inverse, u8 debounceTimeMs, Storage& storage)
+        : _config{inverse, debounceTimeMs}, _storage(storage) {
+        reset();
     }
 
     /**
@@ -77,7 +82,7 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
         if (channel >= CHANNELS) {
             return false;  // 返回无效值
         }
-        return (_lastOutputStatus >> channel) & 1U;
+        return (_storage.lastOutputStatus >> channel) & 1U;
     }
 
     /**
@@ -86,20 +91,20 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
      * @return u32 所有通道的状态，每位对应一个通道
      */
     u32 getValues() const {
-        return _lastOutputStatus;
+        return _storage.lastOutputStatus;
     }
 
     /**
      * @brief 重置所有通道状态
      */
     void reset() {
-        _isFirstValue       = true;
-        _lastOutputStatus   = 0;
-        _lastBufferedStatus = 0;
+        _storage.isFirstValue       = true;
+        _storage.lastOutputStatus   = 0;
+        _storage.lastBufferedStatus = 0;
 
         u32 currentTime = System::getTickMs();
         for (u8 i = 0; i < CHANNELS; i++) {
-            _lastDebounceTime[i] = currentTime;
+            _storage.lastDebounceTime[i] = currentTime;
         }
     }
 
@@ -117,7 +122,7 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
      * @param rawValues 原始输入值，32位掩码格式
      */
     void updateRawValues(u32 rawValues) {
-        _rawStatus = rawValues;
+        _storage.rawStatus = rawValues;
     }
 
     /**
@@ -134,16 +139,16 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
      * @brief 处理数字输入更新逻辑
      */
     void _processDigitalInput() {
-        if (_isFirstValue) {
-            _isFirstValue       = false;
-            _lastBufferedStatus = _rawStatus;
+        if (_storage.isFirstValue) {
+            _storage.isFirstValue       = false;
+            _storage.lastBufferedStatus = _storage.rawStatus;
             // Apply inverse setting per channel on first value
-            _lastOutputStatus   = _rawStatus ^ _config.inverse;
+            _storage.lastOutputStatus   = _storage.rawStatus ^ _config.inverse;
             // Initialize debounce time for all channels only if debounce is enabled
             if (_config.debounceTimeMs > 0) {
                 u32 currentTime = System::getTickMs();
                 for (u8 i = 0; i < CHANNELS; i++) {
-                    _lastDebounceTime[i] = currentTime;
+                    _storage.lastDebounceTime[i] = currentTime;
                 }
             }
             return;
@@ -151,28 +156,28 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
 
         // If debounce is disabled, apply inverse setting directly without debounce logic
         if (_config.debounceTimeMs == 0) {
-            _lastOutputStatus = _rawStatus ^ _config.inverse;
+            _storage.lastOutputStatus = _storage.rawStatus ^ _config.inverse;
             return;
         }
 
         // Debounce logic (only executed when debounceTimeMs > 0)
         u32 currentTime     = System::getTickMs();
-        u32 changedChannels = _rawStatus ^ _lastBufferedStatus;
+        u32 changedChannels = _storage.rawStatus ^ _storage.lastBufferedStatus;
 
         if (changedChannels != 0) {
             // Update buffered status and reset debounce timer for changed channels
-            _lastBufferedStatus = _rawStatus;
+            _storage.lastBufferedStatus = _storage.rawStatus;
             for (u8 i = 0; i < CHANNELS; i++) {
                 if (changedChannels & (1U << i)) {
-                    _lastDebounceTime[i] = currentTime;
+                    _storage.lastDebounceTime[i] = currentTime;
                 }
             }
         }
 
         // Check debounce for all channels
         for (u8 j = 0; j < CHANNELS; j++) {
-            bool bufferedBit = (_lastBufferedStatus >> j) & 1U;
-            bool outputBit   = (_lastOutputStatus >> j) & 1U;
+            bool bufferedBit = (_storage.lastBufferedStatus >> j) & 1U;
+            bool outputBit   = (_storage.lastOutputStatus >> j) & 1U;
 
             // Apply inverse setting to buffered bit for comparison
             bool processedBufferedBit =
@@ -180,12 +185,12 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
 
             if (processedBufferedBit != outputBit) {
                 // Channel value has changed, check if debounce time has passed
-                if (currentTime - _lastDebounceTime[j] > _config.debounceTimeMs) {
+                if (currentTime - _storage.lastDebounceTime[j] > _config.debounceTimeMs) {
                     // Update the output status bit
                     if (processedBufferedBit) {
-                        _lastOutputStatus |= (1U << j);
+                        _storage.lastOutputStatus |= (1U << j);
                     } else {
-                        _lastOutputStatus &= ~(1U << j);
+                        _storage.lastOutputStatus &= ~(1U << j);
                     }
                 }
             }
@@ -193,13 +198,8 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
     }
 
    private:
-    DigitalSourceConfig _config;        ///< 配置参数
-    bool                _isFirstValue;  ///< 是否首次更新
-    u32                 _rawStatus;
-    u32                 _lastOutputStatus;            ///< 上次输出状态（消抖后的值）
-    u32                 _lastBufferedStatus;          ///< 上次缓冲状态（原始输入值）
-    u32                 _lastDebounceTime[CHANNELS];  ///< 各通道上次消抖时间
+    DigitalSourceConfig _config;   ///< 配置参数
+    Storage&            _storage;  ///< 外部存储
 };
-
 
 }  // namespace wibot

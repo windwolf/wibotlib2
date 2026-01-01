@@ -78,6 +78,12 @@ class WibotRcTelemetry : public RxServer {
 
 class WibotRcController : public Worker {
    public:
+    struct Storage {
+        ConstantSource<f32>::Storage  throttle;
+        SlopeTrajectory<f32>::Storage slope;
+    };
+
+   public:
     WibotRcController(TIM_HandleTypeDef& tim, u8 timChannel)
         : _dshot(tim), _timChannel(timChannel) {};
 
@@ -90,7 +96,8 @@ class WibotRcController : public Worker {
    private:
     DShot                      _dshot;
     u8                         _timChannel;
-    ConstantSource<f32>        _throttleSource{0.0f};
+    Storage                    _storage;
+    ConstantSource<f32>        _throttleSource{_storage.throttle};
     SlopeTrajectoryConfig<f32> _slopeConfig{{
                                                 .slopeRate   = 1.0f,   // 1 unit per second
                                                 .sampleTime  = 0.02f,  // 20 ms
@@ -98,7 +105,7 @@ class WibotRcController : public Worker {
                                             },
                                             0.0f,
                                             1.0f};
-    SlopeTrajectory<f32>       _trajectory{_throttleSource, _slopeConfig};
+    SlopeTrajectory<f32>       _trajectory{_throttleSource, _slopeConfig, _storage.slope};
 };
 
 }  // namespace wibot

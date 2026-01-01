@@ -27,13 +27,16 @@ struct AdcRegularSourceConfig {
 template <u8 CHANNELS>
 class AdcRegularSource : public AnalogSource<CHANNELS> {
    public:
+    using Storage = typename AnalogSource<CHANNELS>::Storage;
+
     /**
      * @brief 构造ADC数据源
      * 
      * @param config ADC配置参数
      */
-    explicit AdcRegularSource(ADC_HandleTypeDef& hadc, const AdcRegularSourceConfig& config)
-        : AnalogSource<CHANNELS>({.resolution = config.adcResolution}),
+    explicit AdcRegularSource(ADC_HandleTypeDef& hadc, const AdcRegularSourceConfig& config,
+                              Storage& storage)
+        : AnalogSource<CHANNELS>({.resolution = config.adcResolution}, storage),
           _ins(&hadc),
           _config(config),
           _isRunning(false) {
@@ -47,9 +50,10 @@ class AdcRegularSource : public AnalogSource<CHANNELS> {
      * @param adcResolution ADC分辨率位数，默认12位
      * @param continuousMode 是否使用连续转换模式，默认启用
      */
-    explicit AdcRegularSource(ADC_HandleTypeDef& hadc, u8 adcResolution = 12,
+    explicit AdcRegularSource(ADC_HandleTypeDef& hadc, Storage& storage, u8 adcResolution = 12,
                               bool continuousMode = true)
-        : AdcRegularSource<CHANNELS>(hadc, AdcRegularSourceConfig{adcResolution, continuousMode}) {
+        : AdcRegularSource<CHANNELS>(hadc, AdcRegularSourceConfig{adcResolution, continuousMode},
+                                     storage) {
     }
 
     /**

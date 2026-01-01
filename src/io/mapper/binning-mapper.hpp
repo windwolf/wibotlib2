@@ -17,6 +17,10 @@ namespace wibot {
 template <typename T>
 class BinningMapper : public SyncPipeline<u32> {
    public:
+    struct Storage {
+        u32 currentValue{INVALID_BIN_INDEX};
+    };
+
     /**
      * @brief 分桶映射配置
      * 
@@ -47,18 +51,18 @@ class BinningMapper : public SyncPipeline<u32> {
      * @param upstream 上游管道
      * @param config 分桶配置（引用方式，支持共享）
      */
-    BinningMapper(SyncPipeline<T>& upstream, const Config& config)
-        : _upstream(upstream), _config(config), _currentValue(INVALID_BIN_INDEX) {
+    BinningMapper(SyncPipeline<T>& upstream, const Config& config, Storage& storage)
+        : _upstream(upstream), _config(config), _storage(storage) {
     }
 
     ~BinningMapper() = default;
 
     u32 getValue() const override {
-        return _currentValue;
+        return _storage.currentValue;
     }
 
     void reset() override {
-        _currentValue = INVALID_BIN_INDEX;
+        _storage.currentValue = INVALID_BIN_INDEX;
         _upstream.reset();
     }
 
@@ -67,9 +71,9 @@ class BinningMapper : public SyncPipeline<u32> {
         T input = _upstream.getValue();
 
         if (_config.enableHysteresis) {
-            _currentValue = mapToBinWithHysteresis(input);
+            _storage.currentValue = mapToBinWithHysteresis(input);
         } else {
-            _currentValue = mapToBinSimple(input);
+            _storage.currentValue = mapToBinSimple(input);
         }
     }
 
@@ -102,25 +106,27 @@ class BinningMapper : public SyncPipeline<u32> {
     u32 mapToBinWithHysteresis(T value) {
         u32 currentBin = mapToBinSimple(value);
 
-        if (currentBin == INVALID_BIN_INDEX || _currentValue == INVALID_BIN_INDEX) {
+        if (currentBin == INVALID_BIN_INDEX || _storage.currentValue == INVALID_BIN_INDEX) {
             return currentBin;
         }
 
-        if (currentBin == _currentValue) {
+        if (currentBin == _storage.currentValue) {
             return currentBin;
         }
 
         // 检查是否需要滞回处理（只处理相邻区间）
-        bool isAdjacent = (currentBin == _currentValue + 1) || (currentBin + 1 == _currentValue);
+        bool isAdjacent =
+            (currentBin == _storage.currentValue + 1) || (currentBin + 1 == _storage.currentValue);
 
         if (isAdjacent && _config.hysteresisWidth > 0) {
-            u32  boundaryIndex = (currentBin < _currentValue) ? currentBin : _currentValue;
-            auto boundary      = _config.boundaries[boundaryIndex];
-            auto halfWidth     = _config.hysteresisWidth * static_cast<T>(0.5);
+            u32 boundaryIndex =
+                (currentBin < _storage.currentValue) ? currentBin : _storage.currentValue;
+            auto boundary  = _config.boundaries[boundaryIndex];
+            auto halfWidth = _config.hysteresisWidth * static_cast<T>(0.5);
 
             // 如果值在滞回区间内，保持上次结果
             if (value >= (boundary - halfWidth) && value <= (boundary + halfWidth)) {
-                return _currentValue;
+                return _storage.currentValue;
             }
         }
 
@@ -128,9 +134,9 @@ class BinningMapper : public SyncPipeline<u32> {
     }
 
    private:
-    SyncPipeline<T>& _upstream;      ///< 上游管道引用
-    const Config&    _config;        ///< 分桶配置引用（支持共享）
-    u32              _currentValue;  ///< 当前分桶值
+    SyncPipeline<T>& _upstream;  ///< 上游管道引用
+    const Config&    _config;    ///< 分桶配置引用（支持共享）
+    Storage&         _storage;   ///< 外部存储
 };
 
 }  // namespace wibot

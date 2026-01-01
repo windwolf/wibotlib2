@@ -15,12 +15,17 @@ namespace wibot {
 template <typename T>
 class ConstantSource : public SyncPipeline<T> {
    public:
+    struct Storage {
+        T value{};
+    };
+
     /**
      * @brief 构造常量数据源
      * 
      * @param defaultValue 默认常量值
      */
-    explicit ConstantSource(T defaultValue = T{}) : _value(defaultValue) {
+    ConstantSource(Storage& storage, T defaultValue = T{}) : _storage(storage) {
+        _storage.value = defaultValue;
     }
 
     void update() override {
@@ -28,12 +33,12 @@ class ConstantSource : public SyncPipeline<T> {
     }
 
     T getValue() const override {
-        return _value;
+        return _storage.value;
     }
 
     void reset() override {
         // 重置为默认构造的值
-        _value = T{};
+        _storage.value = T{};
     }
 
    public:
@@ -43,11 +48,11 @@ class ConstantSource : public SyncPipeline<T> {
      * @param value 要设置的常量值
      */
     void setValue(T value) {
-        _value = value;
+        _storage.value = value;
     }
 
    private:
-    T _value;  ///< 常量值
+    Storage& _storage;  ///< 常量值存储
 };
 
 }  // namespace wibot

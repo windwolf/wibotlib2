@@ -17,10 +17,16 @@ namespace wibot {
  */
 class OffsetCalibrator {
    public:
+    struct Storage {
+        u16 currentSampleCount{0};  ///< 当前样本数
+        u32 accumulator{0};         ///< 累加器
+        i16 offset{0};              ///< 计算得出的偏移量
+    };
+
     /**
      * @brief 构造校准器
      */
-    OffsetCalibrator();
+    explicit OffsetCalibrator(Storage& storage);
 
     /**
      * @brief 重置累计器和计数器
@@ -60,9 +66,7 @@ class OffsetCalibrator {
     u16 getSampleCount() const;
 
    private:
-    u16 _currentSampleCount;  ///< 当前样本数
-    u32 _accumulator;         ///< 累加器
-    i16 _offset;              ///< 计算得出的偏移量
+    Storage& _storage;
 };
 
 }  // namespace wibot

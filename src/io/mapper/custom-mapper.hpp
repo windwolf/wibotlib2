@@ -41,20 +41,16 @@ class CustomMapper : public SyncPipeline<TOut> {
      * @param config 映射配置（引用方式，支持共享）
      */
     CustomMapper(SyncPipeline<TIn>& upstream, const Config& config)
-        : _upstream(upstream), _config(config) {
-        // 验证配置有效性
+        : _upstream(upstream), _config(&config) {
         if (!isConfigValid(config)) {
-            // 如果配置无效，提供一个默认的恒等映射函数
-            static const Config defaultConfig{
-                [](TIn input) -> TOut { return static_cast<TOut>(input); }};
-            _config = defaultConfig;
+            _config = &_defaultConfig;
         }
     }
 
     TOut getValue() const override {
         // 获取上游值并直接调用映射函数
         TIn input = _upstream.getValue();
-        return _config.mappingFunc(input);
+        return _config->mappingFunc(input);
     }
 
     void reset() override {
@@ -70,7 +66,7 @@ class CustomMapper : public SyncPipeline<TOut> {
      */
     void updateConfig(const Config& config) {
         if (isConfigValid(config)) {
-            _config = config;
+            _config = &config;
         }
     }
 
@@ -87,8 +83,10 @@ class CustomMapper : public SyncPipeline<TOut> {
     }
 
    private:
-    SyncPipeline<TIn>& _upstream;  ///< 上游管道引用
-    const Config&      _config;    ///< 映射配置引用（支持共享）
+    SyncPipeline<TIn>&         _upstream;  ///< 上游管道引用
+    const Config*              _config;    ///< 映射配置指针
+    static inline const Config _defaultConfig{
+        [](TIn input) -> TOut { return static_cast<TOut>(input); }};
 };
 
 }  // namespace wibot

@@ -19,6 +19,11 @@ namespace wibot {
  */
 class LowpassFilter : public SyncPipeline<f32> {
    public:
+    struct Storage {
+        f32  outputLast{0.0f};
+        bool firstUpdate{true};
+    };
+
     /**
      * @brief 一阶低通滤波器配置
      */
@@ -35,19 +40,18 @@ class LowpassFilter : public SyncPipeline<f32> {
      * @param upstream 上游管道
      * @param config 滤波配置（引用方式，支持共享）
      */
-    LowpassFilter(SyncPipeline<f32>& upstream, const Config& config)
-        : _upstream(upstream), _config(config), _firstUpdate(true) {
+    LowpassFilter(SyncPipeline<f32>& upstream, const Config& config, Storage& storage)
+        : _upstream(upstream), _config(config), _storage(storage) {
         _calculateFilterCoefficients();
-        _outputLast = 0.0f;
     }
 
     f32 getValue() const override {
-        return _outputLast;
+        return _storage.outputLast;
     }
 
     void reset() override {
-        _outputLast  = 0.0f;
-        _firstUpdate = true;
+        _storage.outputLast  = 0.0f;
+        _storage.firstUpdate = true;
         _upstream.reset();
     }
 
@@ -55,13 +59,13 @@ class LowpassFilter : public SyncPipeline<f32> {
         _upstream.update();
         f32 input = _upstream.getValue();
 
-        if (_firstUpdate) {
+        if (_storage.firstUpdate) {
             // 第一次更新：直接使用输入值作为初始输出
-            _outputLast  = input;
-            _firstUpdate = false;
+            _storage.outputLast  = input;
+            _storage.firstUpdate = false;
         } else {
             // 后续更新：进行滤波处理
-            _outputLast = _filterValue(input);
+            _storage.outputLast = _filterValue(input);
         }
     }
 
@@ -104,13 +108,13 @@ class LowpassFilter : public SyncPipeline<f32> {
     f32 _filterValue(f32 input) {
         if (_config.wrapValue <= 0.0f) {
             // 标准一阶低通滤波
-            return _alpha * input + _1_alpha * _outputLast;
+            return _alpha * input + _1_alpha * _storage.outputLast;
         } else {
             // 使用wrap逻辑处理周期性数据
-            f32 diff              = input - _outputLast;
+            f32 diff              = input - _storage.outputLast;
             f32 wrappedDiff       = _wrap(diff, _config.wrapValue);
             f32 filteredIncrement = _alpha * wrappedDiff;
-            return _wrap(_outputLast + filteredIncrement, _config.wrapValue);
+            return _wrap(_storage.outputLast + filteredIncrement, _config.wrapValue);
         }
     }
 
@@ -124,14 +128,11 @@ class LowpassFilter : public SyncPipeline<f32> {
    private:
     SyncPipeline<f32>& _upstream;  ///< 上游管道引用
     const Config&      _config;    ///< 滤波配置引用（支持共享）
+    Storage&           _storage;   ///< 外部存储
 
     // 滤波系数
     f32 _alpha;    ///< 滤波系数 α
     f32 _1_alpha;  ///< 滤波系数 1-α
-
-    // 滤波状态
-    f32  _outputLast;   ///< 上次的输出值
-    bool _firstUpdate;  ///< 是否为首次更新
 };
 
 }  // namespace wibot

@@ -28,6 +28,14 @@ class MedianFilter : public SyncPipeline<T> {
     static_assert(std::is_arithmetic<T>(), "T must be an arithmetic type");
 
    public:
+    struct Storage {
+        T  buffer[MEDIAN_FILTER_MAX_WINDOW_SIZE]{};
+        T  tempBuffer[MEDIAN_FILTER_MAX_WINDOW_SIZE]{};
+        u8 bufferIndex{0};
+        u8 bufferCount{0};
+        T  outputLast{static_cast<T>(0)};
+    };
+
     /**
      * @brief 中值滤波器配置
      */
@@ -42,29 +50,20 @@ class MedianFilter : public SyncPipeline<T> {
      * @param upstream 上游管道
      * @param config 滤波配置（引用方式，支持共享）
      */
-    MedianFilter(SyncPipeline<T>& upstream, const Config& config)
-        : _upstream(upstream),
-          _config(config),
-          _bufferIndex(0),
-          _bufferCount(0),
-          _outputLast(static_cast<T>(0)) {
-        // 初始化缓冲区
-        for (u8 i = 0; i < MAX_WINDOW_SIZE; ++i) {
-            _buffer[i]     = static_cast<T>(0);
-            _tempBuffer[i] = static_cast<T>(0);
-        }
+    MedianFilter(SyncPipeline<T>& upstream, const Config& config, Storage& storage)
+        : _upstream(upstream), _config(config), _storage(storage) {
     }
 
     T getValue() const override {
-        return _outputLast;
+        return _storage.outputLast;
     }
 
     void reset() override {
-        _bufferIndex = 0;
-        _bufferCount = 0;
-        _outputLast  = static_cast<T>(0);
+        _storage.bufferIndex = 0;
+        _storage.bufferCount = 0;
+        _storage.outputLast  = static_cast<T>(0);
         for (u8 i = 0; i < MAX_WINDOW_SIZE; ++i) {
-            _buffer[i] = 0.0f;
+            _storage.buffer[i] = static_cast<T>(0);
         }
         _upstream.reset();
     }
@@ -76,15 +75,15 @@ class MedianFilter : public SyncPipeline<T> {
         T input = _upstream.getValue();
 
         // 添加到环形缓冲区
-        _buffer[_bufferIndex] = input;
-        _bufferIndex          = (_bufferIndex + 1) % _config.windowSize;
+        _storage.buffer[_storage.bufferIndex] = input;
+        _storage.bufferIndex                  = (_storage.bufferIndex + 1) % _config.windowSize;
 
-        if (_bufferCount < _config.windowSize) {
-            _bufferCount++;
+        if (_storage.bufferCount < _config.windowSize) {
+            _storage.bufferCount++;
         }
 
         // 计算中值
-        _outputLast = _calculateMedian();
+        _storage.outputLast = _calculateMedian();
     }
 
     static bool isConfigValid(const Config& config) {
@@ -93,23 +92,23 @@ class MedianFilter : public SyncPipeline<T> {
 
    private:
     T _calculateMedian() {
-        if (_bufferCount == 0) return 0.0f;
+        if (_storage.bufferCount == 0) return 0.0f;
 
         // 复制有效数据到临时缓冲区
-        for (u8 i = 0; i < _bufferCount; ++i) {
-            _tempBuffer[i] = _buffer[i];
+        for (u8 i = 0; i < _storage.bufferCount; ++i) {
+            _storage.tempBuffer[i] = _storage.buffer[i];
         }
 
         // 使用快速选择算法找中值
-        u8 mid = _bufferCount / 2;
+        u8 mid = _storage.bufferCount / 2;
 
-        if (_bufferCount % 2 == 1) {
+        if (_storage.bufferCount % 2 == 1) {
             // 奇数个元素，返回中间值
-            return _quickSelect(_tempBuffer, 0, _bufferCount - 1, mid);
+            return _quickSelect(_storage.tempBuffer, 0, _storage.bufferCount - 1, mid);
         } else {
             // 偶数个元素，返回中间两个值的平均
-            T val1 = _quickSelect(_tempBuffer, 0, _bufferCount - 1, mid - 1);
-            T val2 = _quickSelect(_tempBuffer, 0, _bufferCount - 1, mid);
+            T val1 = _quickSelect(_storage.tempBuffer, 0, _storage.bufferCount - 1, mid - 1);
+            T val2 = _quickSelect(_storage.tempBuffer, 0, _storage.bufferCount - 1, mid);
             return (val1 + val2) / 2.0f;
         }
     }
@@ -151,12 +150,7 @@ class MedianFilter : public SyncPipeline<T> {
    private:
     SyncPipeline<T>& _upstream;  ///< 上游管道引用
     const Config&    _config;    ///< 滤波配置引用（支持共享）
-
-    T  _buffer[MEDIAN_FILTER_MAX_WINDOW_SIZE];      ///< 环形缓冲区
-    T  _tempBuffer[MEDIAN_FILTER_MAX_WINDOW_SIZE];  ///< 临时缓冲区(用于排序)
-    u8 _bufferIndex;                  ///< 缓冲区当前索引
-    u8 _bufferCount;                  ///< 缓冲区有效数据数量
-    T  _outputLast;                   ///< 上次的输出值
+    Storage&         _storage;   ///< 外部存储
 };
 
 }  // namespace wibot

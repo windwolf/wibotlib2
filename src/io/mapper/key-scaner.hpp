@@ -52,16 +52,29 @@ struct KeyScanerConfig {
  */
 template <u8 CHANNELS>
 class KeyScaner : public MultiChannelPipeline<KeyEvent, CHANNELS> {
+   protected:
+    enum class KeyState : u8 {
+        kNone,
+        kPress,
+        kHold,
+        kRelease,
+        kReleaseHold,
+    };
+
    public:
+    struct Storage {
+        u32      pressTick[CHANNELS]{};
+        u32      clickTick[CHANNELS]{};
+        KeyEvent lastEvent[CHANNELS]{KeyEvent::kNone};
+        KeyState state[CHANNELS]{KeyState::kNone};
+        u8       clickCount[CHANNELS]{};
+    };
+
    public:
-    KeyScaner(DigitalSource<CHANNELS>& upstream, KeyScanerConfig& config)
-        : _upstream(upstream),
-          _config(config),
-          _pressTick{},
-          _clickTick{},
-          _lastEvent{KeyEvent::kNone},
-          _state{KeyState::kNone},
-          _clickCount{} {};
+    KeyScaner(DigitalSource<CHANNELS>& upstream, KeyScanerConfig& config, Storage& storage)
+        : _upstream(upstream), _config(config), _storage(storage) {
+        reset();
+    }
 
     void update() {
         _upstream.update();
@@ -73,45 +86,45 @@ class KeyScaner : public MultiChannelPipeline<KeyEvent, CHANNELS> {
         for (u8 channel = 0; channel < CHANNELS; channel++) {
             // Get the current pin status for this channel
             bool currentPinStatus = (_pinStatus & (1U << channel));
-
-            switch (_state[channel]) {
+            auto state = _storage.state[channel];
+            switch (state) {
                 case KeyState::kNone:
                     if (currentPinStatus) {
-                        _pressTick[channel] = now;
-                        _state[channel]     = KeyState::kPress;
-                        _lastEvent[channel] = KeyEvent::kPress;
+                        _storage.pressTick[channel] = now;
+                        _storage.state[channel]     = KeyState::kPress;
+                        _storage.lastEvent[channel] = KeyEvent::kPress;
                     }
                     break;
                 case KeyState::kPress:
                     if (currentPinStatus) {
-                        if ((now - _pressTick[channel]) > _config.holdThreshold) {
-                            _state[channel]     = KeyState::kHold;
-                            _lastEvent[channel] = KeyEvent::kHold;
+                        if ((now - _storage.pressTick[channel]) > _config.holdThreshold) {
+                            _storage.state[channel]     = KeyState::kHold;
+                            _storage.lastEvent[channel] = KeyEvent::kHold;
                         }
                     } else {
-                        _state[channel]     = KeyState::kRelease;
-                        _lastEvent[channel] = KeyEvent::kRelease;
+                        _storage.state[channel]     = KeyState::kRelease;
+                        _storage.lastEvent[channel] = KeyEvent::kRelease;
                     }
                     break;
                 case KeyState::kHold:
                     if (!currentPinStatus) {
-                        _state[channel]     = KeyState::kReleaseHold;
-                        _lastEvent[channel] = KeyEvent::kRelease;
+                        _storage.state[channel]     = KeyState::kReleaseHold;
+                        _storage.lastEvent[channel] = KeyEvent::kRelease;
                     }
                     break;
                 case KeyState::kRelease:
-                    if ((now - _clickTick[channel]) < _config.clickIntervalThreshold) {
-                        _clickCount[channel]++;
+                    if ((now - _storage.clickTick[channel]) < _config.clickIntervalThreshold) {
+                        _storage.clickCount[channel]++;
                     } else {
-                        _clickCount[channel] = 1;
+                        _storage.clickCount[channel] = 1;
                     }
-                    _clickTick[channel] = now;
-                    _state[channel]     = KeyState::kNone;
-                    _lastEvent[channel] = KeyEvent::kClick;
+                    _storage.clickTick[channel] = now;
+                    _storage.state[channel]     = KeyState::kNone;
+                    _storage.lastEvent[channel] = KeyEvent::kClick;
                     break;
                 case KeyState::kReleaseHold:
-                    _state[channel]      = KeyState::kNone;
-                    _clickCount[channel] = 0;
+                    _storage.state[channel]      = KeyState::kNone;
+                    _storage.clickCount[channel] = 0;
                     break;
             }
         }
@@ -119,11 +132,11 @@ class KeyScaner : public MultiChannelPipeline<KeyEvent, CHANNELS> {
 
     void reset() {
         for (u8 channel = 0; channel < CHANNELS; channel++) {
-            _pressTick[channel]  = 0;
-            _clickTick[channel]  = 0;
-            _lastEvent[channel]  = KeyEvent::kNone;
-            _state[channel]      = KeyState::kNone;
-            _clickCount[channel] = 0;
+            _storage.pressTick[channel]  = 0;
+            _storage.clickTick[channel]  = 0;
+            _storage.lastEvent[channel]  = KeyEvent::kNone;
+            _storage.state[channel]      = KeyState::kNone;
+            _storage.clickCount[channel] = 0;
         }
     }
 
@@ -134,7 +147,7 @@ class KeyScaner : public MultiChannelPipeline<KeyEvent, CHANNELS> {
         if (channel >= CHANNELS) {
             return KeyEvent::kNone;
         }
-        return _lastEvent[channel];
+        return _storage.lastEvent[channel];
     }
 
     /**
@@ -144,27 +157,13 @@ class KeyScaner : public MultiChannelPipeline<KeyEvent, CHANNELS> {
         if (channel >= CHANNELS) {
             return 0;
         }
-        return _clickCount[channel];
+        return _storage.clickCount[channel];
     }
-
-   protected:
-    enum class KeyState : u8 {
-        kNone,
-        kPress,
-        kHold,
-        kRelease,
-        kReleaseHold,
-    };
 
    private:
     DigitalSource<CHANNELS>& _upstream;
     KeyScanerConfig&         _config;
-
-    u32      _pressTick[CHANNELS];
-    u32      _clickTick[CHANNELS];
-    KeyEvent _lastEvent[CHANNELS];
-    KeyState _state[CHANNELS];
-    u8       _clickCount[CHANNELS];
+    Storage&                 _storage;
 };
 
 }  // namespace wibot

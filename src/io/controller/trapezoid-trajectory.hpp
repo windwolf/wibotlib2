@@ -59,25 +59,30 @@ enum class TrapezoidPhase : u8 {
  */
 class TrapezoidTrajectory : public SyncPipeline<f32> {
    public:
+    struct Storage {
+        f32            output{0.0f};
+        f32            setPoint{0.0f};
+        f32            velocity{0.0f};
+        TrapezoidPhase phase{TrapezoidPhase::kIdle};
+        f32            startPosition{0.0f};
+        f32            targetPosition{0.0f};
+        f32            accelDistance{0.0f};
+        f32            decelDistance{0.0f};
+        f32            constantDistance{0.0f};
+        f32            accelTime{0.0f};
+        f32            constantTime{0.0f};
+        f32            decelTime{0.0f};
+        f32            phaseTimer{0.0f};
+        f32            direction{1.0f};
+    };
+
     /**
      * @brief 构造函数
      * @param upstream 上游管道，提供设定值
      */
-    explicit TrapezoidTrajectory(SyncPipeline<f32>& upstream) : _upstream(upstream), _config() {
-        _output           = 0.0f;
-        _setPoint         = 0.0f;
-        _velocity         = 0.0f;
-        _phase            = TrapezoidPhase::kIdle;
-        _startPosition    = 0.0f;
-        _targetPosition   = 0.0f;
-        _accelDistance    = 0.0f;
-        _decelDistance    = 0.0f;
-        _constantDistance = 0.0f;
-        _accelTime        = 0.0f;
-        _constantTime     = 0.0f;
-        _decelTime        = 0.0f;
-        _phaseTimer       = 0.0f;
-        _direction        = 1.0f;
+    explicit TrapezoidTrajectory(SyncPipeline<f32>& upstream, Storage& storage)
+        : _upstream(upstream), _config(), _storage(storage) {
+        reset();
     }
 
     /**
@@ -94,27 +99,27 @@ class TrapezoidTrajectory : public SyncPipeline<f32> {
      * @return 当前输出值
      */
     f32 getValue() const override {
-        return _output;
+        return _storage.output;
     }
 
     /**
      * @brief 重置管道状态
      */
     void reset() override {
-        _output           = 0.0f;
-        _setPoint         = 0.0f;
-        _velocity         = 0.0f;
-        _phase            = TrapezoidPhase::kIdle;
-        _startPosition    = 0.0f;
-        _targetPosition   = 0.0f;
-        _accelDistance    = 0.0f;
-        _decelDistance    = 0.0f;
-        _constantDistance = 0.0f;
-        _accelTime        = 0.0f;
-        _constantTime     = 0.0f;
-        _decelTime        = 0.0f;
-        _phaseTimer       = 0.0f;
-        _direction        = 1.0f;
+        _storage.output           = 0.0f;
+        _storage.setPoint         = 0.0f;
+        _storage.velocity         = 0.0f;
+        _storage.phase            = TrapezoidPhase::kIdle;
+        _storage.startPosition    = 0.0f;
+        _storage.targetPosition   = 0.0f;
+        _storage.accelDistance    = 0.0f;
+        _storage.decelDistance    = 0.0f;
+        _storage.constantDistance = 0.0f;
+        _storage.accelTime        = 0.0f;
+        _storage.constantTime     = 0.0f;
+        _storage.decelTime        = 0.0f;
+        _storage.phaseTimer       = 0.0f;
+        _storage.direction        = 1.0f;
     }
 
     /**
@@ -155,10 +160,10 @@ class TrapezoidTrajectory : public SyncPipeline<f32> {
      * @param value 初始值
      */
     void setInitialValue(f32 value) {
-        _output   = clampValue(value);
-        _setPoint = _output;
-        _phase    = TrapezoidPhase::kIdle;
-        _velocity = 0.0f;
+        _storage.output   = clampValue(value);
+        _storage.setPoint = _storage.output;
+        _storage.phase    = TrapezoidPhase::kIdle;
+        _storage.velocity = 0.0f;
     }
 
     /**
@@ -167,7 +172,8 @@ class TrapezoidTrajectory : public SyncPipeline<f32> {
      * @return true 如果已到达设定值
      */
     bool isReached(f32 tolerance = 1e-6f) const {
-        return _phase == TrapezoidPhase::kCompleted && std::abs(_output - _setPoint) <= tolerance;
+        return _storage.phase == TrapezoidPhase::kCompleted &&
+               std::abs(_storage.output - _storage.setPoint) <= tolerance;
     }
 
     /**
@@ -175,7 +181,7 @@ class TrapezoidTrajectory : public SyncPipeline<f32> {
      * @return 当前运动阶段
      */
     TrapezoidPhase getPhase() const {
-        return _phase;
+        return _storage.phase;
     }
 
     /**
@@ -183,29 +189,13 @@ class TrapezoidTrajectory : public SyncPipeline<f32> {
      * @return 当前速度
      */
     f32 getVelocity() const {
-        return _velocity;
+        return _storage.velocity;
     }
 
    private:
     SyncPipeline<f32>&        _upstream;  ///< 上游管道引用
     TrapezoidTrajectoryConfig _config;    ///< 配置参数
-
-    f32            _output;    ///< 当前输出值
-    f32            _setPoint;  ///< 当前设定值
-    f32            _velocity;  ///< 当前速度
-    TrapezoidPhase _phase;     ///< 运动阶段
-
-    // 轨迹规划参数
-    f32 _startPosition;     ///< 起始位置
-    f32 _targetPosition;    ///< 目标位置
-    f32 _accelDistance;     ///< 加速段距离
-    f32 _decelDistance;     ///< 减速段距离
-    f32 _constantDistance;  ///< 匀速段距离
-    f32 _accelTime;         ///< 加速时间
-    f32 _constantTime;      ///< 匀速时间
-    f32 _decelTime;         ///< 减速时间
-    f32 _phaseTimer;        ///< 阶段计时器
-    f32 _direction;         ///< 运动方向 (+1 或 -1)
+    Storage&                  _storage;   ///< 外部存储
 
     /**
      * @brief 更新轨迹输出值
@@ -213,14 +203,14 @@ class TrapezoidTrajectory : public SyncPipeline<f32> {
      */
     void updateTrajectory(f32 setPoint) {
         // 检查设定值是否发生变化
-        if (std::abs(setPoint - _setPoint) > 1e-9f) {
+        if (std::abs(setPoint - _storage.setPoint) > 1e-9f) {
             // 设定值改变，重新规划轨迹
-            _setPoint = setPoint;
-            calculateTrajectory(_output, setPoint);
+            _storage.setPoint = setPoint;
+            calculateTrajectory(_storage.output, setPoint);
         }
 
         // 根据当前阶段更新输出
-        switch (_phase) {
+        switch (_storage.phase) {
             case TrapezoidPhase::kIdle:
             case TrapezoidPhase::kCompleted:
                 // 空闲或完成状态，输出不变
@@ -228,65 +218,73 @@ class TrapezoidTrajectory : public SyncPipeline<f32> {
 
             case TrapezoidPhase::kAcceleration: {
                 // 加速段
-                _phaseTimer += _config.sampleTime;
+                _storage.phaseTimer += _config.sampleTime;
 
-                if (_phaseTimer >= _accelTime) {
+                if (_storage.phaseTimer >= _storage.accelTime) {
                     // 加速段结束，进入匀速段
-                    _phase      = TrapezoidPhase::kConstant;
-                    _phaseTimer = 0.0f;
-                    _velocity   = _config.maxVelocity * _direction;
-                    _output     = _startPosition + _accelDistance * _direction;
+                    _storage.phase      = TrapezoidPhase::kConstant;
+                    _storage.phaseTimer = 0.0f;
+                    _storage.velocity   = _config.maxVelocity * _storage.direction;
+                    _storage.output =
+                        _storage.startPosition + _storage.accelDistance * _storage.direction;
                 } else {
                     // 继续加速
-                    f32 t     = _phaseTimer;
-                    _velocity = _config.acceleration * t * _direction;
-                    _output   = _startPosition + 0.5f * _config.acceleration * t * t * _direction;
+                    f32 t             = _storage.phaseTimer;
+                    _storage.velocity = _config.acceleration * t * _storage.direction;
+                    _storage.output   = _storage.startPosition +
+                                      0.5f * _config.acceleration * t * t * _storage.direction;
                 }
                 break;
             }
 
             case TrapezoidPhase::kConstant: {
                 // 匀速段
-                _phaseTimer += _config.sampleTime;
+                _storage.phaseTimer += _config.sampleTime;
 
-                if (_phaseTimer >= _constantTime) {
+                if (_storage.phaseTimer >= _storage.constantTime) {
                     // 匀速段结束，进入减速段
-                    _phase      = TrapezoidPhase::kDeceleration;
-                    _phaseTimer = 0.0f;
-                    _output = _startPosition + (_accelDistance + _constantDistance) * _direction;
+                    _storage.phase      = TrapezoidPhase::kDeceleration;
+                    _storage.phaseTimer = 0.0f;
+                    _storage.output =
+                        _storage.startPosition +
+                        (_storage.accelDistance + _storage.constantDistance) * _storage.direction;
                 } else {
                     // 继续匀速
-                    f32 t = _phaseTimer;
-                    _output =
-                        _startPosition + (_accelDistance + _config.maxVelocity * t) * _direction;
+                    f32 t = _storage.phaseTimer;
+                    _storage.output =
+                        _storage.startPosition +
+                        (_storage.accelDistance + _config.maxVelocity * t) * _storage.direction;
                 }
                 break;
             }
 
             case TrapezoidPhase::kDeceleration: {
                 // 减速段
-                _phaseTimer += _config.sampleTime;
+                _storage.phaseTimer += _config.sampleTime;
 
-                if (_phaseTimer >= _decelTime) {
+                if (_storage.phaseTimer >= _storage.decelTime) {
                     // 减速段结束，到达目标
-                    _phase    = TrapezoidPhase::kCompleted;
-                    _velocity = 0.0f;
-                    _output   = _targetPosition;
+                    _storage.phase    = TrapezoidPhase::kCompleted;
+                    _storage.velocity = 0.0f;
+                    _storage.output   = _storage.targetPosition;
                 } else {
                     // 继续减速
-                    f32 t = _phaseTimer;
+                    f32 t = _storage.phaseTimer;
                     f32 decelDistance =
                         _config.maxVelocity * t - 0.5f * _config.deceleration * t * t;
-                    _velocity = (_config.maxVelocity - _config.deceleration * t) * _direction;
-                    _output   = _startPosition +
-                              (_accelDistance + _constantDistance + decelDistance) * _direction;
+                    _storage.velocity =
+                        (_config.maxVelocity - _config.deceleration * t) * _storage.direction;
+                    _storage.output =
+                        _storage.startPosition +
+                        (_storage.accelDistance + _storage.constantDistance + decelDistance) *
+                            _storage.direction;
                 }
                 break;
             }
         }
 
         // 限制输出值在合理范围内
-        _output = clampValue(_output);
+        _storage.output = clampValue(_storage.output);
     }
 
     /**
@@ -295,19 +293,19 @@ class TrapezoidTrajectory : public SyncPipeline<f32> {
      * @param target 目标位置
      */
     void calculateTrajectory(f32 start, f32 target) {
-        _startPosition  = start;
-        _targetPosition = target;
+        _storage.startPosition  = start;
+        _storage.targetPosition = target;
 
         // 计算总距离和方向
-        f32 totalDistance = target - start;
-        _direction        = (totalDistance >= 0) ? 1.0f : -1.0f;
-        totalDistance     = std::abs(totalDistance);
+        f32 totalDistance  = target - start;
+        _storage.direction = (totalDistance >= 0) ? 1.0f : -1.0f;
+        totalDistance      = std::abs(totalDistance);
 
         // 如果距离很小，直接完成
         if (totalDistance < 1e-6f) {
-            _phase    = TrapezoidPhase::kCompleted;
-            _velocity = 0.0f;
-            _output   = target;
+            _storage.phase    = TrapezoidPhase::kCompleted;
+            _storage.velocity = 0.0f;
+            _storage.output   = target;
             return;
         }
 
@@ -324,28 +322,28 @@ class TrapezoidTrajectory : public SyncPipeline<f32> {
                 std::sqrt(2.0f * totalDistance * _config.acceleration * _config.deceleration /
                           (_config.acceleration + _config.deceleration));
 
-            _accelDistance    = (peakVelocity * peakVelocity) / (2.0f * _config.acceleration);
-            _decelDistance    = (peakVelocity * peakVelocity) / (2.0f * _config.deceleration);
-            _constantDistance = 0.0f;
+            _storage.accelDistance = (peakVelocity * peakVelocity) / (2.0f * _config.acceleration);
+            _storage.decelDistance = (peakVelocity * peakVelocity) / (2.0f * _config.deceleration);
+            _storage.constantDistance = 0.0f;
 
-            _accelTime    = peakVelocity / _config.acceleration;
-            _constantTime = 0.0f;
-            _decelTime    = peakVelocity / _config.deceleration;
+            _storage.accelTime    = peakVelocity / _config.acceleration;
+            _storage.constantTime = 0.0f;
+            _storage.decelTime    = peakVelocity / _config.deceleration;
         } else {
             // 梯形轨迹：能达到最大速度
-            _accelDistance    = accelDistance;
-            _decelDistance    = decelDistance;
-            _constantDistance = totalDistance - accelDistance - decelDistance;
+            _storage.accelDistance    = accelDistance;
+            _storage.decelDistance    = decelDistance;
+            _storage.constantDistance = totalDistance - accelDistance - decelDistance;
 
-            _accelTime    = _config.maxVelocity / _config.acceleration;
-            _constantTime = _constantDistance / _config.maxVelocity;
-            _decelTime    = _config.maxVelocity / _config.deceleration;
+            _storage.accelTime    = _config.maxVelocity / _config.acceleration;
+            _storage.constantTime = _storage.constantDistance / _config.maxVelocity;
+            _storage.decelTime    = _config.maxVelocity / _config.deceleration;
         }
 
         // 开始轨迹执行
-        _phase      = TrapezoidPhase::kAcceleration;
-        _phaseTimer = 0.0f;
-        _velocity   = 0.0f;
+        _storage.phase      = TrapezoidPhase::kAcceleration;
+        _storage.phaseTimer = 0.0f;
+        _storage.velocity   = 0.0f;
     }
 
     /**

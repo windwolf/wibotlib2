@@ -58,32 +58,29 @@ struct PidControllerConfig {
  */
 class PidController : public SyncPipeline<f32> {
    public:
+    struct Storage {
+        f32 integrator{0.0f};
+        f32 prevError{0.0f};
+        f32 differentiator{0.0f};
+        f32 prevMeasurement{0.0f};
+        f32 output{0.0f};
+    };
+
     /**
      * @brief 构造函数
      * @param upstream 上游管道，提供测量值
      * @param config PID配置参数（引用方式，支持共享）
      */
-    explicit PidController(SyncPipeline<f32>& upstream, const PidControllerConfig& config)
-        : _upstream(upstream),
-          _config(config),
-          _integrator(0.0f),
-          _prevError(0.0f),
-          _differentiator(0.0f),
-          _prevMeasurement(0.0f),
-          _output(0.0f) {
+    explicit PidController(SyncPipeline<f32>& upstream, const PidControllerConfig& config,
+                           Storage& storage)
+        : _upstream(upstream), _config(config), _storage(storage) {
     }
 
     /**
      * @brief 构造函数(使用默认配置)
      */
-    explicit PidController(SyncPipeline<f32>& upstream)
-        : _upstream(upstream),
-          _config(_defaultConfig),
-          _integrator(0.0f),
-          _prevError(0.0f),
-          _differentiator(0.0f),
-          _prevMeasurement(0.0f),
-          _output(0.0f) {
+    explicit PidController(SyncPipeline<f32>& upstream, Storage& storage)
+        : _upstream(upstream), _config(_defaultConfig), _storage(storage) {
     }
 
     /**
@@ -114,19 +111,19 @@ class PidController : public SyncPipeline<f32> {
         }
 
         // 应用输出限制
-        _output = applyOutputLimit(pidOutput);
+        _storage.output = applyOutputLimit(pidOutput);
     }
 
     f32 getValue() const override {
-        return _output;
+        return _storage.output;
     }
 
     void reset() override {
-        _integrator      = 0.0f;
-        _prevError       = 0.0f;
-        _differentiator  = 0.0f;
-        _prevMeasurement = 0.0f;
-        _output          = 0.0f;
+        _storage.integrator      = 0.0f;
+        _storage.prevError       = 0.0f;
+        _storage.differentiator  = 0.0f;
+        _storage.prevMeasurement = 0.0f;
+        _storage.output          = 0.0f;
     }
 
     /**
@@ -145,19 +142,21 @@ class PidController : public SyncPipeline<f32> {
         f32 proportional = _config.Kp * error;
 
         // 积分项
-        _integrator += 0.5f * _config.Ki * _config.sampleTime * (error + _prevError);
-        _integrator = applyIntegratorLimit(_integrator);
+        _storage.integrator +=
+            0.5f * _config.Ki * _config.sampleTime * (error + _storage.prevError);
+        _storage.integrator = applyIntegratorLimit(_storage.integrator);
 
         // 微分项 (使用测量值微分，避免设定值突变影响)
-        _differentiator = -(2.0f * _config.Kd * (measurement - _prevMeasurement) +
-                            (2.0f * _config.tau - _config.sampleTime) * _differentiator) /
-                          (2.0f * _config.tau + _config.sampleTime);
-        _prevMeasurement = measurement;
+        _storage.differentiator =
+            -(2.0f * _config.Kd * (measurement - _storage.prevMeasurement) +
+              (2.0f * _config.tau - _config.sampleTime) * _storage.differentiator) /
+            (2.0f * _config.tau + _config.sampleTime);
+        _storage.prevMeasurement = measurement;
 
         // 保存当前误差用于下次积分计算
-        _prevError = error;
+        _storage.prevError = error;
 
-        return proportional + _integrator + _differentiator;
+        return proportional + _storage.integrator + _storage.differentiator;
     }
 
     /**
@@ -168,18 +167,20 @@ class PidController : public SyncPipeline<f32> {
         f32 proportional = _config.Kp * error;
 
         // 积分项
-        _integrator += 0.5f * _config.Ki * _config.sampleTime * (error + _prevError);
-        _integrator = applyIntegratorLimit(_integrator);
+        _storage.integrator +=
+            0.5f * _config.Ki * _config.sampleTime * (error + _storage.prevError);
+        _storage.integrator = applyIntegratorLimit(_storage.integrator);
 
         // 微分项
-        _differentiator = -(2.0f * _config.Kd * (measurement - _prevMeasurement) +
-                            (2.0f * _config.tau - _config.sampleTime) * _differentiator) /
-                          (2.0f * _config.tau + _config.sampleTime);
-        _prevMeasurement = measurement;
+        _storage.differentiator =
+            -(2.0f * _config.Kd * (measurement - _storage.prevMeasurement) +
+              (2.0f * _config.tau - _config.sampleTime) * _storage.differentiator) /
+            (2.0f * _config.tau + _config.sampleTime);
+        _storage.prevMeasurement = measurement;
 
-        _prevError = error;
+        _storage.prevError = error;
 
-        return proportional + _integrator + _differentiator;
+        return proportional + _storage.integrator + _storage.differentiator;
     }
 
     /**
@@ -212,15 +213,7 @@ class PidController : public SyncPipeline<f32> {
    private:
     SyncPipeline<f32>&         _upstream;  ///< 上游管道引用
     const PidControllerConfig& _config;    ///< PID配置参数引用（支持共享）
-
-    /* 控制器内部状态 */
-    f32 _integrator;       ///< 积分项
-    f32 _prevError;        ///< 上一次误差
-    f32 _differentiator;   ///< 微分项
-    f32 _prevMeasurement;  ///< 上一次测量值
-
-    /* 输出缓存 */
-    f32 _output;  ///< 当前输出值
+    Storage&                   _storage;   ///< 外部存储
 
     /* 默认配置 */
     static inline const PidControllerConfig _defaultConfig = {.mode = PidControllerMode::kSerial,

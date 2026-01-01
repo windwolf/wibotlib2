@@ -52,14 +52,16 @@ class GpioDigitalSource : public DigitalSource<CHANNELS> {
    public:
     static_assert(CHANNELS <= 32, "CHANNELS must not exceed 32");
 
+    using Storage = typename DigitalSource<CHANNELS>::Storage;
+
    public:
     /**
      * @brief 构造GPIO数字输入源
      * 
      * @param config GPIO数字输入配置参数
      */
-    explicit GpioDigitalSource(const GpioDigitalSourceConfig& config)
-        : DigitalSource<CHANNELS>(config.digitalConfig), _config(config) {
+    explicit GpioDigitalSource(const GpioDigitalSourceConfig& config, Storage& storage)
+        : DigitalSource<CHANNELS>(config.digitalConfig, storage), _config(config) {
     }
 
     /**

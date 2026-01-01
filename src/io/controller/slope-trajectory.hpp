@@ -53,15 +53,21 @@ class SlopeTrajectory : public SyncPipeline<T> {
     static_assert(std::is_arithmetic_v<T>, "T must be an arithmetic type");
 
    public:
+    struct Storage {
+        T output{static_cast<T>(0)};
+        T setPoint{static_cast<T>(0)};
+    };
+
     /**
      * @brief 构造函数
      * @param upstream 上游管道，提供设定值
      * @param config 配置参数
      */
-    explicit SlopeTrajectory(SyncPipeline<T>& upstream, SlopeTrajectoryConfig<T>& config)
-        : _upstream(upstream), _config(config) {
-        _output   = T{0};
-        _setPoint = T{0};
+    explicit SlopeTrajectory(SyncPipeline<T>& upstream, SlopeTrajectoryConfig<T>& config,
+                             Storage& storage)
+        : _upstream(upstream), _config(config), _storage(storage) {
+        _storage.output   = T{0};
+        _storage.setPoint = T{0};
     };
 
     /**
@@ -81,7 +87,7 @@ class SlopeTrajectory : public SyncPipeline<T> {
      * @return 当前输出值
      */
     ALWAYS_INLINE T getValue() const override {
-        return _output;
+        return _storage.output;
     };
 
     /**
@@ -90,8 +96,8 @@ class SlopeTrajectory : public SyncPipeline<T> {
      * 将输出值和设定值重置为0。
      */
     void reset() override {
-        _output   = T{0};
-        _setPoint = T{0};
+        _storage.output   = T{0};
+        _storage.setPoint = T{0};
     };
 
     /**
@@ -130,8 +136,8 @@ class SlopeTrajectory : public SyncPipeline<T> {
      * @param value 初始值
      */
     void setInitialValue(T value) {
-        _output   = clampValue(value);
-        _setPoint = _output;
+        _storage.output   = clampValue(value);
+        _storage.setPoint = _storage.output;
     };
 
     /**
@@ -142,27 +148,25 @@ class SlopeTrajectory : public SyncPipeline<T> {
     template <typename U = T>
     bool isReached(
         typename std::enable_if_t<std::is_floating_point_v<U>, f32> tolerance = 1e-6f) const {
-        return std::abs(_output - _setPoint) <= tolerance;
+        return std::abs(_storage.output - _storage.setPoint) <= tolerance;
     }
 
     template <typename U = T>
     bool isReached(typename std::enable_if_t<std::is_integral_v<U>, int> = 0) const {
-        return _output == _setPoint;
+        return _storage.output == _storage.setPoint;
     };
 
    private:
     SyncPipeline<T>&          _upstream;  ///< 上游管道引用
     SlopeTrajectoryConfig<T>& _config;    ///< 配置参数
-
-    T _output;    ///< 当前输出值
-    T _setPoint;  ///< 当前设定值
+    Storage&                  _storage;   ///< 外部存储
 
     /**
      * @brief 更新斜坡输出值
      * @param setPoint 设定值
      */
     void updateSlope(T setPoint) {
-        _setPoint = clampValue(setPoint);
+        _storage.setPoint = clampValue(setPoint);
 
         if constexpr (std::is_integral_v<T>) {
             updateSlopeInteger();
@@ -175,10 +179,10 @@ class SlopeTrajectory : public SyncPipeline<T> {
      * @brief 更新浮点类型
      */
     void updateSlopeFloat() {
-        T error = _setPoint - _output;
+        T error = _storage.setPoint - _storage.output;
 
         if (std::abs(error) < static_cast<T>(1e-9)) {
-            _output = _setPoint;
+            _storage.output = _storage.setPoint;
             return;
         }
 
@@ -191,7 +195,7 @@ class SlopeTrajectory : public SyncPipeline<T> {
             change = std::max(error, -maxChange);
         }
 
-        _output += change;
+        _storage.output += change;
     };
 
     /**
@@ -199,7 +203,8 @@ class SlopeTrajectory : public SyncPipeline<T> {
      */
     void updateSlopeInteger() {
         using SignedT = std::make_signed_t<T>;
-        SignedT error = static_cast<SignedT>(_setPoint) - static_cast<SignedT>(_output);
+        SignedT error =
+            static_cast<SignedT>(_storage.setPoint) - static_cast<SignedT>(_storage.output);
 
         if (error == 0) {
             return;
@@ -215,16 +220,16 @@ class SlopeTrajectory : public SyncPipeline<T> {
             change = std::max(error, static_cast<SignedT>(-maxChange));
         }
 
-        SignedT newValue = static_cast<SignedT>(_output) + change;
+        SignedT newValue = static_cast<SignedT>(_storage.output) + change;
         if (newValue > static_cast<SignedT>(_config.maxValue)) {
-            _output = _config.maxValue;
+            _storage.output = _config.maxValue;
         } else if (newValue < static_cast<SignedT>(_config.minValue)) {
-            _output = _config.minValue;
+            _storage.output = _config.minValue;
         } else {
-            _output = static_cast<T>(newValue);
+            _storage.output = static_cast<T>(newValue);
         }
 
-        _output = clampValue(_output);
+        _storage.output = clampValue(_storage.output);
     };
 
     /**
