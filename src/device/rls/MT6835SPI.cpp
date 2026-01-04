@@ -4,6 +4,8 @@
 
 #include "MT6835SPI.hpp"
 
+#ifdef HAL_SPI_MODULE_ENABLED
+
 #define MT6835SPI_READ_CMD  0xA0
 #define MT6835SPI_ANGLE_REG 0x03
 
@@ -34,3 +36,5 @@ u32 Mt6835Spi::GetData() {
 }
 
 }  // namespace wibot
+
+#endif  // HAL_SPI_MODULE_ENABLED

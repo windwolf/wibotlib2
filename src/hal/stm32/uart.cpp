@@ -1,5 +1,4 @@
 #include "uart.hpp"
-#
 
 #include "logger.hpp"
 

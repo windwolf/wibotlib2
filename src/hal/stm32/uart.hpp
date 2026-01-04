@@ -1,9 +1,6 @@
-//
-// Created by zhouj on 2023/9/13.
-//
+#pragma once
 
-#ifndef WIBOTLIB_CHIP_STM32_UART_HAL_HPP_
-#define WIBOTLIB_CHIP_STM32_UART_HAL_HPP_
+#ifdef HAL_UART_MODULE_ENABLED
 
 #include "async.hpp"
 #include "chip.hpp"
@@ -98,4 +95,4 @@ void UartSendByte(const char *data, u16 len);
 }
 #endif
 
-#endif  // WIBOTLIB_CHIP_STM32_UART_HAL_HPP_
+#endif  // HAL_UART_MODULE_ENABLED
