@@ -25,28 +25,28 @@ class Math {
 #endif
     // 基础运算
     template <Arithmetic T>
-    T add(T a, T b) {
+    T add(const T a, const T b) {
         return a + b;
     };
     template <Arithmetic T>
-    T sub(T a, T b) {
+    T sub(const T a, const T b) {
         return a - b;
     };
     template <Arithmetic T>
-    T mul(T a, T b) {
+    T mul(const T a, const T b) {
         return a * b;
     };
     template <Arithmetic T>
-    T sign(T a) {
+    T sign(const T a) {
         return (a > 0) ? static_cast<T>(1) : ((a < 0) ? static_cast<T>(-1) : static_cast<T>(0));
     };
     template <Arithmetic T>
-    Vector2<T> sign(Vector2<T> a) {
+    Vector2<T> sign(const Vector2<T> a) {
         return {sign(a.v1), sign(a.v2)};
     };
 
     template <SupportFloat T>
-    T mod(T x, T y) {
+    T mod(const T x, const T y) {
         f32 r = std::fmod(x, y);
         if (r < 0.0f && y > 0.0f) {
             r += y;
@@ -55,7 +55,7 @@ class Math {
     };
 
     template <SupportFloat T>
-    T circleNormalize(T theta) {
+    T circleNormalize(const T theta) {
         theta = std::fmod(theta, k2PI);
         if (theta > kPI) {
             theta -= k2PI;
@@ -66,12 +66,12 @@ class Math {
     };
 
     template <SupportFloat T>
-    T floor(T x) {
+    T floor(const T x) {
         return std::floor(x);
     };
 
     template <SupportUint T>
-    T log2(T val) {
+    T log2(const T val) {
         if (val == 0U) {
             return 0;
         }
@@ -88,26 +88,26 @@ class Math {
 
     // 三角函数
     template <SupportFloatOrQ T>
-    Vector2<T> sincos(T angle, T modulus);
+    Vector2<T> sincos(const T angle, const T modulus);
 
     template <SupportFloatOrQ T>
-    Vector2<T> phaseModulus(T x, T y);
+    Vector2<T> phaseModulus(const T x, const T y);
 
     template <SupportFloatOrQ T>
     T atan2(T x);
 
     // 双曲线函数
     template <SupportFloatOrQ T>
-    Vector2<T> sincosh(T angle);
+    Vector2<T> sincosh(const T angle);
 
     template <SupportFloatOrQ T>
-    T atanh2(T x);
+    T atanh2(const T x);
 
     // 对数和平方根
     template <SupportFloatOrQ T>
-    T log(T value);
+    T log(const T value);
     template <SupportFloatOrQ T>
-    T sqrt(T value);
+    T sqrt(const T value);
 
    private:
 #ifdef HAL_CORDIC_MODULE_ENABLED

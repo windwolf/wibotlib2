@@ -74,7 +74,7 @@ constexpr T saturateShiftMul(T a, T b, Acc shift, Acc minv, Acc maxv) {
 // 基础运算
 
 template <>
-q15 Math::add<q15>(q15 a, q15 b) {
+q15 Math::add<q15>(const q15 a, const q15 b) {
 #if defined(CMSIS_DSP_ENABLED)
     q15 out;
     arm_add_q15(&a, &b, &out, 1);
@@ -85,7 +85,7 @@ q15 Math::add<q15>(q15 a, q15 b) {
 };
 
 template <>
-q31 Math::add<q31>(q31 a, q31 b) {
+q31 Math::add<q31>(const q31 a, const q31 b) {
 #if defined(CMSIS_DSP_ENABLED)
     q31 out;
     arm_add_q31(&a, &b, &out, 1);
@@ -96,7 +96,7 @@ q31 Math::add<q31>(q31 a, q31 b) {
 };
 
 template <>
-q15 Math::sub<q15>(q15 a, q15 b) {
+q15 Math::sub<q15>(const q15 a, const q15 b) {
 #if defined(CMSIS_DSP_ENABLED)
     q15 out;
     arm_sub_q15(&a, &b, &out, 1);
@@ -107,7 +107,7 @@ q15 Math::sub<q15>(q15 a, q15 b) {
 }
 
 template <>
-q31 Math::sub<q31>(q31 a, q31 b) {
+q31 Math::sub<q31>(const q31 a, const q31 b) {
 #if defined(CMSIS_DSP_ENABLED)
     q31 out;
     arm_sub_q31(&a, &b, &out, 1);
@@ -118,7 +118,7 @@ q31 Math::sub<q31>(q31 a, q31 b) {
 }
 
 template <>
-q15 Math::mul<q15>(q15 a, q15 b) {
+q15 Math::mul<q15>(const q15 a, const q15 b) {
 #if defined(CMSIS_DSP_ENABLED)
     q15 out;
     arm_mult_q15(&a, &b, &out, 1);
@@ -129,7 +129,7 @@ q15 Math::mul<q15>(q15 a, q15 b) {
 }
 
 template <>
-q31 Math::mul<q31>(q31 a, q31 b) {
+q31 Math::mul<q31>(const q31 a, const q31 b) {
 #if defined(CMSIS_DSP_ENABLED)
     q31 out;
     arm_mult_q31(&a, &b, &out, 1);
@@ -142,7 +142,7 @@ q31 Math::mul<q31>(q31 a, q31 b) {
 // 三角函数
 
 template <>
-Vector2<f32> Math::sincos<f32>(f32 angle, f32 modulus) {
+Vector2<f32> Math::sincos<f32>(const f32 angle, const f32 modulus) {
     f32 s;
     f32 c;
 #if defined(CMSIS_DSP_ENABLED)
@@ -155,7 +155,7 @@ Vector2<f32> Math::sincos<f32>(f32 angle, f32 modulus) {
 }
 
 template <>
-Vector2<q15> Math::sincos<q15>(q15 angle, q15 modulus) {
+Vector2<q15> Math::sincos<q15>(const q15 angle, const q15 modulus) {
 #if defined(HAL_CORDIC_MODULE_ENABLED)
     if (_cordic != nullptr) {
         return _cordic->sincos(angle, modulus);
@@ -174,7 +174,7 @@ Vector2<q15> Math::sincos<q15>(q15 angle, q15 modulus) {
 }
 
 template <>
-Vector2<q31> Math::sincos<q31>(q31 angle, q31 modulus) {
+Vector2<q31> Math::sincos<q31>(const q31 angle, const q31 modulus) {
 #if defined(HAL_CORDIC_MODULE_ENABLED)
     if (_cordic != nullptr) {
         return _cordic->sincos(angle, modulus);
@@ -194,12 +194,12 @@ Vector2<q31> Math::sincos<q31>(q31 angle, q31 modulus) {
 }
 
 template <>
-Vector2f Math::phaseModulus<f32>(f32 x, f32 y) {
+Vector2f Math::phaseModulus<f32>(const f32 x, const f32 y) {
     return {std::atan2(y, x), std::sqrt(x * x + y * y)};
 }
 
 template <>
-Vector2<q15> Math::phaseModulus<q15>(q15 x, q15 y) {
+Vector2<q15> Math::phaseModulus<q15>(const q15 x, const q15 y) {
 #if defined(HAL_CORDIC_MODULE_ENABLED)
     if (_cordic != nullptr) {
         return _cordic->phaseModulus(x, y);
@@ -212,7 +212,7 @@ Vector2<q15> Math::phaseModulus<q15>(q15 x, q15 y) {
 }
 
 template <>
-Vector2<q31> Math::phaseModulus<q31>(q31 x, q31 y) {
+Vector2<q31> Math::phaseModulus<q31>(const q31 x, const q31 y) {
 #if defined(HAL_CORDIC_MODULE_ENABLED)
     if (_cordic != nullptr) {
         return _cordic->phaseModulus(x, y);
@@ -225,7 +225,7 @@ Vector2<q31> Math::phaseModulus<q31>(q31 x, q31 y) {
 }
 
 template <>
-f32 Math::atan2<f32>(f32 x) {
+f32 Math::atan2<f32>(const f32 x) {
 #if defined(HAL_CORDIC_MODULE_ENABLED)
     if (_cordic != nullptr) {
         return q31ToFloat(_cordic->atan(static_cast<q31>(floatToQ31(x))));
@@ -235,7 +235,7 @@ f32 Math::atan2<f32>(f32 x) {
 }
 
 template <>
-q15 Math::atan2<q15>(q15 x) {
+q15 Math::atan2<q15>(const q15 x) {
 #if defined(HAL_CORDIC_MODULE_ENABLED)
     if (_cordic != nullptr) {
         return _cordic->atan(x);
@@ -245,7 +245,7 @@ q15 Math::atan2<q15>(q15 x) {
 }
 
 template <>
-q31 Math::atan2<q31>(q31 x) {
+q31 Math::atan2<q31>(const q31 x) {
 #if defined(HAL_CORDIC_MODULE_ENABLED)
     if (_cordic != nullptr) {
         return _cordic->atan(x);
@@ -256,12 +256,12 @@ q31 Math::atan2<q31>(q31 x) {
 
 // 双曲线函数
 template <>
-Vector2f Math::sincosh<f32>(f32 angle) {
+Vector2f Math::sincosh<f32>(const f32 angle) {
     return {std::sinh(angle), std::cosh(angle)};
 }
 
 template <>
-Vector2<q15> Math::sincosh<q15>(q15 angle) {
+Vector2<q15> Math::sincosh<q15>(const q15 angle) {
 #if defined(HAL_CORDIC_MODULE_ENABLED)
     if (_cordic != nullptr) {
         return _cordic->sincosh(angle);
@@ -278,7 +278,7 @@ Vector2<q15> Math::sincosh<q15>(q15 angle) {
 }
 
 template <>
-Vector2<q31> Math::sincosh<q31>(q31 angle) {
+Vector2<q31> Math::sincosh<q31>(const q31 angle) {
 #if defined(HAL_CORDIC_MODULE_ENABLED)
     if (_cordic != nullptr) {
         return _cordic->sincosh(angle);
@@ -295,12 +295,12 @@ Vector2<q31> Math::sincosh<q31>(q31 angle) {
 }
 
 template <>
-f32 Math::atanh2<f32>(f32 x) {
+f32 Math::atanh2<f32>(const f32 x) {
     return std::atanh(x);
 }
 
 template <>
-q15 Math::atanh2<q15>(q15 x) {
+q15 Math::atanh2<q15>(const q15 x) {
 #if defined(HAL_CORDIC_MODULE_ENABLED)
     if (_cordic != nullptr) {
         return _cordic->atanh(x);
@@ -317,7 +317,7 @@ q15 Math::atanh2<q15>(q15 x) {
 }
 
 template <>
-q31 Math::atanh2<q31>(q31 x) {
+q31 Math::atanh2<q31>(const q31 x) {
 #if defined(HAL_CORDIC_MODULE_ENABLED)
     if (_cordic != nullptr) {
         return _cordic->atanh(x);
@@ -335,12 +335,12 @@ q31 Math::atanh2<q31>(q31 x) {
 
 // 对数和平方根
 template <>
-f32 Math::log<f32>(f32 value) {
+f32 Math::log<f32>(const f32 value) {
     return std::log(value);
 }
 
 template <>
-q15 Math::log<q15>(q15 value) {
+q15 Math::log<q15>(const q15 value) {
     if (value <= 0) {
         return 0;
     }
@@ -360,7 +360,7 @@ q15 Math::log<q15>(q15 value) {
 }
 
 template <>
-q31 Math::log<q31>(q31 value) {
+q31 Math::log<q31>(const q31 value) {
     if (value <= 0) {
         return 0;
     }
@@ -380,7 +380,7 @@ q31 Math::log<q31>(q31 value) {
 }
 
 template <>
-f32 Math::sqrt<f32>(f32 value) {
+f32 Math::sqrt<f32>(const f32 value) {
 #if defined(CMSIS_DSP_ENABLED)
     f32        out   = 0.0f;
     arm_status state = arm_sqrt_f32(value, &out);
@@ -391,7 +391,7 @@ f32 Math::sqrt<f32>(f32 value) {
 }
 
 template <>
-q15 Math::sqrt<q15>(q15 value) {
+q15 Math::sqrt<q15>(const q15 value) {
     if (value <= 0) {
         return 0;
     }
@@ -411,7 +411,7 @@ q15 Math::sqrt<q15>(q15 value) {
 }
 
 template <>
-q31 Math::sqrt<q31>(q31 value) {
+q31 Math::sqrt<q31>(const q31 value) {
     if (value <= 0) {
         return 0;
     }
