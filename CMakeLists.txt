@@ -12,12 +12,38 @@ set(CMAKE_CXX_EXTENSIONS ON)
 include(cmake/utilities.cmake)
 
 
+# Detect CMSIS-DSP (arm_math.h) in workspace
+find_path(CMSIS_DSP_INCLUDE
+        NAMES arm_math.h
+        PATHS
+            ${CMAKE_SOURCE_DIR}/Middlewares/Third_Party/ARM_CMSIS/Include
+            ${CMAKE_SOURCE_DIR}/Drivers/CMSIS/Include
+            ${CMAKE_SOURCE_DIR}/Drivers/CMSIS/DSP/Include
+            ${CMAKE_SOURCE_DIR}/Drivers/CMSIS/DSP/Include/dsp
+)
+
+# find_library(CMSIS_DSP_INCLUDE
+#     NAMES CMSIS-DSP
+#     PATHS ${CMAKE_SOURCE_DIR}/build # 或你放库的路径
+# )
+
+
 
 # 接口项目
 add_library(wibotlib INTERFACE)
 
 # 实现项目
 add_library(wibotlib_impl )
+
+if (CMSIS_DSP_INCLUDE)
+    message(STATUS "CMSIS-DSP detected at ${CMSIS_DSP_INCLUDE}")
+    target_include_directories(wibotlib INTERFACE ${CMSIS_DSP_INCLUDE})
+    target_compile_definitions(wibotlib INTERFACE CMSIS_DSP_ENABLED)
+    if (ARM_MATH)
+        message(STATUS "ARM_MATH macro detected")
+        target_compile_definitions(wibotlib INTERFACE ${ARM_MATH})
+    endif()
+endif()
 
 
 set(WIBOTLIB_DEF 
@@ -113,6 +139,8 @@ target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/device/rtc)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/device/storage)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/device/motor)
 
+target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/math)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/math)
 
 target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/graph)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/graph)

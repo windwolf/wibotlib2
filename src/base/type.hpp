@@ -18,6 +18,9 @@ using i64 = int64_t;
 using f32 = float;
 using f64 = double;
 
+using q15 = int16_t;
+using q31 = int32_t;
+
 #define ALIGN(n)      __attribute__((aligned(n)))
 #define ALIGN32       __attribute__((aligned(32)))
 #define PACKED        __attribute__((__packed__))

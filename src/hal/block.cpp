@@ -1,6 +1,6 @@
 #include "block.hpp"
 
-#include "math.hpp"
+#include "operator.hpp"
 
 #include "logger.hpp"
 
@@ -28,10 +28,10 @@ Result Block::_calculateConfig() {
                                                                         : _config.writeBlockSize;
     maxBlockSize = (maxBlockSize > _config.eraseBlockSize) ? maxBlockSize : _config.eraseBlockSize;
     _calculatedConfig.maxBlockSize = maxBlockSize;
-
-    _calculatedConfig.readBlockSizeBits  = Math::fastLog2(_config.readBlockSize);
-    _calculatedConfig.writeBlockSizeBits = Math::fastLog2(_config.writeBlockSize);
-    _calculatedConfig.eraseBlockSizeBits = Math::fastLog2(_config.eraseBlockSize);
+    Math math;
+    _calculatedConfig.readBlockSizeBits  = math.log2(_config.readBlockSize);
+    _calculatedConfig.writeBlockSizeBits = math.log2(_config.writeBlockSize);
+    _calculatedConfig.eraseBlockSizeBits = math.log2(_config.eraseBlockSize);
     _calculatedConfig.readBlockSizeMask  = _config.readBlockSize - 1;
     _calculatedConfig.writeBlockSizeMask = _config.writeBlockSize - 1;
     _calculatedConfig.eraseBlockSizeMask = _config.eraseBlockSize - 1;
