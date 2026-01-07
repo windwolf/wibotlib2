@@ -13,17 +13,17 @@ include(cmake/utilities.cmake)
 
 
 # Detect CMSIS-DSP (arm_math.h) in workspace
-find_path(CMSIS_DSP_INCLUDE
-        NAMES arm_math.h
-        PATHS
-            ${CMAKE_SOURCE_DIR}/Middlewares/Third_Party/ARM_CMSIS/Include
-            ${CMAKE_SOURCE_DIR}/Drivers/CMSIS/Include
-            ${CMAKE_SOURCE_DIR}/Drivers/CMSIS/DSP/Include
-            ${CMAKE_SOURCE_DIR}/Drivers/CMSIS/DSP/Include/dsp
-)
+# find_path(CMSIS_DSP_INCLUDE
+#         NAMES arm_math.h
+#         PATHS
+#             ${CMAKE_SOURCE_DIR}/Middlewares/Third_Party/ARM_CMSIS/Include
+#             ${CMAKE_SOURCE_DIR}/Drivers/CMSIS/Include
+#             ${CMAKE_SOURCE_DIR}/Drivers/CMSIS/DSP/Include
+#             ${CMAKE_SOURCE_DIR}/Drivers/CMSIS/DSP/Include/dsp
+# )
 
 # find_library(CMSIS_DSP_INCLUDE
-#     NAMES CMSIS-DSP
+#     NAMES CMSISDSP
 #     PATHS ${CMAKE_SOURCE_DIR}/build # 或你放库的路径
 # )
 
@@ -35,9 +35,10 @@ add_library(wibotlib INTERFACE)
 # 实现项目
 add_library(wibotlib_impl )
 
-if (CMSIS_DSP_INCLUDE)
-    message(STATUS "CMSIS-DSP detected at ${CMSIS_DSP_INCLUDE}")
-    target_include_directories(wibotlib INTERFACE ${CMSIS_DSP_INCLUDE})
+if (CMSIS_DSP_ENABLED)
+    message(STATUS "CMSIS-DSP detected")
+    target_link_libraries(wibotlib INTERFACE CMSISDSP)
+    # target_include_directories(wibotlib INTERFACE ${CMSIS_DSP_INCLUDE})
     target_compile_definitions(wibotlib INTERFACE CMSIS_DSP_ENABLED)
     if (ARM_MATH)
         message(STATUS "ARM_MATH macro detected")
