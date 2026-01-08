@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef HAL_UART_MODULE_ENABLED
-
 #include "async.hpp"
 #include "chip.hpp"
 #include "buffer.hpp"
@@ -9,6 +7,7 @@
 #include "peripheral.hpp"
 #include "bus.hpp"
 
+#ifdef HAL_UART_MODULE_ENABLED
 namespace wibot {
 
 /**

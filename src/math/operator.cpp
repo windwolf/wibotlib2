@@ -19,7 +19,7 @@ extern "C" {
 
 namespace wibot {
 
-Math::Math() : _cordic(nullptr) {
+Math::Math() {
 }
 #ifdef HAL_CORDIC_MODULE_ENABLED
 Math::Math(Cordic& hcordic) : _cordic(&hcordic) {
