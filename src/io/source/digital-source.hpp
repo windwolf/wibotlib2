@@ -68,7 +68,7 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
     /**
      * @brief 更新所有通道数据
      */
-    void update() {
+    void update() override {
         _processDigitalInput();
     }
 
@@ -78,7 +78,7 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
      * @param channel 通道索引
      * @return bool 通道值
      */
-    bool getValue(u8 channel) const {
+    bool getValue(u8 channel) const override {
         if (channel >= CHANNELS) {
             return false;  // 返回无效值
         }
@@ -97,7 +97,7 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
     /**
      * @brief 重置所有通道状态
      */
-    void reset() {
+    void reset() override {
         _storage.isFirstValue       = true;
         _storage.lastOutputStatus   = 0;
         _storage.lastBufferedStatus = 0;

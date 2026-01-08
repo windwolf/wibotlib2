@@ -32,19 +32,43 @@ constexpr T clampValue(T v, T lo, T hi) {
 }
 
 inline q15 floatToQ15(f32 v) {
+#if defined(CMSIS_DSP_ENABLED)
+    q15 out = 0;
+    arm_float_to_q15(&v, &out, 1);
+    return out;
+#else
     return static_cast<q15>(clampValue<f32>(v, -0.9999695f, 0.9999695f) * kQ15Scale);
+#endif
 }
 
 inline q31 floatToQ31(f32 v) {
+#if defined(CMSIS_DSP_ENABLED)
+    q31 out = 0;
+    arm_float_to_q31(&v, &out, 1);
+    return out;
+#else
     return static_cast<q31>(clampValue<f32>(v, -0.999999999f, 0.999999999f) * kQ31Scale);
+#endif
 }
 
 inline f32 q15ToFloat(q15 v) {
+#if defined(CMSIS_DSP_ENABLED)
+    f32 out = 0.0f;
+    arm_q15_to_float(&v, &out, 1);
+    return out;
+#else
     return static_cast<f32>(v) / kQ15Scale;
+#endif
 }
 
 inline f32 q31ToFloat(q31 v) {
+#if defined(CMSIS_DSP_ENABLED)
+    f32 out = 0.0f;
+    arm_q31_to_float(&v, &out, 1);
+    return out;
+#else
     return static_cast<f32>(v) / kQ31Scale;
+#endif
 }
 
 template <typename T, typename Acc>
@@ -195,7 +219,16 @@ Vector2<q31> Math::sincos<q31>(const q31 angle, const q31 modulus) {
 
 template <>
 Vector2f Math::phaseModulus<f32>(const f32 x, const f32 y) {
+#if defined(CMSIS_DSP_ENABLED)
+    f32 angle = 0.0f;
+    (void)arm_atan2_f32(y, x, &angle);
+    f32        sum = x * x + y * y;
+    f32        mod = 0.0f;
+    arm_status st  = arm_sqrt_f32(sum, &mod);
+    return {angle, (st == ARM_MATH_SUCCESS) ? mod : 0.0f};
+#else
     return {std::atan2(y, x), std::sqrt(x * x + y * y)};
+#endif
 }
 
 template <>
@@ -205,10 +238,20 @@ Vector2<q15> Math::phaseModulus<q15>(const q15 x, const q15 y) {
         return _cordic->phaseModulus(x, y);
     }
 #endif
+#if defined(CMSIS_DSP_ENABLED)
+    q15 angle_q15 = 0;
+    (void)arm_atan2_q15(y, x, &angle_q15);
+    // 模长采用浮点回退，避免定点缩放复杂度
+    f32 xf   = q15ToFloat(x);
+    f32 yf   = q15ToFloat(y);
+    f32 modf = std::sqrt(xf * xf + yf * yf);
+    return {angle_q15, floatToQ15(modf)};
+#else
     f32  xf = q15ToFloat(x);
     f32  yf = q15ToFloat(y);
     auto pm = phaseModulus<f32>(xf, yf);
     return {floatToQ15(pm.v1), floatToQ15(pm.v2)};
+#endif
 }
 
 template <>
@@ -218,10 +261,20 @@ Vector2<q31> Math::phaseModulus<q31>(const q31 x, const q31 y) {
         return _cordic->phaseModulus(x, y);
     }
 #endif
+#if defined(CMSIS_DSP_ENABLED)
+    q31 angle_q31 = 0;
+    (void)arm_atan2_q31(y, x, &angle_q31);
+    // 模长采用浮点回退，避免定点缩放复杂度
+    f32 xf   = q31ToFloat(x);
+    f32 yf   = q31ToFloat(y);
+    f32 modf = std::sqrt(xf * xf + yf * yf);
+    return {angle_q31, floatToQ31(modf)};
+#else
     f32  xf = q31ToFloat(x);
     f32  yf = q31ToFloat(y);
     auto pm = phaseModulus<f32>(xf, yf);
     return {floatToQ31(pm.v1), floatToQ31(pm.v2)};
+#endif
 }
 
 template <>
@@ -231,7 +284,13 @@ f32 Math::atan2<f32>(const f32 x) {
         return q31ToFloat(_cordic->atan(static_cast<q31>(floatToQ31(x))));
     }
 #endif
+#if defined(CMSIS_DSP_ENABLED)
+    f32 out = 0.0f;
+    (void)arm_atan2_f32(x, 1.0f, &out);
+    return out;
+#else
     return std::atan(x);
+#endif
 }
 
 template <>
@@ -241,7 +300,13 @@ q15 Math::atan2<q15>(const q15 x) {
         return _cordic->atan(x);
     }
 #endif
+#if defined(CMSIS_DSP_ENABLED)
+    q15 out = 0;
+    (void)arm_atan2_q15(x, floatToQ15(1.0f), &out);
+    return out;
+#else
     return floatToQ15(std::atan(q15ToFloat(x)));
+#endif
 }
 
 template <>
@@ -251,7 +316,13 @@ q31 Math::atan2<q31>(const q31 x) {
         return _cordic->atan(x);
     }
 #endif
+#if defined(CMSIS_DSP_ENABLED)
+    q31 out = 0;
+    (void)arm_atan2_q31(x, floatToQ31(1.0f), &out);
+    return out;
+#else
     return floatToQ31(std::atan(q31ToFloat(x)));
+#endif
 }
 
 // 双曲线函数

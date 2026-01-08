@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <type_traits>
-#include "../model.hpp"
+#include "model.hpp"
 
 #ifndef MEDIAN_FILTER_MAX_WINDOW_SIZE
 #define MEDIAN_FILTER_MAX_WINDOW_SIZE 32
@@ -62,7 +62,7 @@ class MedianFilter : public SyncPipeline<T> {
         _storage.bufferIndex = 0;
         _storage.bufferCount = 0;
         _storage.outputLast  = static_cast<T>(0);
-        for (u8 i = 0; i < MAX_WINDOW_SIZE; ++i) {
+        for (u8 i = 0; i < MEDIAN_FILTER_MAX_WINDOW_SIZE; ++i) {
             _storage.buffer[i] = static_cast<T>(0);
         }
         _upstream.reset();

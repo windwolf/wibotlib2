@@ -76,7 +76,7 @@ class KeyScaner : public MultiChannelPipeline<KeyEvent, CHANNELS> {
         reset();
     }
 
-    void update() {
+    void update() override {
         _upstream.update();
         auto _pinStatus = _upstream.getValues();
         auto now        = System::getTickMs();
@@ -86,7 +86,7 @@ class KeyScaner : public MultiChannelPipeline<KeyEvent, CHANNELS> {
         for (u8 channel = 0; channel < CHANNELS; channel++) {
             // Get the current pin status for this channel
             bool currentPinStatus = (_pinStatus & (1U << channel));
-            auto state = _storage.state[channel];
+            auto state            = _storage.state[channel];
             switch (state) {
                 case KeyState::kNone:
                     if (currentPinStatus) {
@@ -130,7 +130,7 @@ class KeyScaner : public MultiChannelPipeline<KeyEvent, CHANNELS> {
         }
     }
 
-    void reset() {
+    void reset() override {
         for (u8 channel = 0; channel < CHANNELS; channel++) {
             _storage.pressTick[channel]  = 0;
             _storage.clickTick[channel]  = 0;
@@ -143,7 +143,7 @@ class KeyScaner : public MultiChannelPipeline<KeyEvent, CHANNELS> {
     /**
      * @brief 获取指定通道的按键事件
      */
-    KeyEvent getValue(u8 channel) const {
+    KeyEvent getValue(u8 channel) const override {
         if (channel >= CHANNELS) {
             return KeyEvent::kNone;
         }

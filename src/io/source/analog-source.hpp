@@ -32,7 +32,7 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
     /**
      * @brief 更新所有通道数据
      */
-    void update() {
+    void update() override {
         // 从外部缓冲区读取原始值并转换，然后应用偏移量
         for (u8 ch = 0; ch < CHANNELS; ch++) {
             i16 converted = _convertToInt16(_storage.rawValue[ch]);
@@ -54,7 +54,7 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
      * @param channel 通道索引
      * @return i16 通道值
      */
-    i16 getValue(u8 channel) const {
+    i16 getValue(u8 channel) const override {
         if (channel >= CHANNELS) {
             return 0;  // 返回无效值
         }
@@ -64,7 +64,7 @@ class AnalogSource : public MultiChannelPipeline<i16, CHANNELS> {
     /**
      * @brief 重置所有通道状态
      */
-    void reset() {
+    void reset() override {
         for (u8 ch = 0; ch < CHANNELS; ch++) {
             _storage.values[ch]  = 0;
             _storage.offsets[ch] = 0;
