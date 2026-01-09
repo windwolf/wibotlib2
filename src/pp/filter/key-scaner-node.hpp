@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/filter/key-scaner.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 template <u8 CHANNELS>
 class KeyScanerNode : public INode {
@@ -19,8 +19,8 @@ class KeyScanerNode : public INode {
     } inputs;
 
     struct Outputs {
-        Out<KeyEvent> event;
-        Out<u8>       clickCount;
+        Out<KeyEvent> events[CHANNELS];
+        Out<u8>       clickCount[CHANNELS];
     } outputs;
 
     explicit KeyScanerNode(Config& config) : _core(config) {
@@ -34,7 +34,7 @@ class KeyScanerNode : public INode {
     void process() override {
         _core.scan(inputs.pinStatusMask.get(), inputs.tickMs.get());
         const u8 ch         = inputs.channel.get();
-        outputs.event.ref() = _core.getLastEvent(ch);
+        outputs.event.ref() = _core(ch);
         if (outputs.clickCount.bound()) {
             outputs.clickCount.ref() = _core.getClickCount(ch);
         }
@@ -48,4 +48,4 @@ class KeyScanerNode : public INode {
     Core _core;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

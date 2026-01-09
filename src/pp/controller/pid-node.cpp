@@ -1,6 +1,6 @@
 #include "pid-node.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 PidNode::PidNode(dsp::Pid::Config& config) : _pid(config) {
 }
@@ -21,4 +21,4 @@ void PidNode::resetIntegrator() {
     _pid.resetIntegrator();
 }
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/util/offset-calibrator.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 class OffsetCalibratorNode : public INode {
    public:
@@ -32,4 +32,4 @@ class OffsetCalibratorNode : public INode {
     dsp::OffsetCalibrator _calibrator;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

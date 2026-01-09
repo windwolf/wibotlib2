@@ -13,3 +13,6 @@
 #include "mapper/linear-mapper-node.hpp"
 #include "mapper/piecewise-linear-mapper-node.hpp"
 #include "mapper/custom-mapper-node.hpp"
+#include "source/gpio-source-node.hpp"
+#include "source/constant-source.hpp"
+#include "source/memory-source.hpp"

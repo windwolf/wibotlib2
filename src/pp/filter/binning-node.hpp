@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/filter/binning.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 template <typename T>
     requires SupportArithmetic<T>
@@ -43,4 +43,4 @@ class BinningNode : public INode {
     dsp::Binning<T> _binning;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

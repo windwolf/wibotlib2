@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/filter/lowpass.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 class LowpassNode : public INode {
    public:
@@ -30,4 +30,4 @@ class LowpassNode : public INode {
     dsp::Lowpass _filter;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

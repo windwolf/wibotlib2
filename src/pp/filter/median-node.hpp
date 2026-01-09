@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/filter/median.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 template <typename T>
 class MedianNode : public INode {
@@ -38,4 +38,4 @@ class MedianNode : public INode {
     dsp::Median<T> _filter;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

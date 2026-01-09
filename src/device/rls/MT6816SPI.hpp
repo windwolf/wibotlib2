@@ -26,7 +26,7 @@ class Mt6816Spi : public Rls {
     SpiMaster&      _spi;
     u8              _cmd[4];
     u16             _angle;
-    ParityValidator _parity;
+    comm::ParityValidator _parity;
 };
 
 }  // namespace wibot::device

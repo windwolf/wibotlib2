@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/controller/trapezoid.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 class TrapezoidTrajectoryNode : public INode {
    public:
@@ -34,4 +34,4 @@ class TrapezoidTrajectoryNode : public INode {
     dsp::TrapezoidTrajectory _trajectory;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

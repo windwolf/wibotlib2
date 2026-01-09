@@ -1,6 +1,6 @@
 #include "offset-calibrator-node.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 bool OffsetCalibratorNode::ready() {
     return inputs.sample.bound() && outputs.offset.bound();
@@ -36,4 +36,4 @@ void OffsetCalibratorNode::reset() {
     _calibrator.reset();
 }
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

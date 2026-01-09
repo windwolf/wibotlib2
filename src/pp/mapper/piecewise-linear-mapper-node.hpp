@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/mapper/piecewise-linear-mapper.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 class PiecewiseLinearMapperNode : public INode {
    public:
@@ -30,4 +30,4 @@ class PiecewiseLinearMapperNode : public INode {
     dsp::PiecewiseLinearMapper _mapper;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

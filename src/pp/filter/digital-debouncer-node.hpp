@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/filter/digital-debouncer.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 template <u8 CHANNELS>
     requires(CHANNELS <= 32)
@@ -46,4 +46,4 @@ class DigitalDebouncerNode : public INode {
     Core _core;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

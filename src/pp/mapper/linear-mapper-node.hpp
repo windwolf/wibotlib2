@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/mapper/linear-mapper.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 class LinearMapperNode : public INode {
    public:
@@ -30,4 +30,4 @@ class LinearMapperNode : public INode {
     dsp::LinearMapper _mapper;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

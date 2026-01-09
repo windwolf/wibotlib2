@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/controller/pid.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 class PidNode : public INode {
    public:
@@ -30,4 +30,4 @@ class PidNode : public INode {
     dsp::Pid _pid;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

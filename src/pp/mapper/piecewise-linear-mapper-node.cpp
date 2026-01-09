@@ -1,6 +1,6 @@
 #include "piecewise-linear-mapper-node.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 PiecewiseLinearMapperNode::PiecewiseLinearMapperNode(Config& config)
     : _config(config), _mapper(config) {
@@ -18,4 +18,4 @@ void PiecewiseLinearMapperNode::process() {
 void PiecewiseLinearMapperNode::reset() {
 }
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

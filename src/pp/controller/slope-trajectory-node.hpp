@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/controller/slope.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 template <typename T>
     requires SupportArithmetic<T>
@@ -42,4 +42,4 @@ class SlopeTrajectoryNode : public INode {
     dsp::SlopeTrajectory<T> _trajectory;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

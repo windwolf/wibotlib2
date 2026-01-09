@@ -2,8 +2,9 @@
 
 #include "../pipeline.hpp"
 #include "chip.hpp"
+#include "hal/stm32/gpio.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 /**
  * @brief GPIO数字输入源节点
@@ -37,19 +38,11 @@ template <u8 CHANNELS>
 class GpioDigitalSourceNode : public INode {
    public:
     /**
-     * @brief GPIO端口和引脚配置结构
-     */
-    struct GpioPinConfig {
-        GPIO_TypeDef* port;  ///< GPIO端口（GPIOA, GPIOB等）
-        u16           pin;   ///< GPIO引脚（GPIO_PIN_0, GPIO_PIN_1等）
-    };
-
-    /**
      * @brief GPIO数字输入源配置
      */
     struct Config {
-        GpioPinConfig* pins;      ///< GPIO引脚配置数组，最多32个
-        u8             pinCount;  ///< 实际使用的引脚数量
+        hal::Pin::Config* pins;      ///< GPIO引脚配置数组，最多32个
+        u8                pinCount;  ///< 实际使用的引脚数量
     };
 
     struct Outputs {
@@ -102,4 +95,4 @@ class GpioDigitalSourceNode : public INode {
     Config& _config;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

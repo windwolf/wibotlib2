@@ -1,6 +1,6 @@
 #include "linear-mapper-node.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 LinearMapperNode::LinearMapperNode(Config& config) : _config(config), _mapper(config) {
 }
@@ -16,4 +16,4 @@ void LinearMapperNode::process() {
 void LinearMapperNode::reset() {
 }
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

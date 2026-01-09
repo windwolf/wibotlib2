@@ -4,7 +4,7 @@
 
 namespace wibot::os {
 
-os::ContextMode os::getContextMode() {
+ContextMode getContextMode() {
     if (os::isInThread()) {
         return os::ContextMode::kThread;
     } else {

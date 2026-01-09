@@ -55,7 +55,7 @@ class SlopeTrajectory {
     }
 
     T update(T setPoint)
-        requires SupportInt<T>
+        requires SupportInt<T> or SupportUint<T>
     {
         _state.setPoint = clampValue(setPoint);
         T error         = _state.setPoint - _state.output;
@@ -106,8 +106,8 @@ class SlopeTrajectory {
     }
 
    private:
-    Config&              _config{};
-    State _state;
+    Config& _config{};
+    State   _state;
 };
 
 }  // namespace wibot::dsp

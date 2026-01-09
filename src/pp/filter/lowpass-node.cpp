@@ -1,6 +1,6 @@
 #include "lowpass-node.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 LowpassNode::LowpassNode(Config& config) : _config(config), _filter(config) {
 }
@@ -17,4 +17,4 @@ void LowpassNode::reset() {
     _filter.reset();
 }
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp

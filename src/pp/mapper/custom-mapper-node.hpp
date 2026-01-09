@@ -3,7 +3,7 @@
 #include "../pipeline.hpp"
 #include "dsp/mapper/custom-mapper.hpp"
 
-namespace wibot::pipeline {
+namespace wibot::pp {
 
 template <typename TIn, typename TOut>
 class CustomMapperNode : public INode {
@@ -36,4 +36,4 @@ class CustomMapperNode : public INode {
     dsp::CustomMapper<TIn, TOut> _mapper;
 };
 
-}  // namespace wibot::pipeline
+}  // namespace wibot::pp
