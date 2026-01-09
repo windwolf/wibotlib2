@@ -3,12 +3,12 @@
 
 namespace wibot::hal {
 
-AdcRegularSource::AdcRegularSource(ADC_HandleTypeDef& hadc, const AdcRegularSourceConfig& config)
+AdcRegularSource::AdcRegularSource(ADC_HandleTypeDef& hadc, const Config& config)
     : _ins(&hadc), _config(config), _isRunning(false) {
 }
 
 AdcRegularSource::AdcRegularSource(ADC_HandleTypeDef& hadc, u8 adcResolution, bool continuousMode)
-    : AdcRegularSource(hadc, AdcRegularSourceConfig{adcResolution, continuousMode}) {
+    : AdcRegularSource(hadc, Config{adcResolution, continuousMode}) {
 }
 
 AdcRegularSource::~AdcRegularSource() {
@@ -65,7 +65,7 @@ os::AsyncResult AdcRegularSource::triggerSingleConversion(Slice buffer) {
     return _asyncSource.getResult(false);
 }
 
-Result AdcRegularSource::reconfigure(const AdcRegularSourceConfig& config) {
+Result AdcRegularSource::reconfigure(const Config& config) {
     if (_isRunning) {
         return Result::kBusy;
     }
