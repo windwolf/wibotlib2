@@ -15,12 +15,10 @@ class KeyScanerNode : public INode {
     struct Inputs {
         In<u32> pinStatusMask;
         In<u32> tickMs;
-        In<u8>  channel;
     } inputs;
 
     struct Outputs {
         Out<KeyEvent> events[CHANNELS];
-        Out<u8>       clickCount[CHANNELS];
     } outputs;
 
     explicit KeyScanerNode(Config& config) : _core(config) {
@@ -33,10 +31,8 @@ class KeyScanerNode : public INode {
 
     void process() override {
         _core.scan(inputs.pinStatusMask.get(), inputs.tickMs.get());
-        const u8 ch         = inputs.channel.get();
-        outputs.event.ref() = _core(ch);
-        if (outputs.clickCount.bound()) {
-            outputs.clickCount.ref() = _core.getClickCount(ch);
+        for (u8 ch = 0; ch < CHANNELS; ++ch) {
+            outputs.events[ch].ref() = _core.getLastEvent(ch);
         }
     }
 

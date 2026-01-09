@@ -7,8 +7,13 @@ namespace wibot::dsp {
 /**
  * @brief 多通道按键扫描核心
  * 
- * 处理多个按键通道的事件检测，逻辑与 io 层保持一致：按下、长按、释放、单击（含连击计数）。
- *
+ * 处理多个按键通道的事件检测，逻辑与 io 层保持一致：按下、长按、释放、单击、双击。
+
+ * 完整的按键事件模式：
+ * click once: press, release, click
+ * click twice: press, release, click, press, release, click2.
+ * hold: press, hold, release
+ * click then hold: press, release, click, press, hold, release
  * @tparam CHANNELS 按键通道数量
  */
 template <u8 CHANNELS>
@@ -20,6 +25,7 @@ class KeyScaner {
         kHold,     // 长按
         kRelease,  // 释放
         kClick,    // 单击（释放后）
+        kClick2,   // 连击2次
     };
 
     enum class KeyState : u8 {
@@ -40,7 +46,6 @@ class KeyScaner {
         u32      clickTick[CHANNELS]{};
         KeyEvent lastEvent[CHANNELS]{KeyEvent::kNone};
         KeyState state[CHANNELS]{KeyState::kNone};
-        u8       clickCount[CHANNELS]{};
     };
 
    public:
@@ -49,11 +54,10 @@ class KeyScaner {
 
     void reset() {
         for (u8 ch = 0; ch < CHANNELS; ++ch) {
-            _state.pressTick[ch]  = 0;
-            _state.clickTick[ch]  = 0;
-            _state.lastEvent[ch]  = KeyEvent::kNone;
-            _state.state[ch]      = KeyState::kNone;
-            _state.clickCount[ch] = 0;
+            _state.pressTick[ch] = 0;
+            _state.clickTick[ch] = 0;
+            _state.lastEvent[ch] = KeyEvent::kNone;
+            _state.state[ch]     = KeyState::kNone;
         }
     }
 
@@ -75,13 +79,6 @@ class KeyScaner {
             return KeyEvent::kNone;
         }
         return _state.lastEvent[channel];
-    }
-
-    u8 getClickCount(u8 channel) const {
-        if (channel >= CHANNELS) {
-            return 0;
-        }
-        return _state.clickCount[channel];
     }
 
    private:
@@ -115,26 +112,33 @@ class KeyScaner {
                 break;
 
             case KeyState::kRelease:
-                if ((tick - _state.clickTick[channel]) < _config.clickIntervalThreshold) {
-                    _state.clickCount[channel]++;
+                _state.state[channel] = KeyState::kNone;
+
+                // 根据时间间隔判断是否为连击
+                KeyEvent clickEvent;
+                if ((tick - _state.clickTick[channel]) < _config.clickIntervalThreshold &&
+                    _state.clickTick[channel] != 0) {
+                    // 在间隔内且有前置点击事件，判断为连击
+                    clickEvent = KeyEvent::kClick2;
                 } else {
-                    _state.clickCount[channel] = 1;
+                    // 首次点击或超过间隔，重新开始
+                    clickEvent = KeyEvent::kClick;
                 }
+
+                _state.lastEvent[channel] = clickEvent;
                 _state.clickTick[channel] = tick;
-                _state.state[channel]     = KeyState::kNone;
-                _state.lastEvent[channel] = KeyEvent::kClick;
                 break;
 
             case KeyState::kReleaseHold:
-                _state.state[channel]      = KeyState::kNone;
-                _state.clickCount[channel] = 0;
+                _state.state[channel]     = KeyState::kNone;
+                _state.clickTick[channel] = 0;  // 长按后重置，不算连击
                 break;
         }
     }
 
    private:
-    Config&        _config;
-    State _state{};
+    Config& _config;
+    State   _state{};
 };
 
 }  // namespace wibot::dsp
