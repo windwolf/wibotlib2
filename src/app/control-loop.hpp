@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "os/os.hpp"
 #include "os/async.hpp"
@@ -6,16 +6,16 @@
 #include "chip.hpp"
 #include <functional>
 
-namespace wibot::app {
+namespace wibot {
 
-class ControlLoop : public os::Worker {
+class ControlLoop : public Worker {
    public:
     void run() override;
 
    protected:
-    virtual void            init()          = 0;
-    virtual void            doLoop()        = 0;
-    virtual os::AsyncResult getLoopSignal() = 0;
+    virtual void        init()          = 0;
+    virtual void        doLoop()        = 0;
+    virtual AsyncResult getLoopSignal() = 0;
 };
 
 #if defined(HAL_TIM_MODULE_ENABLED)
@@ -25,11 +25,11 @@ class TimerControlLoop : public ControlLoop {
     TimerControlLoop(TIM_HandleTypeDef& handle, u32 freqency = 1000);
 
    protected:
-    os::AsyncResult getLoopSignal() override;
+    AsyncResult getLoopSignal() override;
 
    private:
-    hal::Timer _timer;
-    u32        _frequency;
+    Timer _timer;
+    u32   _frequency;
 };
 
 #endif  // HAL_TIM_MODULE_ENABLED
@@ -39,10 +39,10 @@ class EventDrivenControlLoop : public ControlLoop {
     void trigger();
 
    protected:
-    os::AsyncResult getLoopSignal() override;
+    AsyncResult getLoopSignal() override;
 
    private:
-    os::AsyncSource _asyncSource;
+    AsyncSource _asyncSource;
 };
 
 #if defined(HAL_TIM_MODULE_ENABLED)
@@ -90,11 +90,11 @@ class ControllLoopTrgger {
 
    private:
     ControlLoopEntry _entries[N];
-    hal::Timer       _timer;
+    Timer            _timer;
     u32              _freqency;
     u32              _tick = 0;
 };
 
 #endif  // HAL_TIM_MODULE_ENABLED
 
-}  // namespace wibot::app
+}  // namespace wibot

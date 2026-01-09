@@ -6,7 +6,7 @@
 
 #include "type.hpp"
 
-namespace wibot::device {
+namespace wibot {
 class Battery {
    public:
     enum class Type {
@@ -50,3 +50,4 @@ class Battery {
 //     };
 // };
 }  // namespace wibot
+

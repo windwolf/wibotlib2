@@ -1,7 +1,7 @@
 #include "comp.hpp"
 #include "stm32g4xx_hal_comp.h"
 #ifdef HAL_COMP_MODULE_ENABLED
-namespace wibot::hal {
+namespace wibot {
 
 void Comparer::_onCompareTrigger(COMP_HandleTypeDef* hcomp) {
     auto instance = (Comparer*)PeripheralManager::getInstance().getPeripheral(hcomp);
@@ -13,10 +13,10 @@ Comparer::Comparer(COMP_HandleTypeDef& ins) : _ins(&ins), _compareEventSource() 
     PeripheralManager::getInstance().registerPeripheral(this, _ins);
 }
 
-os::AsyncResult Comparer::start() {
+AsyncResult Comparer::start() {
     auto rst = HAL_COMP_Start(_ins);
     if (rst != HAL_OK) {
-        return os::AsyncResult::fromError(Result::kError);
+        return AsyncResult::fromError(Result::kError);
     }
     return _compareEventSource.getResult(true);
 };
@@ -30,5 +30,5 @@ ComparerLevel Comparer::getLevel() const {
     uint32_t level = HAL_COMP_GetOutputLevel(_ins);
     return static_cast<ComparerLevel>(level);
 };
-}  // namespace wibot::hal
+}  // namespace wibot
 #endif

@@ -4,7 +4,7 @@
 
 #include "MT6835SPI.hpp"
 
-namespace wibot::device {
+namespace wibot {
 
 #ifdef HAL_SPI_MODULE_ENABLED
 
@@ -37,4 +37,4 @@ u32 Mt6835Spi::GetData() {
 
 #endif  // HAL_SPI_MODULE_ENABLED
 
-}  // namespace wibot::device
+}  // namespace wibot

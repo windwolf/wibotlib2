@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 
-namespace wibot::dsp {
+namespace wibot {
 
 /**
  * @brief 多通道数字输入处理核心
@@ -137,4 +137,5 @@ class DigitalDebouncer {
     State _state;
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

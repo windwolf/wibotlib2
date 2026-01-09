@@ -7,7 +7,7 @@
 #include "type.hpp"
 #include "Validator.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 
 struct Crc8Config {
     u8   poly;
@@ -86,3 +86,4 @@ class Crc8Validator : Validator<u8> {
 };
 
 }  // namespace wibot
+

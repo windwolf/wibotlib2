@@ -9,9 +9,7 @@
 
 #if defined(HAL_TIM_MODULE_ENABLED)
 
-namespace wibot::comm {
-
-using namespace hal;
+namespace wibot {
 
 DShot::DShot(TIM_HandleTypeDef& tim, DShotProtocol protocol) : _tim(tim), _protocol(protocol) {
     PeripheralManager::getInstance().registerPeripheral(this, &tim);
@@ -20,7 +18,7 @@ DShot::DShot(TIM_HandleTypeDef& tim, DShotProtocol protocol) : _tim(tim), _proto
     HAL_TIM_RegisterCallback(&tim, HAL_TIM_ERROR_CB_ID, onError);
 
     // 根据TIM外设编号, 获取TIM的总线始终频率
-    u32 timerClock  = hal::System::getTIMFreq(tim.Instance);
+    u32 timerClock  = System::getTIMFreq(tim.Instance);
     // DShot位持续时间 (µs)
     f32 bitDuration = 0;
 
@@ -91,7 +89,7 @@ u16 add_checksum(u16 packet_telemetry) {
     return packet_telemetry;  //append checksum
 }
 
-os::AsyncResult DShot::send(u8 channel, u16 command, bool telemetry) {
+AsyncResult DShot::send(u8 channel, u16 command, bool telemetry) {
     u32 halChannel = 0;
     switch (command) {
         case 1:
@@ -118,7 +116,7 @@ os::AsyncResult DShot::send(u8 channel, u16 command, bool telemetry) {
             break;
 #endif
         default:
-            return os::AsyncResult::fromResult(Result::kInvalidParameter);
+            return AsyncResult::fromResult(Result::kInvalidParameter);
     }
 
     // 计算数据帧
@@ -135,7 +133,7 @@ os::AsyncResult DShot::send(u8 channel, u16 command, bool telemetry) {
 
     auto rst = HAL_TIM_PWM_Start_DMA(&_tim, halChannel, (u32*)_framebuffer, 17);
     if (rst != HAL_OK) {
-        return os::AsyncResult::fromResult((Result)rst);
+        return AsyncResult::fromResult((Result)rst);
     }
     return _asyncSource.getResult();
 }
@@ -151,6 +149,6 @@ void DShot::onError(TIM_HandleTypeDef* tim) {
     dshot->_asyncSource.setError(Result::kError);
 };
 
-}  // namespace wibot::comm
+}  // namespace wibot
 
 #endif  // HAL_TIM_MODULE_ENABLED

@@ -2,7 +2,7 @@
 
 #include "type.hpp"
 #include "circular-buffer.hpp"
-namespace wibot::comm {
+namespace wibot {
 struct CasicFrameNavPv {
     u32 runTime;
     u8  posValid;
@@ -31,4 +31,5 @@ struct CasicFrameNavPv {
 } PACKED;
 
 bool casic_parse(u8* msg, u32 length, u16* classId, void** payload);
-}  // namespace wibot::protocol
+} // namespace wibot
+

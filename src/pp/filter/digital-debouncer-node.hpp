@@ -1,15 +1,15 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/filter/digital-debouncer.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 template <u8 CHANNELS>
     requires(CHANNELS <= 32)
 class DigitalDebouncerNode : public INode {
    public:
-    using Core   = dsp::DigitalDebouncer<CHANNELS>;
+    using Core   = DigitalDebouncer<CHANNELS>;
     using Config = typename Core::Config;
 
     struct Inputs {
@@ -46,4 +46,4 @@ class DigitalDebouncerNode : public INode {
     Core _core;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

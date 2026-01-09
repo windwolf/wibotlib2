@@ -9,7 +9,7 @@
 #include "bus.hpp"
 #include "comm/crc/crc8.hpp"
 
-namespace wibot::device {
+namespace wibot {
 
 #ifdef HAL_SPI_MODULE_ENABLED
 
@@ -39,13 +39,13 @@ class Mt6835Spi {
     }
 
    private:
-    SpiMaster&          _spi;
-    u8                  _buf[6];
-    u32                 _angle;
-    MT6835State         _state;
-    comm::Crc8Validator _crc;
+    SpiMaster&    _spi;
+    u8            _buf[6];
+    u32           _angle;
+    MT6835State   _state;
+    Crc8Validator _crc;
 };
 
 #endif
 
-}  // namespace wibot::device
+}  // namespace wibot

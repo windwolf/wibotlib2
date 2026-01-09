@@ -3,7 +3,7 @@
 #include "logger.hpp"
 LOGGER("os")
 
-namespace wibot::os {
+namespace wibot {
 
 void sleep(u32 ms) {
     switch (getContextMode()) {
@@ -18,7 +18,7 @@ void sleep(u32 ms) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-            hal::System::delayMs(ms);
+            System::delayMs(ms);
 #ifdef _MSC_VER
 #pragma warning(pop)
 #elif defined(__clang__)
@@ -41,7 +41,7 @@ void sleep(u32 ms) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-            hal::System::delayMs(ms);
+            System::delayMs(ms);
 #ifdef _MSC_VER
 #pragma warning(pop)
 #elif defined(__clang__)
@@ -80,9 +80,9 @@ Result Mutex::lock(u32 timeout) {
         if (arch::isIsr()) {
             return Result::kNotSupport;
         } else {
-            uint32_t start = hal::System::getTickMs();
+            uint32_t start = System::getTickMs();
             while (this->_instance) {
-                if (hal::System::getDurationMs(start) > timeout) {
+                if (System::getDurationMs(start) > timeout) {
                     return Result::kTimeout;
                 }
             };
@@ -137,10 +137,10 @@ Result EventGroup::wait(u32 flags, u32& actualFlags, EventOptions options, u32 t
         if (arch::isIsr()) {
             return Result::kNotSupport;
         } else {
-            uint32_t start = hal::System::getTickMs();
+            uint32_t start = System::getTickMs();
             if ((options & EventOptions_WaitFlag) == EventOptions_WaitForAll) {
                 while ((ins & flags) != flags) {
-                    if (hal::System::getDurationMs(start) > timeout) {
+                    if (System::getDurationMs(start) > timeout) {
                         rst = Result::kTimeout;
                         break;
                     }
@@ -148,7 +148,7 @@ Result EventGroup::wait(u32 flags, u32& actualFlags, EventOptions options, u32 t
                 };
             } else {
                 while ((ins & flags) == 0) {
-                    if (hal::System::getDurationMs(start) > timeout) {
+                    if (System::getDurationMs(start) > timeout) {
                         rst = Result::kTimeout;
                         break;
                     }
@@ -183,9 +183,9 @@ Result MessageQueue::send(const void* msg, uint32_t timeout) {
             if (arch::isIsr()) {
                 return Result::kNotSupport;
             } else {
-                uint32_t start = hal::System::getTickMs();
+                uint32_t start = System::getTickMs();
                 while (_instance.isFull()) {
-                    if (hal::System::getDurationMs(start) > timeout) {
+                    if (System::getDurationMs(start) > timeout) {
                         rst = Result::kTimeout;
                         break;
                     }
@@ -211,9 +211,9 @@ Result MessageQueue::receive(void* msg, uint32_t timeout) {
             if (arch::isIsr()) {
                 return Result::kNotSupport;
             } else {
-                uint32_t start = hal::System::getTickMs();
+                uint32_t start = System::getTickMs();
                 while (_instance.isEmpty()) {
-                    if (hal::System::getDurationMs(start) > timeout) {
+                    if (System::getDurationMs(start) > timeout) {
                         rst = Result::kTimeout;
                         break;
                     }

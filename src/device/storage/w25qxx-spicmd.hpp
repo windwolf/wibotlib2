@@ -9,7 +9,7 @@
 //
 //#include "w25qxx-spi.hpp"
 //
-//namespace wibot::device {
+//namespace wibot {
 //
 //class W25qxxSpicmd {
 //   public:
@@ -68,3 +68,4 @@
 //}  // namespace wibot
 //
 //#endif  //WIBITLIB_DEVICE_STORAGE_W25QXX_CMD_HPP_
+

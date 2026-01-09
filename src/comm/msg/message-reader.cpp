@@ -6,9 +6,7 @@
 #include "hal/system.hpp"
 #include "type.hpp"
 
-namespace wibot::comm {
-
-using namespace hal;
+namespace wibot {
 
 MessageReader::MessageReader(AsyncEventSource* source, CircularBuffer8& buffer,
                              const MessageSchema& schema, bool interFrameGap)
@@ -16,7 +14,7 @@ MessageReader::MessageReader(AsyncEventSource* source, CircularBuffer8& buffer,
       _buffer(buffer),
       _interFrameGap(interFrameGap),
       _mp(schema, _buffer),
-      _rxWaitHandler(os::AsyncResult::fromError(Result::kInvalidParameter)) {
+      _rxWaitHandler(AsyncResult::fromError(Result::kInvalidParameter)) {
 }
 Result MessageReader::open() {
     _buffer.clear();
@@ -29,8 +27,8 @@ Result MessageReader::close() {
     _mp.reset();
     return _source.stop();
 }
-Result MessageReader::read(comm::MessageFrame& frame, u32 timeout) {
-    u32    startTick = hal::System::getTickMs();
+Result MessageReader::read(MessageFrame& frame, u32 timeout) {
+    u32    startTick = System::getTickMs();
     Result rst       = Result::kOk;
 
     rst = _mp.parse(&frame, _interFrameGap);
@@ -39,7 +37,7 @@ Result MessageReader::read(comm::MessageFrame& frame, u32 timeout) {
     }
 
     do {
-        auto duration = hal::System::getDurationMs(startTick);
+        auto duration = System::getDurationMs(startTick);
         if (duration < timeout) {
             rst = _rxWaitHandler.wait(timeout - duration);
         } else {
@@ -60,4 +58,4 @@ Result MessageReader::read(comm::MessageFrame& frame, u32 timeout) {
     return _mp.parse(&frame);
 }
 
-}  // namespace wibot::comm
+}  // namespace wibot

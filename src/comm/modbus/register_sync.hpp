@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include "../../base/type.hpp"
 #include "../../base/buffer.hpp"
 #include "register_mirror.hpp"
 #include "modbus.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 
 // ============================================================================
 // 寄存器同步状态追踪
@@ -299,4 +299,5 @@ class RegisterSyncManager {
     bool     _ownsAdapter;  // 是否拥有 adapter 的所有权
 };
 
-}  // namespace wibot::modbus
+} // namespace wibot
+

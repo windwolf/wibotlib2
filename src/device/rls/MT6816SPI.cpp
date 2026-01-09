@@ -14,7 +14,7 @@
 #define MT6816_SPI_PC_BIT_MASK         0x01
 #define MT6816_SPI_OVER_SPEED_BIT_MASK 0x18
 
-namespace wibot::device {
+namespace wibot {
 
 u32 Mt6816Spi::getAngle() {
     u16 angle = 0;

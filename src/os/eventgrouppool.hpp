@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 #include "os.hpp"
 
-namespace wibot::os {
+namespace wibot {
 class EventGroupPool {
    public:
     struct EventGroupStub {
@@ -21,3 +21,4 @@ class EventGroupPool {
     EventGroup _pool[EVENT_POOL_SIZE];
 };
 }  // namespace wibot
+

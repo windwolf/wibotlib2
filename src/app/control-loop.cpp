@@ -1,6 +1,6 @@
 #include "control-loop.hpp"
 
-namespace wibot::app {
+namespace wibot {
 void ControlLoop::run() {
     init();
 
@@ -17,7 +17,7 @@ void ControlLoop::run() {
 TimerControlLoop::TimerControlLoop(TIM_HandleTypeDef& handle, u32 freqency)
     : _timer(handle), _frequency(freqency) {};
 
-os::AsyncResult TimerControlLoop::getLoopSignal() {
+AsyncResult TimerControlLoop::getLoopSignal() {
     return _timer.start(_frequency);
 };
 
@@ -27,8 +27,8 @@ void EventDrivenControlLoop::trigger() {
     _asyncSource.setDone();
 };
 
-os::AsyncResult EventDrivenControlLoop::getLoopSignal() {
+AsyncResult EventDrivenControlLoop::getLoopSignal() {
     return _asyncSource.getResult(true);
 };
 
-}  // namespace wibot::app
+}  // namespace wibot

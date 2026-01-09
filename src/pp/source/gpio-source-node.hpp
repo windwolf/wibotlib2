@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "chip.hpp"
 #include "hal/stm32/gpio.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 /**
  * @brief GPIO数字输入源节点
@@ -41,7 +41,7 @@ class GpioDigitalSourceNode : public INode {
      * @brief GPIO数字输入源配置
      */
     struct Config {
-        hal::Pin::Config pins[CHANNELS];  ///< GPIO引脚配置数组，最多32个
+        Pin::Config pins[CHANNELS];  ///< GPIO引脚配置数组，最多32个
     };
 
     struct Outputs {
@@ -94,4 +94,4 @@ class GpioDigitalSourceNode : public INode {
     Config& _config;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

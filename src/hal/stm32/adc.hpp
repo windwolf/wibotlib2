@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include "os/async.hpp"
 #include "chip.hpp"
 #include "../system.hpp"
 #include <cstring>
 
-namespace wibot::hal {
+namespace wibot {
 
 /**
  * @brief 基于STM32 HAL库的ADC数据源（纯DMA实现）
@@ -74,7 +74,7 @@ class AdcRegularSource {
      * 
      * @return Result::kOk 触发成功，其他值表示失败
      */
-    os::AsyncResult triggerSingleConversion(Slice buffer);
+    AsyncResult triggerSingleConversion(Slice buffer);
 
     /**
      * @brief 重新配置ADC
@@ -96,10 +96,10 @@ class AdcRegularSource {
     ADC_HandleTypeDef* _ins;
     Config             _config;     ///< ADC配置
     bool               _isRunning;  ///< ADC运行状态
-    os::AsyncSource    _asyncSource;
+    AsyncSource        _asyncSource;
 
    private:
     static constexpr u8 MAX_CHANNELS = 16;  ///< 最大支持通道数
 };
 
-}  // namespace wibot::hal
+}  // namespace wibot

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "buffer.hpp"
 #include "circular-buffer.hpp"
@@ -9,10 +9,10 @@
 #define MAX_RX_SERVER_FRAME_SIZE 16
 #endif
 
-namespace wibot::app {
-class RxServer : public os::Worker {
+namespace wibot {
+class RxServer : public Worker {
    public:
-    RxServer(comm::MessageReader& reader);
+    RxServer(MessageReader& reader);
     ~RxServer();
 
    public:
@@ -25,11 +25,11 @@ class RxServer : public os::Worker {
     Result stopServer(bool retry = true);
 
    protected:
-    virtual bool validateFrame(const comm::MessageFrame& frame)       = 0;
-    virtual void processCommandFrame(const comm::MessageFrame& frame) = 0;
+    virtual bool validateFrame(const MessageFrame& frame)       = 0;
+    virtual void processCommandFrame(const MessageFrame& frame) = 0;
 
    protected:
-    comm::MessageReader& _reader;
-    u32                  _timeoutMs = 1000;
+    MessageReader& _reader;
+    u32            _timeoutMs = 1000;
 };
-}  // namespace wibot::app
+}  // namespace wibot

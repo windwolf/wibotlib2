@@ -1,6 +1,6 @@
 #include "dsp/mapper/linear-mapper.hpp"
 
-namespace wibot::dsp {
+namespace wibot {
 
 LinearMapper::LinearMapper(const Config& cfg) : _config(cfg) {
 }
@@ -30,4 +30,4 @@ bool LinearMapper::isConfigValid(const Config& cfg) {
     return cfg.inputMax > cfg.inputMin;
 }
 
-}  // namespace wibot::dsp
+}  // namespace wibot

@@ -8,7 +8,7 @@
 #define max(a, b) (((a) >= (b)) ? (a) : (b))
 
 LOGGER("block")
-namespace wibot::hal {
+namespace wibot {
 
 Block::Block(Slice &buffer) : _buffer(buffer) {};
 
@@ -28,7 +28,7 @@ Result Block::_calculateConfig() {
                                                                         : _config.writeBlockSize;
     maxBlockSize = (maxBlockSize > _config.eraseBlockSize) ? maxBlockSize : _config.eraseBlockSize;
     _calculatedConfig.maxBlockSize = maxBlockSize;
-    math::Math math;
+    Math math;
     _calculatedConfig.readBlockSizeBits  = math.log2(_config.readBlockSize);
     _calculatedConfig.writeBlockSizeBits = math.log2(_config.writeBlockSize);
     _calculatedConfig.eraseBlockSizeBits = math.log2(_config.eraseBlockSize);

@@ -2,7 +2,7 @@
 
 #include "type.hpp"
 #include "bus.hpp"
-namespace wibot::device {
+namespace wibot {
 
 #define SSD1306_CMD_CONSTRAST_CONTROL  0x81  // CMD0
 #define SSD1306_CMD_ENTIRE_DISPLAY_ON  0xA4
@@ -115,4 +115,5 @@ class Ssd1306 {
     u8         _cmdBuffer[SSD1306_CMD_BUFFER_SIZE];
 };
 
-}  // namespace wibot::device
+} // namespace wibot
+

@@ -4,7 +4,7 @@
 
 #include "crc16.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 
 void Crc16Validator::reset() {
     _crc = _cfg.init;

@@ -3,7 +3,7 @@
 #include "type.hpp"
 #include "st77xx.hpp"
 
-namespace wibot::device {
+namespace wibot {
 
 enum ST7735_CMD {
     ST7735_CMD_NOP                        = 0x00U, /* No Operation: NOP                           */
@@ -94,7 +94,7 @@ enum ST7735_DISPLAY_REFRESH_ORDER {
 
 class ST7735 : public St77xx {
    public:
-    ST7735(SpiMaster &spi, hal::Pin &dcPin);
+    ST7735(SpiMaster &spi, Pin &dcPin);
     Result init();
 
     Result reset();

@@ -6,7 +6,7 @@
 #include "logger.hpp"
 LOGGER("wait-handler")
 
-namespace wibot::os {
+namespace wibot {
 
 WaitHandler::WaitHandler() : _isRef(false), _autoReset(true), _triggers(nullptr) {
     ASSERT(!arch::isIsr(), "Can not create wait handler in ISR");

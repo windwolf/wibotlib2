@@ -1,15 +1,15 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/controller/slope.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 template <typename T>
     requires SupportArithmetic<T>
 class SlopeTrajectoryNode : public INode {
    public:
-    using Config = typename dsp::SlopeTrajectory<T>::Config;
+    using Config = typename SlopeTrajectory<T>::Config;
 
     struct Inputs {
         In<T> setPoint;
@@ -39,7 +39,7 @@ class SlopeTrajectoryNode : public INode {
     }
 
    private:
-    dsp::SlopeTrajectory<T> _trajectory;
+    SlopeTrajectory<T> _trajectory;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

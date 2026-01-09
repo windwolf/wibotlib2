@@ -5,7 +5,7 @@
 #include <cctype>
 #include <algorithm>
 
-namespace wibot::comm {
+namespace wibot {
 
 // ========================================================================================
 // 现代化的工具函数，使用constexpr和更高效的算法
@@ -678,4 +678,4 @@ Result ZdaParser::parse(std::string_view sentence, void* data) const noexcept {
     return Result::kOk;
 }
 
-}  // namespace wibot::protocol
+}  // namespace wibot

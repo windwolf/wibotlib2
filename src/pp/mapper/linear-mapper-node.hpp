@@ -1,13 +1,13 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/mapper/linear-mapper.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 class LinearMapperNode : public INode {
    public:
-    using Config = dsp::LinearMapper::Config;
+    using Config = LinearMapper::Config;
 
     struct Inputs {
         In<f32> x;
@@ -26,8 +26,8 @@ class LinearMapperNode : public INode {
     void reset() override;
 
    private:
-    Config&           _config;
-    dsp::LinearMapper _mapper;
+    Config&      _config;
+    LinearMapper _mapper;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

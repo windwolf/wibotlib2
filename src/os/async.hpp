@@ -1,11 +1,11 @@
-#ifndef WIBOTLIB_OS_ASYNC_RESULT_HPP__
+﻿#ifndef WIBOTLIB_OS_ASYNC_RESULT_HPP__
 #define WIBOTLIB_OS_ASYNC_RESULT_HPP__
 
 #
 #include "os.hpp"
 #include "eventgrouppool.hpp"
 
-namespace wibot::os {
+namespace wibot {
 
 class AsyncResult;
 
@@ -95,6 +95,7 @@ class AsyncResult {
     bool                   _autoReset;
 };
 
-}  // namespace wibot::os
+} // namespace wibot
 
 #endif  // WIBOTLIB_OS_ASYNC_RESULT_HPP__
+

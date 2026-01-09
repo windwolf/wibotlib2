@@ -12,7 +12,7 @@
 #endif
 
 namespace wibot {
-class TxServer : public os::Worker {
+class TxServer : public Worker {
    public:
     TxServer(AsyncWriter<Slice>* writer);
     ~TxServer();
@@ -25,6 +25,6 @@ class TxServer : public os::Worker {
     AsyncWriter<Slice>* _writer;
 
     Buffer<sizeof(Buffer<MAX_TX_SERVER_FRAME_SIZE>) * MAX_TX_SERVER_FIFO_LENGTH> _fifoBuffer;
-    os::MessageQueue                                                             _fifo;
+    MessageQueue                                                                 _fifo;
 };
 }  // namespace wibot

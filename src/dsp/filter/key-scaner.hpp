@@ -1,8 +1,25 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 
-namespace wibot::dsp {
+namespace wibot {
+
+enum class KeyEvent : u8 {
+    kNone,
+    kPress,    // 按下
+    kHold,     // 长按
+    kRelease,  // 释放
+    kClick,    // 单击（释放后）
+    kClick2,   // 连击2次
+};
+
+enum class KeyState : u8 {
+    kNone,
+    kPress,
+    kHold,
+    kRelease,
+    kReleaseHold,
+};
 
 /**
  * @brief 多通道按键扫描核心
@@ -19,23 +36,6 @@ namespace wibot::dsp {
 template <u8 CHANNELS>
 class KeyScaner {
    public:
-    enum class KeyEvent : u8 {
-        kNone,
-        kPress,    // 按下
-        kHold,     // 长按
-        kRelease,  // 释放
-        kClick,    // 单击（释放后）
-        kClick2,   // 连击2次
-    };
-
-    enum class KeyState : u8 {
-        kNone,
-        kPress,
-        kHold,
-        kRelease,
-        kReleaseHold,
-    };
-
     struct Config {
         u16 holdThreshold{500};           // 长按阈值 (ms)
         u16 clickIntervalThreshold{300};  // 连击间隔阈值 (ms)
@@ -141,4 +141,5 @@ class KeyScaner {
     State   _state{};
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

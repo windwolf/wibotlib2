@@ -1,5 +1,5 @@
 #include "bq25750.hpp"
-namespace wibot::device {
+namespace wibot {
 Bq25750::Bq25750(I2cMaster& i2c) : _i2c(i2c) {
     _i2c.setTransitionConfig(Bq25750::I2C_ADDRESS);
 }

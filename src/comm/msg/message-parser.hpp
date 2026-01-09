@@ -4,7 +4,7 @@
 #include "buffer.hpp"
 #include "circular-buffer.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 constexpr u32 kMessageParserCmdLengthCrcBufferSize = 4;
 constexpr u32 kMessageSchemaPrefixSuffixMaxSize    = 8;
 
@@ -264,3 +264,4 @@ class MessageParser {
 };
 
 }  // namespace wibot
+

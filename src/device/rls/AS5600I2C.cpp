@@ -5,7 +5,7 @@
 #include "AS5600I2C.hpp"
 #
 
-namespace wibot::device {
+namespace wibot {
 As5600I2c::As5600I2c(I2cMaster& i2c) : _i2c(i2c) {
     _i2c.setTransitionConfig(AS5600_I2C_ADDRESS);
 };
@@ -20,7 +20,7 @@ void As5600I2c::SetZero() {
         ar.wait(TIMEOUT_FOREVER);
         u16 pos = (data.data[0] << 8) | data.data[1];
         pos_sum += pos;
-        os::sleep(1);
+        sleep(1);
     }
     pos_sum /= calibrationRound;
     data.data[0] = (pos_sum >> 8) & 0xFF;

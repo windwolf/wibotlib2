@@ -18,11 +18,11 @@ class AsyncEventSource {
     /**
     * @brief 订阅异步事件, 返回可重复触发的异步结果
     * 
-    * @return os::AsyncResult 
+    * @return AsyncResult 
     */
-    virtual os::AsyncResult subscribe() = 0;
-    virtual Result          start()     = 0;
-    virtual Result          stop()      = 0;
+    virtual AsyncResult subscribe() = 0;
+    virtual Result      start()     = 0;
+    virtual Result      stop()      = 0;
 };
 
 template <typename T>
@@ -32,9 +32,9 @@ class AsyncReader {
       * @brief 读取数据到缓冲区, 直到填满data缓冲区为止才发出完成通知.
       * 
       * @param data 
-      * @return os::AsyncResult 
+      * @return AsyncResult 
       */
-    virtual os::AsyncResult read(T &data) = 0;
+    virtual AsyncResult read(T &data) = 0;
 };
 
 template <typename T>
@@ -46,9 +46,9 @@ class AsyncWriter {
      * @note `write`不能并行使用
      * @note 调用者需确保在异步通知到达前, data缓冲区不会被修改或释放.
      * @param data 
-     * @return os::AsyncResult 
+     * @return AsyncResult 
      */
-    virtual os::AsyncResult write(const T &data) = 0;
+    virtual AsyncResult write(const T &data) = 0;
 };
 
 template <typename T>
@@ -58,7 +58,7 @@ class SyncReader {
       * @brief 读取数据到缓冲区, 直到填满data缓冲区为止才发出完成通知.
       * 
       * @param data 
-      * @return os::AsyncResult 
+      * @return AsyncResult 
       */
     virtual Result read(T &data, u32 timeout = TIMEOUT_FOREVER) = 0;
 };
@@ -70,7 +70,7 @@ class SyncWriter {
       * @brief 读取数据到缓冲区, 直到填满data缓冲区为止才发出完成通知.
       * 
       * @param data 
-      * @return os::AsyncResult 
+      * @return AsyncResult 
       */
     virtual Result write(const T &data, u32 timeout = TIMEOUT_FOREVER) = 0;
 };
@@ -78,8 +78,8 @@ class SyncWriter {
 template <typename T>
 class AsyncRegisterClient {
    public:
-    virtual os::AsyncResult readReg(u16 regAddr, T &data)        = 0;
-    virtual os::AsyncResult writeReg(u16 regAddr, const T &data) = 0;
+    virtual AsyncResult readReg(u16 regAddr, T &data)        = 0;
+    virtual AsyncResult writeReg(u16 regAddr, const T &data) = 0;
 };
 
 //----------------------------------------------------------------------------
@@ -138,10 +138,10 @@ struct SpiConfig {
 
 class SpiMaster : public AsyncReader<const Slice>, public AsyncWriter<const Slice> {
    public:
-    virtual Result          setConfig(const SpiConfig &config)                  = 0;
-    virtual os::AsyncResult writeRead(const Slice &txData, const Slice &rxData) = 0;
-    virtual Result          begin()                                             = 0;
-    virtual Result          end()                                               = 0;
+    virtual Result      setConfig(const SpiConfig &config)                  = 0;
+    virtual AsyncResult writeRead(const Slice &txData, const Slice &rxData) = 0;
+    virtual Result      begin()                                             = 0;
+    virtual Result      end()                                               = 0;
 };
 
 struct I2cMasterTransitionConfig {

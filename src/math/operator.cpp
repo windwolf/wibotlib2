@@ -9,12 +9,12 @@ extern "C" {
 }
 #endif
 
-namespace wibot::math {
+namespace wibot {
 
 Math::Math() {
 }
 #ifdef HAL_CORDIC_MODULE_ENABLED
-Math::Math(hal::Cordic& hcordic) : _cordic(&hcordic) {
+Math::Math(Cordic& hcordic) : _cordic(&hcordic) {
 }
 #endif
 

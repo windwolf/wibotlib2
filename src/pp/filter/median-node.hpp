@@ -1,14 +1,14 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/filter/median.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 template <typename T>
 class MedianNode : public INode {
    public:
-    using Config = typename dsp::Median<T>::Config;
+    using Config = typename Median<T>::Config;
 
     struct Inputs {
         In<T> x;
@@ -22,7 +22,7 @@ class MedianNode : public INode {
     }
 
     bool ready() override {
-        return inputs.x.bound() && outputs.y.bound() && dsp::Median<T>::isConfigValid(_config);
+        return inputs.x.bound() && outputs.y.bound() && Median<T>::isConfigValid(_config);
     }
 
     void process() override {
@@ -34,8 +34,8 @@ class MedianNode : public INode {
     }
 
    private:
-    Config&        _config;
-    dsp::Median<T> _filter;
+    Config&   _config;
+    Median<T> _filter;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

@@ -1,6 +1,6 @@
 #include "casic.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 static inline bool checksum(u8* msg, u32 length) {
     u32* p        = (u32*)(msg + 2);
     u32  l        = (length - 6) / 4;
@@ -21,4 +21,4 @@ bool casic_parse(u8* msg, u32 length, u16* classId, void** payload) {
     *payload = msg;
     return true;
 };
-}  // namespace wibot::protocol
+}  // namespace wibot

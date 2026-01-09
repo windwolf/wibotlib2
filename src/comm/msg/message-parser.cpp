@@ -4,24 +4,24 @@
 #include "logger.hpp"
 LOGGER("mp")
 
-namespace wibot::comm {
+namespace wibot {
 
 u32 MessageSchema::getContentOverhead(const MessageLengthSchema* lengthSchema) const {
     u32 oh = 0;
-    if (lengthSchema->mode == comm::MessageLengthSchemaMode::kFixedLength) {
+    if (lengthSchema->mode == MessageLengthSchemaMode::kFixedLength) {
         oh += prefixSize;
         oh += static_cast<u8>(commandSize);
         oh += static_cast<u8>(alterDataSize);
         oh += static_cast<u8>(crcSize);
         oh += suffixSize;
-    } else if (lengthSchema->mode == comm::MessageLengthSchemaMode::kDynamicLength) {
+    } else if (lengthSchema->mode == MessageLengthSchemaMode::kDynamicLength) {
         oh += prefixSize;
         oh += static_cast<u8>(commandSize);
         oh += static_cast<u8>(lengthSchema->dynamic.lengthSize);
         oh += static_cast<u8>(alterDataSize);
         oh += static_cast<u8>(crcSize);
         oh += suffixSize;
-    } else if (lengthSchema->mode == comm::MessageLengthSchemaMode::kFreeLength) {
+    } else if (lengthSchema->mode == MessageLengthSchemaMode::kFreeLength) {
         oh += prefixSize;
         oh += static_cast<u8>(commandSize);
         oh += static_cast<u8>(alterDataSize);
@@ -31,7 +31,7 @@ u32 MessageSchema::getContentOverhead(const MessageLengthSchema* lengthSchema) c
 }
 u32 MessageSchema::getDynamicLengthOverhead(const MessageLengthSchema* lengthSchema) const {
     u32 oh = 0;
-    if (lengthSchema->mode == comm::MessageLengthSchemaMode::kDynamicLength) {
+    if (lengthSchema->mode == MessageLengthSchemaMode::kDynamicLength) {
         auto lengthRange = lengthSchema->dynamic.range;
         if (lengthRange & kMessageSchemaRangePrefix) {
             oh += prefixSize;
@@ -55,9 +55,9 @@ u32 MessageSchema::getDynamicLengthOverhead(const MessageLengthSchema* lengthSch
     return oh;
 }
 u32 MessageSchema::getLength(const MessageLengthSchema* lengthSchema, u32 contentLength) const {
-    if (lengthSchema->mode == comm::MessageLengthSchemaMode::kFixedLength) {
+    if (lengthSchema->mode == MessageLengthSchemaMode::kFixedLength) {
         return getContentOverhead(lengthSchema) + lengthSchema->fixed.length;
-    } else if (lengthSchema->mode == comm::MessageLengthSchemaMode::kDynamicLength) {
+    } else if (lengthSchema->mode == MessageLengthSchemaMode::kDynamicLength) {
         return contentLength + getContentOverhead(lengthSchema);
     } else {
         return contentLength + getContentOverhead(lengthSchema);
@@ -101,14 +101,14 @@ MessageFrame::MessageFrame(Slice buffer, const MessageSchema& schema, u8* comman
     _command.length = static_cast<u8>(schema.commandSize);
 
     _length.offset    = _command.offset + _command.length;
-    _length.length    = (lengthSchema.mode == comm::MessageLengthSchemaMode::kDynamicLength)
+    _length.length    = (lengthSchema.mode == MessageLengthSchemaMode::kDynamicLength)
                             ? static_cast<u8>(lengthSchema.dynamic.lengthSize)
                             : 0;
     _alterData.offset = _length.offset + _length.length;
     _alterData.length = static_cast<u8>(schema.alterDataSize);
 
     _content.offset = _alterData.offset + _alterData.length;
-    _content.length = (lengthSchema.mode == comm::MessageLengthSchemaMode::kFixedLength)
+    _content.length = (lengthSchema.mode == MessageLengthSchemaMode::kFixedLength)
                           ? static_cast<u8>(lengthSchema.fixed.length)
                           : contentLength;
 
@@ -233,7 +233,7 @@ Result MessageParser::parse(MessageFrame* parsedFrame, bool interFrameGap) {
             _lengthSchema    = _lengthSchemaMatch();
             _contentOverhead = _schema.getContentOverhead(_lengthSchema);
 
-            if (_lengthSchema->mode == comm::MessageLengthSchemaMode::kFixedLength) {
+            if (_lengthSchema->mode == MessageLengthSchemaMode::kFixedLength) {
                 _contentLength = _lengthSchema->fixed.length;
                 if ((_contentLength + _contentOverhead) > _frame->_buffer.size) {
                     _buffer.readVirtual(1);
@@ -243,7 +243,7 @@ Result MessageParser::parse(MessageFrame* parsedFrame, bool interFrameGap) {
                 } else {
                     stage = MessageParseStage::kParsingAlterdata;
                 }
-            } else if (_lengthSchema->mode == comm::MessageLengthSchemaMode::kDynamicLength) {
+            } else if (_lengthSchema->mode == MessageLengthSchemaMode::kDynamicLength) {
                 _frame->_length.offset = _offset;
                 u8 lengthBuf[kMessageParserCmdLengthCrcBufferSize];
 
@@ -286,7 +286,7 @@ Result MessageParser::parse(MessageFrame* parsedFrame, bool interFrameGap) {
         }
 
         if (stage == MessageParseStage::kSeekingContent) {
-            if (_lengthSchema->mode != comm::MessageLengthSchemaMode::kFreeLength) {
+            if (_lengthSchema->mode != MessageLengthSchemaMode::kFreeLength) {
                 if (_contentLength > 0) {
                     _frame->_content.offset = _offset;
                     auto result             = _move(_contentLength);
@@ -326,7 +326,7 @@ Result MessageParser::parse(MessageFrame* parsedFrame, bool interFrameGap) {
         }
 
         if (stage == MessageParseStage::kMatchingSuffix) {
-            if (_lengthSchema->mode != comm::MessageLengthSchemaMode::kFreeLength) {
+            if (_lengthSchema->mode != MessageLengthSchemaMode::kFreeLength) {
                 if (_schema.suffixSize > 0) {
                     _frame->_suffix.offset = _offset;
                     auto result            = _match(_schema.suffix, _schema.suffixSize);
@@ -396,17 +396,17 @@ void MessageParser::_checkLengthSchema(const MessageLengthSchema* lengthSchema,
            "command size must be none, if use multiple length definition.");
 
     switch (lengthSchema->mode) {
-        case comm::MessageLengthSchemaMode::kFixedLength:
+        case MessageLengthSchemaMode::kFixedLength:
             // ASSERT(_schema.prefixSize != 0, "fixed mode: prefix size must not be 0.");
 
             break;
-        case comm::MessageLengthSchemaMode::kDynamicLength:
+        case MessageLengthSchemaMode::kDynamicLength:
             ASSERT(_schema.prefixSize != 0, "dynamic mode: prefix size must not be 0.");
             ASSERT(lengthSchema->dynamic.lengthSize != DataWidth::kNone,
                    "dynamic mode: length size must not be 0.");
 
             break;
-        case comm::MessageLengthSchemaMode::kFreeLength:
+        case MessageLengthSchemaMode::kFreeLength:
             ASSERT(_schema.suffixSize != 0, "free mode: suffix size must not be 0.");
             ASSERT(_schema.crcSize == DataWidth::kNone, "free mode: crc not supported.");
             break;
@@ -519,4 +519,4 @@ void MessageParser::_prepareFrame() {
         _command[i] = 0;
     }
 }
-}  // namespace wibot::comm
+}  // namespace wibot

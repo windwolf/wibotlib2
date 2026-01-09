@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "../../base/type.hpp"
 #include "../../base/buffer.hpp"
@@ -6,7 +6,7 @@
 #include <tuple>
 #include <type_traits>
 
-namespace wibot::comm {
+namespace wibot {
 
 /**
  * @brief 寄存器访问权限
@@ -126,4 +126,5 @@ using RegisterValueType_t = std::conditional_t<
             RegDef::DataType == RegisterDataType::kUint32, u32,
             std::conditional_t<RegDef::DataType == RegisterDataType::kInt32, i32, f32>>>>;
 
-}  // namespace wibot::modbus
+} // namespace wibot
+

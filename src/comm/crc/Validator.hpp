@@ -6,7 +6,7 @@
 
 #include "type.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 
 template <typename TE>
 class Validator {
@@ -17,3 +17,4 @@ class Validator {
 };
 
 }  // namespace wibot
+

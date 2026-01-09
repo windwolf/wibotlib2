@@ -1,7 +1,7 @@
 #include "soft-i2c.hpp"
 #include "../system.hpp"
 
-namespace wibot::hal {
+namespace wibot {
 
 #define i2c_sda_in() LL_GPIO_SetOutputPin(_sdaPort, _sdaPin);
 
@@ -21,7 +21,7 @@ namespace wibot::hal {
 #define i2c_scl_read() LL_GPIO_IsInputPinSet(_sclPort, _sclPin)
 
 #define i2c_delay() \
-    if (_i2cDelay != 0) hal::System::delayUs(_i2cDelay);
+    if (_i2cDelay != 0) System::delayUs(_i2cDelay);
 
 SoftI2cMaster::SoftI2cMaster(GPIO_TypeDef *sclPort, u32 sclPin, GPIO_TypeDef *sdaPort, u32 sdaPin)
     : _sclPort(sclPort), _sclPin(sclPin), _sdaPort(sdaPort), _sdaPin(sdaPin) {
@@ -34,15 +34,15 @@ SoftI2cMaster::SoftI2cMaster(GPIO_TypeDef *sclPort, u32 sclPin, GPIO_TypeDef *sd
 
     //    i2c_scl_hi();
     //
-    //    if (_i2cDelay != 0) hal::System::delayUs(_i2cDelay);
+    //    if (_i2cDelay != 0) System::delayUs(_i2cDelay);
     //
     //    i2c_sda_hi();
     //
     //    for (u8 i = 0; i < 4; i++)  // 4 times the normal delay, to claim the bus.
     //    {
-    //        if (_i2cDelay != 0) hal::System::delayUs(_i2cDelay);
+    //        if (_i2cDelay != 0) System::delayUs(_i2cDelay);
     //    }
-    //    os::sleep(2);  // 1ms didn't always work.
+    //    sleep(2);  // 1ms didn't always work.
 }
 
 /**
@@ -75,7 +75,7 @@ Result SoftI2cMaster::_i2cStart() {
 
         i2c_scl_lo();
 
-        // if (_i2cDelay != 0) hal::System::delayUs(_i2cDelay);
+        // if (_i2cDelay != 0) System::delayUs(_i2cDelay);
     }
     return Result::kOk;
 }
@@ -119,10 +119,10 @@ void SoftI2cMaster::_i2cStop() {
         // Wait until the clock is high, the Slave could keep it low for clock stretching.
         // Clock pulse stretching during a stop condition seems odd, but when
         // the Slave is an Arduino, it might happen.
-        unsigned long prevMillis = hal::System::getTickMs();
+        unsigned long prevMillis = System::getTickMs();
         //i2c_scl_in();
         while (i2c_scl_read() == 0) {
-            if (hal::System::getTickMs() - prevMillis >= _baseConfig.timeout) break;
+            if (System::getTickMs() - prevMillis >= _baseConfig.timeout) break;
         };
         //i2c_scl_out();
     }
@@ -161,10 +161,10 @@ void SoftI2cMaster::_i2cWriteBit(u8 c) {
     if (_baseConfig.stretch) {
         // If the Slave was stretching the clock pulse, the clock would not go high immediately.
         // For example if the Slave is an Arduino, that has other interrupts running (for example Serial data).
-        unsigned long prevMillis = hal::System::getTickMs();
+        unsigned long prevMillis = System::getTickMs();
         //i2c_scl_in();
         while (i2c_scl_read() == 0) {
-            if (hal::System::getTickMs() - prevMillis >= _baseConfig.timeout) break;
+            if (System::getTickMs() - prevMillis >= _baseConfig.timeout) break;
         };
         //i2c_scl_out();
     }
@@ -173,7 +173,7 @@ void SoftI2cMaster::_i2cWriteBit(u8 c) {
 
     i2c_scl_lo();
 
-    // if (_i2cDelay != 0) hal::System::delayUs(_i2cDelay);
+    // if (_i2cDelay != 0) System::delayUs(_i2cDelay);
 }
 
 /**
@@ -189,23 +189,23 @@ u8 SoftI2cMaster::_i2cReadBit() {
     // Check if clock stretching by the Slave should be detected.
     if (_baseConfig.stretch) {
         // Wait until the clock is high, the Slave could keep it low for clock stretching.
-        unsigned long prevMillis = hal::System::getTickMs();
+        unsigned long prevMillis = System::getTickMs();
         //i2c_scl_in();
         while (i2c_scl_read() == 0) {
-            if (hal::System::getTickMs() - prevMillis >= _baseConfig.timeout) break;
+            if (System::getTickMs() - prevMillis >= _baseConfig.timeout) break;
         };
         //i2c_scl_out();
     }
 
     // After the clock stretching, this delay has still be done before reading sda.
-    if (_i2cDelay != 0) hal::System::delayUs(_i2cDelay);
+    if (_i2cDelay != 0) System::delayUs(_i2cDelay);
 
     // i2c_sda_in();
     u8 c = i2c_sda_read();
 
     i2c_scl_lo();
 
-    // if (_i2cDelay != 0) hal::System::delayUs(_i2cDelay);
+    // if (_i2cDelay != 0) System::delayUs(_i2cDelay);
 
     return (c);
 }
@@ -216,7 +216,7 @@ Result SoftI2cMaster::_i2cWrite(u8 c) {
         c <<= 1;
     }
     i2c_sda_in();
-    if (_i2cDelay != 0) hal::System::delayUs(_i2cDelay);
+    if (_i2cDelay != 0) System::delayUs(_i2cDelay);
     return _i2cReadBit() == 0 ? Result::kOk : Result::kError;
 }
 
@@ -236,7 +236,7 @@ u8 SoftI2cMaster::_i2cRead(bool ack) {
         _i2cWriteBit(1);
     }
 
-    if (_i2cDelay != 0) hal::System::delayUs(_i2cDelay);
+    if (_i2cDelay != 0) System::delayUs(_i2cDelay);
 
     return (res);
 }
@@ -257,7 +257,7 @@ Result SoftI2cMaster::setTransitionConfig(I2cMasterTransitionConfig &config) {
     return Result::kOk;
 }
 
-os::AsyncResult SoftI2cMaster::readReg(u16 regAddr, const Slice &data) {
+AsyncResult SoftI2cMaster::readReg(u16 regAddr, const Slice &data) {
     Result rst = Result::kOk;
 
     do {
@@ -294,10 +294,10 @@ os::AsyncResult SoftI2cMaster::readReg(u16 regAddr, const Slice &data) {
     } while (false);
     _i2cStop();
 
-    return os::AsyncResult::fromResult(rst);
+    return AsyncResult::fromResult(rst);
 }
 
-os::AsyncResult SoftI2cMaster::writeReg(u16 regAddr, const Slice &data) {
+AsyncResult SoftI2cMaster::writeReg(u16 regAddr, const Slice &data) {
     Result rst = Result::kOk;
     do {
         rst = _i2cStart();
@@ -329,7 +329,7 @@ os::AsyncResult SoftI2cMaster::writeReg(u16 regAddr, const Slice &data) {
     } while (false);
     _i2cStop();
 
-    return os::AsyncResult::fromResult(rst);
+    return AsyncResult::fromResult(rst);
 }
 
 Result SoftI2cMaster::_i2cSendAddress(bool isRead) {
@@ -350,7 +350,7 @@ Result SoftI2cMaster::_i2cSendAddress(bool isRead) {
     }
     return Result::kOk;
 }
-os::AsyncResult SoftI2cMaster::read(const Slice &data) {
+AsyncResult SoftI2cMaster::read(const Slice &data) {
     Result rst = Result::kOk;
     do {
         rst = _i2cStart();
@@ -366,9 +366,9 @@ os::AsyncResult SoftI2cMaster::read(const Slice &data) {
     } while (false);
     _i2cStop();
 
-    return os::AsyncResult::fromResult(rst);
+    return AsyncResult::fromResult(rst);
 }
-os::AsyncResult SoftI2cMaster::write(const Slice &data) {
+AsyncResult SoftI2cMaster::write(const Slice &data) {
     Result rst = Result::kOk;
     do {
         rst = _i2cStart();
@@ -385,6 +385,6 @@ os::AsyncResult SoftI2cMaster::write(const Slice &data) {
     } while (false);
     _i2cStop();
 
-    return os::AsyncResult::fromResult(rst);
+    return AsyncResult::fromResult(rst);
 }
-}  // namespace wibot::hal
+}  // namespace wibot

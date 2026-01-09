@@ -15,7 +15,7 @@
 #define AS5047_CMD_READ_ANGLEUNC 0x7FFE  // 0x3FFE | AS5047_EF_BIT | 0x0000
 #define AS5047_CMD_READ_ANGLECOM 0xFFFF  // 0x3FFF | AS5047_EF_BIT | 0x8000
 
-namespace wibot::device {
+namespace wibot {
 
 struct As5047SpiConfig {};
 
@@ -53,7 +53,7 @@ class As5047Spi : public Rls {
 
     u16             _angle;
     As5047State     _state;
-    comm::ParityValidator _parity;
+    ParityValidator _parity;
 };
 
-}  // namespace wibot::device
+}  // namespace wibot

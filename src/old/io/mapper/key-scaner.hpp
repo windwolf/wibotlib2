@@ -79,7 +79,7 @@ class KeyScaner : public MultiChannelPipeline<KeyEvent, CHANNELS> {
     void update() override {
         _upstream.update();
         auto _pinStatus = _upstream.getValues();
-        auto now        = hal::System::getTickMs();
+        auto now        = System::getTickMs();
 
         // Update digital input and get current pin status
 

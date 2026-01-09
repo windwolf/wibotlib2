@@ -1,29 +1,29 @@
-#pragma once
+﻿#pragma once
 
 #include "bus.hpp"
 #include "hal/stm32/gpio.hpp"
 
-namespace wibot::device {
+namespace wibot {
 class SinPoutShiftRegister {
    public:
-    SinPoutShiftRegister(SpiMaster& spi, hal::Pin& stcpPin);
+    SinPoutShiftRegister(SpiMaster& spi, Pin& stcpPin);
 
     Result write(Slice data);
 
    private:
     SpiMaster& _spi;
-    hal::Pin*  _stcpPin;
+    Pin*       _stcpPin;
 };
 
 class PinSoutShiftRegister {
    public:
-    PinSoutShiftRegister(SpiMaster& spi, hal::Pin& plPin);
+    PinSoutShiftRegister(SpiMaster& spi, Pin& plPin);
 
     Result read(const Slice& data);
 
    private:
     SpiMaster& _spi;
-    hal::Pin*  _plPin;
+    Pin*       _plPin;
 };
 
-}  // namespace wibot::device
+}  // namespace wibot

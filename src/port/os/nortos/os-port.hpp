@@ -2,7 +2,7 @@
 
 #include "circular-buffer.hpp"
 
-namespace wibot::os {
+namespace wibot {
 
 #define LAST_BIT_MASK     0x80000000
 #define LAST_TWO_BIT_MASK 0xC0000000
@@ -23,3 +23,4 @@ using TIMER_FUNCTION_ARGUMENT_TYPE = u32;
 struct ThreadConfig {};
 
 }  // namespace wibot
+

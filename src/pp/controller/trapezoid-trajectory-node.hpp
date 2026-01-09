@@ -1,14 +1,14 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/controller/trapezoid.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 class TrapezoidTrajectoryNode : public INode {
    public:
-    using Config = dsp::TrapezoidTrajectory::Config;
-    using Phase  = dsp::TrapezoidTrajectory::Phase;
+    using Config = TrapezoidTrajectory::Config;
+    using Phase  = TrapezoidTrajectory::Phase;
 
     struct Inputs {
         In<f32> setPoint;
@@ -31,7 +31,7 @@ class TrapezoidTrajectoryNode : public INode {
     void setInitialValue(f32 value);
 
    private:
-    dsp::TrapezoidTrajectory _trajectory;
+    TrapezoidTrajectory _trajectory;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

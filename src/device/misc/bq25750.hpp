@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "bus.hpp"
 
-namespace wibot::device {
+namespace wibot {
 class Bq25750 {
    public:
     enum struct ChargeStat : u8 {
@@ -219,4 +219,5 @@ class Bq25750 {
    private:
     I2cMaster& _i2c;
 };
-}  // namespace wibot::device
+} // namespace wibot
+

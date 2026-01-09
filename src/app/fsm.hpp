@@ -1,6 +1,6 @@
-#pragma once
+﻿#pragma once
 
-namespace wibot::app {
+namespace wibot {
 
 template <typename T>
 class FsmExecutor {
@@ -26,3 +26,4 @@ class FsmExecutor {
     T _currentState;
 };
 }  // namespace wibot
+

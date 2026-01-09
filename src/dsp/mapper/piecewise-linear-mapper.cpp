@@ -1,7 +1,7 @@
 #include "dsp/mapper/piecewise-linear-mapper.hpp"
 #include <cmath>
 
-namespace wibot::dsp {
+namespace wibot {
 
 PiecewiseLinearMapper::PiecewiseLinearMapper(Config& config) : _config(config) {
 }
@@ -100,4 +100,4 @@ f32 PiecewiseLinearMapper::interpolateInSegment(f32 input, u8 segmentIndex) cons
     return y0 + (y1 - y0) * ratio;
 }
 
-}  // namespace wibot::dsp
+}  // namespace wibot

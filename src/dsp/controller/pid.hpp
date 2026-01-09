@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 
-namespace wibot::dsp {
+namespace wibot {
 
 /**
  * @brief PID 控制器（面向对象实现）
@@ -60,4 +60,5 @@ class Pid {
     f32           _output;
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

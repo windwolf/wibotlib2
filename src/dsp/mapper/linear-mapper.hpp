@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 
-namespace wibot::dsp {
+namespace wibot {
 
 /**
  * @brief 线性映射
@@ -40,4 +40,5 @@ class LinearMapper {
     const Config& _config;
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

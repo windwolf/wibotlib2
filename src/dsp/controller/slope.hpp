@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 #include <algorithm>
@@ -7,7 +7,7 @@
 #include <limits>
 #include <concepts>
 
-namespace wibot::dsp {
+namespace wibot {
 
 template <typename T>
     requires SupportArithmetic<T>
@@ -110,4 +110,5 @@ class SlopeTrajectory {
     State   _state;
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

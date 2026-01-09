@@ -7,7 +7,7 @@
 #include "Validator.hpp"
 #include "type.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 
 class CheckSum8Validator : Validator<u8> {
    public:
@@ -20,3 +20,4 @@ class CheckSum8Validator : Validator<u8> {
 };
 
 }  // namespace wibot
+

@@ -4,7 +4,7 @@
 
 #include "checksum.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 
 void CheckSum8Validator::reset() {
     _sum = 0;

@@ -7,7 +7,7 @@
 
 #ifdef HAL_SPI_MODULE_ENABLED
 
-namespace wibot::device {
+namespace wibot {
 
 struct Mt6816SpiConfig {};
 
@@ -26,9 +26,9 @@ class Mt6816Spi : public Rls {
     SpiMaster&      _spi;
     u8              _cmd[4];
     u16             _angle;
-    comm::ParityValidator _parity;
+    ParityValidator _parity;
 };
 
-}  // namespace wibot::device
+}  // namespace wibot
 
 #endif  // HAL_SPI_MODULE_ENABLED

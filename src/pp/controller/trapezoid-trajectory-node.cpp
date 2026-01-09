@@ -1,6 +1,6 @@
 #include "trapezoid-trajectory-node.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 TrapezoidTrajectoryNode::TrapezoidTrajectoryNode(Config& config) : _trajectory(config) {
 }
@@ -28,4 +28,4 @@ void TrapezoidTrajectoryNode::setInitialValue(f32 value) {
     _trajectory.setInitialValue(value);
 }
 
-}  // namespace wibot::pp
+}  // namespace wibot

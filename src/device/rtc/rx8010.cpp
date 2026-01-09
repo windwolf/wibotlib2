@@ -3,7 +3,7 @@
 #
 #include "logger.hpp"
 
-namespace wibot::device {
+namespace wibot {
 LOGGER("rx8010")
 #define RX8010_ADDRESS 0x64U
 
@@ -80,7 +80,7 @@ Rx8010::Rx8010(I2cMaster& i2c) : _i2c(i2c) {
 
 Result Rx8010::porInit() {
     u8 data;
-    os::sleep(50);
+    sleep(50);
 
     auto rst = _readI2c(REG_USER_RAM_BEGIN, (void*)&data, 1);
     if (rst != Result::kOk) {
@@ -100,7 +100,7 @@ Result Rx8010::porInit() {
             if (rst != Result::kOk) {
                 return rst;
             }
-            os::sleep(10);
+            sleep(10);
         }
         while (data & VALUE_FLAG_VLF)
 

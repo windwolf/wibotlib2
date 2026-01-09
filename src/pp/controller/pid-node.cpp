@@ -1,8 +1,8 @@
 #include "pid-node.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
-PidNode::PidNode(dsp::Pid::Config& config) : _pid(config) {
+PidNode::PidNode(Pid::Config& config) : _pid(config) {
 }
 
 bool PidNode::ready() {
@@ -21,4 +21,4 @@ void PidNode::resetIntegrator() {
     _pid.resetIntegrator();
 }
 
-}  // namespace wibot::pp
+}  // namespace wibot

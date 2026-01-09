@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 #include <functional>
 #include <concepts>
 
-namespace wibot::dsp {
+namespace wibot {
 template <typename TIn, typename TOut>
 using MappingFunction = std::function<TOut(TIn)>;
 template <typename TIn, typename TOut>
@@ -40,4 +40,5 @@ class CustomMapper {
     Config& _config{};
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

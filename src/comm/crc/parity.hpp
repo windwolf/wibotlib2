@@ -7,7 +7,7 @@
 #include "Validator.hpp"
 #include "type.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 
 class ParityValidator : Validator<u8> {
    public:
@@ -30,4 +30,5 @@ class ParityValidator : Validator<u8> {
     bool _even;    // 是否偶校验
 };
 
-}  // namespace wibot::comm
+} // namespace wibot
+

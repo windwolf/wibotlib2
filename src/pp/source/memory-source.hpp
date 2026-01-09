@@ -1,12 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 /**
  * @brief 内存数组源 INode 实现
- * @deprecated 可以直接将下游节点的输入绑定到内存, 无需通过这个中转
  * 
  * 循环读取预设数组中的值
  */
@@ -60,4 +59,5 @@ class MemorySourceNode : public INode {
     Storage& _storage;
 };
 
-}  // namespace wibot::pp
+} // namespace wibot
+

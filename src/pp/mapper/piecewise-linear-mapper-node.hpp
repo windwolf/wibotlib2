@@ -1,13 +1,13 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/mapper/piecewise-linear-mapper.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 class PiecewiseLinearMapperNode : public INode {
    public:
-    using Config = dsp::PiecewiseLinearMapper::Config;
+    using Config = PiecewiseLinearMapper::Config;
 
     struct Inputs {
         In<f32> x;
@@ -26,8 +26,8 @@ class PiecewiseLinearMapperNode : public INode {
     void reset() override;
 
    private:
-    Config&                    _config;
-    dsp::PiecewiseLinearMapper _mapper;
+    Config&               _config;
+    PiecewiseLinearMapper _mapper;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

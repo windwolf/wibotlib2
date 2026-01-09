@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "../../base/type.hpp"
 #include "../../base/buffer.hpp"
@@ -6,7 +6,7 @@
 #include "modbus.hpp"
 #include <type_traits>
 
-namespace wibot::comm {
+namespace wibot {
 
 // ============================================================================
 // 从机寄存器处理器基类
@@ -581,4 +581,5 @@ class RegisterSlaveHandlerWithDefaults : public RegisterSlaveHandler<RegDefs...>
     typename Base::WriteCallback _userWriteCallback = nullptr;
 };
 
-}  // namespace wibot::modbus
+} // namespace wibot
+

@@ -4,7 +4,7 @@
 #include "bus.hpp"
 #include "gpio.hpp"
 
-namespace wibot::hal {
+namespace wibot {
 
 #ifdef HAL_SPI_MODULE_ENABLED
 
@@ -19,28 +19,28 @@ namespace wibot::hal {
 
 class Spi : public SpiMaster, private PeripheralBase {
    public:
-    explicit Spi(SPI_HandleTypeDef& handle, hal::Pin* csPin, const SpiConfig& config);
+    explicit Spi(SPI_HandleTypeDef& handle, Pin* csPin, const SpiConfig& config);
     ~Spi();
 
     Result setConfig(const SpiConfig& config) override;
 
    public:
-    os::AsyncResult read(const Slice& data) override;
-    os::AsyncResult write(const Slice& data) override;
-    os::AsyncResult writeRead(const Slice& txData, const Slice& rxData) override;
-    Result          begin() override;
-    Result          end() override;
+    AsyncResult read(const Slice& data) override;
+    AsyncResult write(const Slice& data) override;
+    AsyncResult writeRead(const Slice& txData, const Slice& rxData) override;
+    Result      begin() override;
+    Result      end() override;
 
    private:
     SPI_HandleTypeDef* _handle;
-    hal::Pin*          _csPin;
+    Pin*               _csPin;
     SpiConfig          _config;
 #ifdef STM32H7xx
 #if CHIP_SPI_READ_DMA_ENABLED
     Slice _rxUserBuffer;
 #endif
 #endif
-    os::AsyncSource _asyncSource;
+    AsyncSource _asyncSource;
 
    protected:
     static void _onReadCplt(SPI_HandleTypeDef* handle);
@@ -51,4 +51,4 @@ class Spi : public SpiMaster, private PeripheralBase {
 
 #endif  // HAL_SPI_MODULE_ENABLED
 
-}  // namespace wibot::hal
+}  // namespace wibot

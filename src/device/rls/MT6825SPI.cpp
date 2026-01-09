@@ -16,7 +16,7 @@
 #define MT6825_SPI_PC_BIT_MASK         0x01
 #define MT6825_SPI_OVER_SPEED_BIT_MASK 0x18
 
-namespace wibot::device {
+namespace wibot {
 
 u32 Mt6825Spi::GetAngle() {
     _cmd[0] = MT6825_SPI_ANGLE1_REG | MT6825_SPI_READ_CMD;

@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/util/offset-calibrator.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 class OffsetCalibratorNode : public INode {
    public:
@@ -29,7 +29,7 @@ class OffsetCalibratorNode : public INode {
     void reset() override;
 
    private:
-    dsp::OffsetCalibrator _calibrator;
+    OffsetCalibrator _calibrator;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

@@ -3,7 +3,7 @@
 #include "cmsis_os.h"
 #include "cmsis_os2.h"
 
-namespace wibot::os {
+namespace wibot {
 
 #define LAST_BIT_MASK     0x00800000
 #define LAST_TWO_BIT_MASK 0x00C00000
@@ -23,4 +23,5 @@ using TIMER_FUNCTION_ARGUMENT_TYPE = void*;
 
 struct ThreadConfig {};
 
-}  // namespace wibot::os
+} // namespace wibot
+

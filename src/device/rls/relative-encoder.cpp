@@ -7,7 +7,7 @@
 // #include "logger.hpp"
 // LOGGER("enc")
 
-// namespace wibot::device {
+// namespace wibot {
 
 // void RelativeEncoder::updatePositionValue(u32 value) {
 //     i32 delta = (i32)value - (i32)lastValue_;

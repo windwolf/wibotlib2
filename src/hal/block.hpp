@@ -3,7 +3,7 @@
 #include "type.hpp"
 #include "buffer.hpp"
 
-namespace wibot::hal {
+namespace wibot {
 
 class Block {
    public:
@@ -54,4 +54,5 @@ class Block {
     Result _writeDirectly(void *data, u32 address, u32 size);
     Result _calculateConfig();
 };
-}  // namespace wibot::hal
+} // namespace wibot
+

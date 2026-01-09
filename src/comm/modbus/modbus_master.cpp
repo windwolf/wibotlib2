@@ -1,7 +1,7 @@
 #include "modbus.hpp"
 #include <cstring>
 
-namespace wibot::comm {
+namespace wibot {
 
 // 协议常量
 static constexpr u8 kModbusResponseHeaderSize = 3;  // 设备地址 + 功能码 + 字节数
@@ -120,10 +120,10 @@ Result ModbusMaster::write(RegisterType type, u8 deviceAddr, u16 addr, u16 lengt
 }
 
 // 通用写入函数（无响应）
-os::AsyncResult ModbusMaster::writeWithoutResponse(RegisterType type, u8 deviceAddr, u16 addr,
-                                                   u16 length, const Slice& data) {
+AsyncResult ModbusMaster::writeWithoutResponse(RegisterType type, u8 deviceAddr, u16 addr,
+                                               u16 length, const Slice& data) {
     if (type != RegisterType::kCoil && type != RegisterType::kHoldingRegister) {
-        return os::AsyncResult::fromResult(
+        return AsyncResult::fromResult(
             Result(Result::ResultStatus::kError, ErrorCode::kInvalidResponse));
     }
 
@@ -139,15 +139,14 @@ os::AsyncResult ModbusMaster::writeWithoutResponse(RegisterType type, u8 deviceA
 }
 
 // 发送多寄存器写入命令的公共方法
-os::AsyncResult ModbusMaster::sendMultiWriteCommand(RegisterType type, u8 deviceAddr,
-                                                    u8 functionCode, u16 addr, u16 length,
-                                                    const Slice& data) {
+AsyncResult ModbusMaster::sendMultiWriteCommand(RegisterType type, u8 deviceAddr, u8 functionCode,
+                                                u16 addr, u16 length, const Slice& data) {
     u16 byteCount = calcDataLength(type, length);
     u16 cmdLength = 7 + byteCount + kModbusCrcSize;
 
     // 检查缓冲区是否足够
     if (cmdLength > MODBUS_BUFFER_SIZE) {
-        return os::AsyncResult::fromResult(
+        return AsyncResult::fromResult(
             Result(Result::ResultStatus::kError, ErrorCode::kInvalidResponse));
     }
 
@@ -170,8 +169,8 @@ os::AsyncResult ModbusMaster::sendMultiWriteCommand(RegisterType type, u8 device
     return _uart.write(cmdSlice);
 }
 
-os::AsyncResult ModbusMaster::sendSimpleCommand(u8 deviceAddr, u8 functionCode, u16 regAddr,
-                                                u16 lengthOrValue) {
+AsyncResult ModbusMaster::sendSimpleCommand(u8 deviceAddr, u8 functionCode, u16 regAddr,
+                                            u16 lengthOrValue) {
     // 使用成员变量 _buffer，避免栈分配
     Slice buf(_buffer.data, kModbusSimpleResponseSize);
     buf.setUint8(0, deviceAddr);
@@ -192,4 +191,4 @@ bool ModbusMaster::validateCrc(const Slice& buf, u16 length) {
     return _crc16.get() == recvCrc;
 };
 
-}  // namespace wibot::comm
+}  // namespace wibot

@@ -73,11 +73,11 @@ struct Buffer {
     constexpr static u16 cap = CAP;
 
     operator Slice() {
-        return Slice(data, sizeof(T) * size);
+        return Slice((u8 *)data, sizeof(T) * size);
     };
 
     Slice toSlice(u16 length, u16 offset = 0) {
-        return Slice(&data[offset], length);
+        return Slice((u8 *)&data[offset], sizeof(T) * length);
     };
 
     T &operator[](u32 index) {
@@ -88,5 +88,14 @@ struct Buffer {
         return data[index];
     };
 };
+
+template <u16 CAP>
+using Buffer8 = Buffer<CAP, u8>;
+
+template <u16 CAP>
+using Buffer16 = Buffer<CAP, u16>;
+
+template <u16 CAP>
+using Buffer32 = Buffer<CAP, u32>;
 
 }  // namespace wibot

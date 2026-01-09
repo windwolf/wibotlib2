@@ -4,7 +4,7 @@
 
 #include "pelco-d.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 #define COMMAND1_PTR (reinterpret_cast<Command1*>(&_frame._buffer[2]))
 #define COMMAND2_PTR (reinterpret_cast<Command2*>(&_frame._buffer[3]))
 

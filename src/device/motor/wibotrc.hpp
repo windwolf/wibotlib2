@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "chip.hpp"
 #include "bus.hpp"
@@ -13,7 +13,7 @@
 
 #if defined(HAL_TIM_MODULE_ENABLED) && defined(HAL_UART_MODULE_ENABLED)
 
-namespace wibot::device {
+namespace wibot {
 extern "C" struct WibotRcState {
     /**
    * 100 rpm
@@ -38,7 +38,7 @@ extern "C" struct WibotRcState {
     uint16_t consumption;
 };
 
-class WibotRcTelemetry : public app::RxServer {
+class WibotRcTelemetry : public RxServer {
    public:
     WibotRcTelemetry(UART_HandleTypeDef& uart);
 
@@ -48,18 +48,18 @@ class WibotRcTelemetry : public app::RxServer {
     };
 
    private:
-    bool validateFrame(const comm::MessageFrame& frame) override;
-    void processCommandFrame(const comm::MessageFrame& frame) override;
+    bool validateFrame(const MessageFrame& frame) override;
+    void processCommandFrame(const MessageFrame& frame) override;
 
    private:
-    static constexpr comm::MessageSchema schema = {
+    static constexpr MessageSchema schema = {
         // .prefix            = {0x55},
         .prefixSize        = 0,
         .commandSize       = DataWidth::kNone,
         // .lengthSchemas     = nullptr,
         .lengthSchemaCount = 0,
         .defaultLength{
-            .mode  = comm::MessageLengthSchemaMode::kFixedLength,
+            .mode  = MessageLengthSchemaMode::kFixedLength,
             .fixed = {.length = 10},
         },
         .alterDataSize = DataWidth::kNone,
@@ -68,15 +68,15 @@ class WibotRcTelemetry : public app::RxServer {
         // .suffix     = nullptr,
         .suffixSize    = 0};
 
-    Buffer<32>          _msgBuffer;
-    CircularBuffer8     _msgCircBuffer{_msgBuffer};
-    hal::Uart           _uart;
-    comm::MessageReader _reader{&_uart, _msgCircBuffer, schema, true};
-    comm::Crc8Validator _crcValidator{0x07, 0x00, 0x00, false};
-    WibotRcState        _state{};
+    Buffer<32>      _msgBuffer;
+    CircularBuffer8 _msgCircBuffer{_msgBuffer};
+    Uart            _uart;
+    MessageReader   _reader{&_uart, _msgCircBuffer, schema, true};
+    Crc8Validator   _crcValidator{0x07, 0x00, 0x00, false};
+    WibotRcState    _state{};
 };
 
-class WibotRcController : public os::Worker {
+class WibotRcController : public Worker {
    public:
     WibotRcController(TIM_HandleTypeDef& tim, u8 timChannel)
         : _dshot(tim), _timChannel(timChannel) {};
@@ -88,19 +88,19 @@ class WibotRcController : public os::Worker {
     void run() override;
 
    private:
-    comm::DShot                             _dshot;
-    u8                                _timChannel;
-    f32                               _throttle;
-    f32                               _slopedThrottle{0.0f};
-    dsp::SlopeTrajectory<f32>::Config _slopeConfig{.slopeRate   = 1.0f,   // 1 unit per second
-                                                   .sampleTime  = 0.02f,  // 20 ms
-                                                   .enableClamp = false,
+    DShot                        _dshot;
+    u8                           _timChannel;
+    f32                          _throttle;
+    f32                          _slopedThrottle{0.0f};
+    SlopeTrajectory<f32>::Config _slopeConfig{.slopeRate   = 1.0f,   // 1 unit per second
+                                              .sampleTime  = 0.02f,  // 20 ms
+                                              .enableClamp = false,
 
-                                                   .minValue = 0.0f,
-                                                   .maxValue = 1.0f};
-    dsp::SlopeTrajectory<f32>         _trajectory{_slopeConfig};
+                                              .minValue = 0.0f,
+                                              .maxValue = 1.0f};
+    SlopeTrajectory<f32>         _trajectory{_slopeConfig};
 };
 
-}  // namespace wibot::device
+}  // namespace wibot
 
 #endif  // HAL_TIM_MODULE_ENABLED && HAL_UART_MODULE_ENABLED

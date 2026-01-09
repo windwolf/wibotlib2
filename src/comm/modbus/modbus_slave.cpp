@@ -1,7 +1,7 @@
 #include "modbus.hpp"
 #include <cstring>
 
-namespace wibot::comm {
+namespace wibot {
 
 // 协议常量
 static constexpr u8 kMinRequestSize = 8;  // 最小请求：地址+功能码+数据+CRC
@@ -202,4 +202,4 @@ void ModbusSlave::sendResponse(const Slice& response) {
     _uart.write(response).wait(TIMEOUT_FOREVER);
 }
 
-}  // namespace wibot::modbus
+}  // namespace wibot

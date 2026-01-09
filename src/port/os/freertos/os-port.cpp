@@ -9,13 +9,13 @@ LOGGER("os")
 extern "C" {
 #endif
 void runStub(void* instance) {
-    static_cast<wibot::os::Worker*>(instance)->run();
+    static_cast<wibot::Worker*>(instance)->run();
 };
 #ifdef __cplusplus
 }
 #endif
 
-namespace wibot::os {
+namespace wibot {
 
 static const Result OsStatusToResult(osStatus_t status) {
     switch (status) {
@@ -59,7 +59,7 @@ void sleep(u32 ms) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-            hal::System::delayMs(ms);
+            System::delayMs(ms);
 #ifdef _MSC_VER
 #pragma warning(pop)
 #elif defined(__clang__)

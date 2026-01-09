@@ -4,7 +4,7 @@
 #include "chip.hpp"
 #include "peripheral.hpp"
 
-namespace wibot::hal {
+namespace wibot {
 
 #ifdef HAL_I2C_MODULE_ENABLED
 class HardI2cMaster : public I2cMaster, private PeripheralBase {
@@ -13,11 +13,11 @@ class HardI2cMaster : public I2cMaster, private PeripheralBase {
     ~HardI2cMaster();
 
    public:
-    Result          setTransitionConfig(I2cMasterTransitionConfig& config) override;
-    os::AsyncResult readReg(u16 regAddr, const Slice& data) override;
-    os::AsyncResult writeReg(u16 regAddr, const Slice& data) override;
-    os::AsyncResult read(const Slice& data) override;
-    os::AsyncResult write(const Slice& data) override;
+    Result      setTransitionConfig(I2cMasterTransitionConfig& config) override;
+    AsyncResult readReg(u16 regAddr, const Slice& data) override;
+    AsyncResult writeReg(u16 regAddr, const Slice& data) override;
+    AsyncResult read(const Slice& data) override;
+    AsyncResult write(const Slice& data) override;
 
    private:
     static void onReadCplt(I2C_HandleTypeDef* instance);
@@ -27,7 +27,7 @@ class HardI2cMaster : public I2cMaster, private PeripheralBase {
    private:
     I2C_HandleTypeDef*        _handle;
     I2cMasterTransitionConfig _transitionConfig;
-    os::AsyncSource           _asyncSource;
+    AsyncSource               _asyncSource;
 
    private:
 #if CHIP_I2C_READ_DMA_ENABLED
@@ -38,4 +38,4 @@ class HardI2cMaster : public I2cMaster, private PeripheralBase {
 };
 #endif  // HAL_I2C_MODULE_ENABLED
 
-}  // namespace wibot::hal
+}  // namespace wibot

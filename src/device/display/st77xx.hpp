@@ -4,7 +4,7 @@
 #include "bus.hpp"
 #include "hal/stm32/gpio.hpp"
 
-namespace wibot::device {
+namespace wibot {
 
 struct St77xxConfig {
     u16 width;
@@ -17,7 +17,7 @@ struct St77xxConfig {
 
 class St77xx {
    public:
-    St77xx(SpiMaster &spi, hal::Pin &dcPin);
+    St77xx(SpiMaster &spi, Pin &dcPin);
 
    protected:
     u8 _cmdData[16];
@@ -35,7 +35,7 @@ class St77xx {
 
    private:
     SpiMaster &_spi;
-    hal::Pin  &_dcPin;
+    Pin       &_dcPin;
 };
 
-}  // namespace wibot::device
+}  // namespace wibot

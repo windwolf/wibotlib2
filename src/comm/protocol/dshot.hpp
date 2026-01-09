@@ -6,9 +6,7 @@
 
 #if defined(HAL_TIM_MODULE_ENABLED)
 
-namespace wibot::comm {
-
-using namespace os;
+namespace wibot {
 
 enum class DShotProtocol {
     DShot150 = 0,
@@ -27,9 +25,9 @@ class DShot : private PeripheralBase {
      * @param channel 1-6
      * @param command 
      * @param telemetry 
-     * @return os::AsyncResult 
+     * @return AsyncResult 
      */
-    os::AsyncResult send(u8 channel, u16 command, bool telemetry);
+    AsyncResult send(u8 channel, u16 command, bool telemetry);
 
     void sendComplete(Result result);
 
@@ -44,9 +42,9 @@ class DShot : private PeripheralBase {
     u32                             _pulse0;
     u32                             _pulse1;
     __attribute__((aligned(4))) u16 _framebuffer[17];  // 16个字节的帧缓冲区
-    os::AsyncSource                 _asyncSource;
+    AsyncSource                     _asyncSource;
 };
 
-}  // namespace wibot::comm
+}  // namespace wibot
 
 #endif  // HAL_TIM_MODULE_ENABLED

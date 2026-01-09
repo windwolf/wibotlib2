@@ -8,7 +8,7 @@
 #include "chip.hpp"
 #include "bus.hpp"
 
-namespace wibot::device {
+namespace wibot {
 
 struct Mt6701I2cConfig {};
 class Mt6701I2c {
@@ -26,4 +26,5 @@ class Mt6701I2c {
     u32        _value;
 };
 
-}  // namespace wibot::device
+} // namespace wibot
+

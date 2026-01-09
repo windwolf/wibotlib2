@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 
@@ -6,7 +6,7 @@
 #define DSP_MEDIAN_MAX_WINDOW 32
 #endif
 
-namespace wibot::dsp {
+namespace wibot {
 
 /**
  * @brief 中值滤波器
@@ -139,4 +139,5 @@ class Median {
     T             _outputLast;
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

@@ -1,6 +1,6 @@
 #include "ubx.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 static inline bool checksum(u8* msg, u32 length) {
     u8* p    = msg + 2;
     u32 l    = length - 4;
@@ -22,4 +22,4 @@ bool ubx_parse(u8* msg, u32 length, u16* classId, void** payload) {
     *payload = msg;
     return true;
 }
-}  // namespace wibot::comm
+}  // namespace wibot

@@ -1,15 +1,15 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/filter/binning.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 template <typename T>
     requires SupportArithmetic<T>
 class BinningNode : public INode {
    public:
-    using Config = typename dsp::Binning<T>::Config;
+    using Config = typename Binning<T>::Config;
 
     struct Inputs {
         In<T> value;
@@ -39,8 +39,8 @@ class BinningNode : public INode {
         return _config.binCount > 0U && _config.boundaries != nullptr;
     }
 
-    Config&         _config;
-    dsp::Binning<T> _binning;
+    Config&    _config;
+    Binning<T> _binning;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

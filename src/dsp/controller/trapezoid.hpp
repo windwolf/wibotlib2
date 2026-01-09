@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 
-namespace wibot::dsp {
+namespace wibot {
 
 class TrapezoidTrajectory {
    public:
@@ -66,4 +66,5 @@ class TrapezoidTrajectory {
     State   _state{};
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

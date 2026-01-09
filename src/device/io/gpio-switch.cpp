@@ -4,8 +4,8 @@
 
 #include "gpio-switch.hpp"
 #include "hal/system.hpp"
-namespace wibot::device {
-GpioSwitch::GpioSwitch(hal::Pin& pinIn, hal::Pin& pinOut, GpioSwitch::Mode mode, u32 delay)
+namespace wibot {
+GpioSwitch::GpioSwitch(Pin& pinIn, Pin& pinOut, GpioSwitch::Mode mode, u32 delay)
     : _pinIn(pinIn), _pinOut(pinOut), _mode(mode), _delay(delay) {
 }
 
@@ -19,7 +19,7 @@ void GpioSwitch::update() {
 
 void GpioSwitch::updateSync() {
     bool in  = _pinIn.getValue();
-    auto now = hal::System::getTickMs();
+    auto now = System::getTickMs();
 
     if (in != _lastInState) {
         _lastInState       = in;
@@ -34,7 +34,7 @@ void GpioSwitch::updateSync() {
 
 void GpioSwitch::updateHold() {
     bool in  = _pinIn.getValue();
-    auto now = hal::System::getTickMs();
+    auto now = System::getTickMs();
     if (!_lastInState || in) {
         _lastInState       = in;
         _lastInTriggerTick = now;
@@ -46,4 +46,4 @@ void GpioSwitch::updateHold() {
         _lastInState = false;
     }
 }
-}  // namespace wibot::device
+}  // namespace wibot

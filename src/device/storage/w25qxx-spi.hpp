@@ -5,7 +5,7 @@
 #include "peripheral.hpp"
 #include "bus.hpp"
 
-namespace wibot::device {
+namespace wibot {
 
 constexpr u32 kW25qxxPageSize  = 256;
 constexpr u32 kW25qxxBlockSize = 4096;
@@ -102,7 +102,7 @@ class W25qxxSpi {
     u32        _timeout;
 };
 
-class W25qxxSpiBlock : public hal::Block {
+class W25qxxSpiBlock : public Block {
    public:
     W25qxxSpiBlock(W25qxxSpi &w25qxx, Slice buffer);
 
@@ -113,4 +113,4 @@ class W25qxxSpiBlock : public hal::Block {
     Result     eraseMedia(u32 num, u32 size) override;
 };
 
-}  // namespace wibot::device
+}  // namespace wibot

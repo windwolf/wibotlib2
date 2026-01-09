@@ -1,16 +1,16 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/filter/key-scaner.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 template <u8 CHANNELS>
 class KeyScanerNode : public INode {
    public:
-    using Core     = dsp::KeyScaner<CHANNELS>;
+    using Core     = KeyScaner<CHANNELS>;
     using Config   = typename Core::Config;
-    using KeyEvent = typename Core::KeyEvent;
+    using KeyEvent = KeyEvent;
 
     struct Inputs {
         In<u32> pinStatusMask;
@@ -25,8 +25,15 @@ class KeyScanerNode : public INode {
     }
 
     bool ready() override {
-        return inputs.pinStatusMask.bound() && inputs.tickMs.bound() && inputs.channel.bound() &&
-               outputs.event.bound();
+        if (!inputs.pinStatusMask.bound() || !inputs.tickMs.bound()) {
+            return false;
+        }
+        for (u8 ch = 0; ch < CHANNELS; ++ch) {
+            if (!outputs.events[ch].bound()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     void process() override {
@@ -44,4 +51,4 @@ class KeyScanerNode : public INode {
     Core _core;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

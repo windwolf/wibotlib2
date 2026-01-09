@@ -6,7 +6,7 @@
 
 #include "bus.hpp"
 
-namespace wibot::device {
+namespace wibot {
 
 using Fxl6408Pins             = u8;
 constexpr Fxl6408Pins Pin0    = 0x01;
@@ -51,4 +51,5 @@ class Fxl6408I2c {
     bool       _isAddr0;
 };
 
-}  // namespace wibot::device
+} // namespace wibot
+

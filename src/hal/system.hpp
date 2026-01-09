@@ -3,12 +3,12 @@
 #include "chip.hpp"
 #include "type.hpp"
 
-namespace wibot::hal {
+namespace wibot {
 
 class System {
    public:
     static void delayUs(u32 us);
-    [[deprecated("Use wibot::os::sleep instead.")]]
+    [[deprecated("Use wibot::sleep instead.")]]
     static void delayMs(u32 ms);
     static u32  getTickMs();
     static u64  getTickUs();

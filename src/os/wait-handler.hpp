@@ -3,7 +3,7 @@
 #include "os.hpp"
 #include "eventgrouppool.hpp"
 
-namespace wibot::os {
+namespace wibot {
 
 class WaitTrigger;
 
@@ -72,3 +72,4 @@ class WaitTrigger : private LinkList {
 };
 
 }  // namespace wibot
+

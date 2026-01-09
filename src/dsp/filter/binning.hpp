@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 #include <type_traits>
 #include <concepts>
 
-namespace wibot::dsp {
+namespace wibot {
 
 template <typename T>
     requires SupportArithmetic<T>
@@ -93,4 +93,5 @@ class Binning {
     State _state{};
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

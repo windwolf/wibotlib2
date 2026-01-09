@@ -3,7 +3,7 @@
 
 #ifdef HAL_SPI_MODULE_ENABLED
 
-namespace wibot::hal {
+namespace wibot {
 
 struct SizeInfo {
    public:
@@ -96,7 +96,7 @@ static void bits_switch(SPI_HandleTypeDef* handle, DataWidth dataWidth) {
 #endif
 };
 
-Spi::Spi(SPI_HandleTypeDef& handle, hal::Pin* csPin, const SpiConfig& config)
+Spi::Spi(SPI_HandleTypeDef& handle, Pin* csPin, const SpiConfig& config)
     : _handle(&handle), _csPin(csPin) {
     setConfig(config);
     HAL_SPI_RegisterCallback(&handle, HAL_SPI_TX_COMPLETE_CB_ID, &_onWriteCplt);
@@ -110,7 +110,7 @@ Spi::~Spi() {
     PeripheralManager::getInstance().unregisterPeripheral(this);
 };
 
-os::AsyncResult Spi::read(const Slice& data) {
+AsyncResult Spi::read(const Slice& data) {
 #if CHIP_SPI_READ_DMA_ENABLED
 #ifdef STM32H7xx
     _rxUserBuffer = data;
@@ -124,13 +124,13 @@ os::AsyncResult Spi::read(const Slice& data) {
 #endif
 
     if (rst != HAL_OK) {
-        return os::AsyncResult::fromResult((Result)rst);
+        return AsyncResult::fromResult((Result)rst);
     }
 
     return _asyncSource.getResult();
 };
 
-os::AsyncResult Spi::write(const Slice& data) {
+AsyncResult Spi::write(const Slice& data) {
 #if CHIP_SPI_WRITE_DMA_ENABLED
 #ifdef STM32H7xx
     SCB_CleanDCache_by_Addr((u32*)data.data, data.size);
@@ -144,13 +144,13 @@ os::AsyncResult Spi::write(const Slice& data) {
 #endif
 
     if (rst != HAL_OK) {
-        return os::AsyncResult::fromResult((Result)rst);
+        return AsyncResult::fromResult((Result)rst);
     }
 
     return _asyncSource.getResult();
 }
 
-os::AsyncResult Spi::writeRead(const Slice& txData, const Slice& rxData) {
+AsyncResult Spi::writeRead(const Slice& txData, const Slice& rxData) {
 #if CHIP_SPI_WRITE_DMA_ENABLED
 #ifdef STM32H7xx
     _rxUserBuffer = rxData;
@@ -165,7 +165,7 @@ os::AsyncResult Spi::writeRead(const Slice& txData, const Slice& rxData) {
 #endif
 
     if (rst != HAL_OK) {
-        return os::AsyncResult::fromResult((Result)rst);
+        return AsyncResult::fromResult((Result)rst);
     }
 
     return _asyncSource.getResult();
@@ -223,6 +223,6 @@ Result Spi::end() {
     return Result::kOk;
 }
 
-};  // namespace wibot::hal
+};  // namespace wibot
 
 #endif

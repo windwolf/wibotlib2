@@ -4,7 +4,7 @@
 
 #include "crc8.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 
 void Crc8Validator::reset() {
     _crc = _cfg.init;

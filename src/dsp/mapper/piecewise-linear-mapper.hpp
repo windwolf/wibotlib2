@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 
-namespace wibot::dsp {
+namespace wibot {
 
 class PiecewiseLinearMapper {
    public:
@@ -32,4 +32,5 @@ class PiecewiseLinearMapper {
     Config& _config;
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

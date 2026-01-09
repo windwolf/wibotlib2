@@ -1,13 +1,13 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/filter/lowpass.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 class LowpassNode : public INode {
    public:
-    using Config = dsp::Lowpass::Config;
+    using Config = Lowpass::Config;
 
     struct Inputs {
         In<f32> x;
@@ -26,8 +26,8 @@ class LowpassNode : public INode {
     void reset() override;
 
    private:
-    Config&      _config;
-    dsp::Lowpass _filter;
+    Config& _config;
+    Lowpass _filter;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

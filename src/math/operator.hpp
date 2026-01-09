@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <cmath>
 #include <type_traits>
@@ -6,14 +6,14 @@
 
 #include "hal/stm32/cordic.hpp"
 
-namespace wibot::math {
+namespace wibot {
 
 class Math {
    public:
     Math();
 #ifdef HAL_CORDIC_MODULE_ENABLED
 
-    Math(hal::Cordic& hcordic);
+    Math(Cordic& hcordic);
 #endif
     // 基础运算
     template <SupportArithmetic T>
@@ -103,7 +103,7 @@ class Math {
 
    private:
 #ifdef HAL_CORDIC_MODULE_ENABLED
-    hal::Cordic* _cordic;
+    Cordic* _cordic;
 #endif
 };
 

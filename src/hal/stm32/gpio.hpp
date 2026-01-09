@@ -2,7 +2,7 @@
 
 #include "chip.hpp"
 
-namespace wibot::hal {
+namespace wibot {
 
 /**
  * @brief 单个GPIO引脚控制类
@@ -63,4 +63,5 @@ class Pin {
     bool   _inverse;  ///< 取反配置参数
 };
 
-}  // namespace wibot::hal
+} // namespace wibot
+

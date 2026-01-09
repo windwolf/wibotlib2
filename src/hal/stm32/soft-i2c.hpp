@@ -7,7 +7,7 @@
 #include "bus.hpp"
 #include "chip.hpp"
 
-namespace wibot::hal {
+namespace wibot {
 
 struct I2cTimingConfig {
     u32  frequency;
@@ -38,12 +38,12 @@ class SoftI2cMaster : public I2cMaster {
    public:
     SoftI2cMaster(GPIO_TypeDef* sclPort, u32 sclPin, GPIO_TypeDef* sdaPort, u32 sdaPin);
     ~SoftI2cMaster();
-    Result          setTimingConfig(I2cTimingConfig& config);
-    Result          setTransitionConfig(I2cMasterTransitionConfig& config) override;
-    os::AsyncResult readReg(u16 regAddr, const Slice& data) override;
-    os::AsyncResult writeReg(u16 regAddr, const Slice& data) override;
-    os::AsyncResult read(const Slice& data) override;
-    os::AsyncResult write(const Slice& data) override;
+    Result      setTimingConfig(I2cTimingConfig& config);
+    Result      setTransitionConfig(I2cMasterTransitionConfig& config) override;
+    AsyncResult readReg(u16 regAddr, const Slice& data) override;
+    AsyncResult writeReg(u16 regAddr, const Slice& data) override;
+    AsyncResult read(const Slice& data) override;
+    AsyncResult write(const Slice& data) override;
 
    private:
     /**
@@ -94,4 +94,4 @@ class SoftI2cMaster : public I2cMaster {
     u32                       _i2cDelay;
 };
 
-}  // namespace wibot::hal
+}  // namespace wibot

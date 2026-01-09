@@ -2,16 +2,16 @@
 
 #include "arch.hpp"
 
-namespace wibot::os {
+namespace wibot {
 
 ContextMode getContextMode() {
-    if (os::isInThread()) {
-        return os::ContextMode::kThread;
+    if (isInThread()) {
+        return ContextMode::kThread;
     } else {
         if (arch::isIsr()) {
-            return os::ContextMode::kISR;
+            return ContextMode::kISR;
         } else {
-            return os::ContextMode::kInit;
+            return ContextMode::kInit;
         }
     }
 };

@@ -1,6 +1,6 @@
 #include "dsp/util/offset-calibrator.hpp"
 
-namespace wibot::dsp {
+namespace wibot {
 
 void OffsetCalibrator::reset() {
     _currentSampleCount = 0;
@@ -31,4 +31,4 @@ u16 OffsetCalibrator::getSampleCount() const {
     return _currentSampleCount;
 }
 
-}  // namespace wibot::dsp
+}  // namespace wibot

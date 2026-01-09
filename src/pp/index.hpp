@@ -16,3 +16,4 @@
 #include "source/gpio-source-node.hpp"
 #include "source/constant-source.hpp"
 #include "source/memory-source.hpp"
+#include "source/system-tick-source.hpp"

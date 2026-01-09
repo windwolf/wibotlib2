@@ -1,7 +1,7 @@
 #include "dsp/filter/lowpass.hpp"
 #include <cmath>
 
-namespace wibot::dsp {
+namespace wibot {
 
 Lowpass::Lowpass(const Config& cfg) : _config(cfg), _y_last(0.0f), _first(true) {
     _updateCoefficients();
@@ -55,4 +55,4 @@ f32 Lowpass::_wrap(f32 x, f32 w) {
     return x - 2.0f * w * std::floor((x + w) / (2.0f * w));
 }
 
-}  // namespace wibot::dsp
+}  // namespace wibot

@@ -98,6 +98,7 @@ target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/pp/util)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/comm)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/comm/msg)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/comm/crc)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/comm/modbus)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/comm/protocol)
 
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/device)

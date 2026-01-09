@@ -6,7 +6,6 @@ namespace wibot {
 
 /**
  * @brief 常量源 INode 实现
- * @deprecated 可以直接将下游节点的输入绑定到内存, 无需通过这个中转
  * 
  * 模板化支持任意类型
  */

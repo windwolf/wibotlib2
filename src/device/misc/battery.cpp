@@ -4,7 +4,7 @@
 
 #include "battery.hpp"
 
-namespace wibot::device {
+namespace wibot {
 
 Battery::Battery(const Battery::Config& config) : config_(config) {
     _100OverSerials = 100.0f / config.serials;

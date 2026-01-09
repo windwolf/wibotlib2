@@ -11,11 +11,10 @@ void runStub(void* instance);
 }
 #endif
 
-namespace wibot::os {
+namespace wibot {
 template <u16 stack_size>
 Thread<stack_size>::Thread(const char* name, Worker& worker, u32 priority,
                            const ThreadConfig& config) {
-
     osThreadAttr_t attr = {
         .name       = name,
         .attr_bits  = 0,

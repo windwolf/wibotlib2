@@ -6,7 +6,7 @@
 #include "bus.hpp"
 #include "message-parser.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 
 class MessageReader : public SyncReader<MessageFrame> {
    public:
@@ -14,10 +14,10 @@ class MessageReader : public SyncReader<MessageFrame> {
                   bool interFrameGap = false);
 
     Result open();
-    Result read(comm::MessageFrame& frame, u32 timeout);
-    // Result writeSync(comm::MessageFrame& frame);
+    Result read(MessageFrame& frame, u32 timeout);
+    // Result writeSync(MessageFrame& frame);
     // Result writeSync(const Slice& buffer);
-    // Result writeAsync(comm::MessageFrame& frame, WaitHandler& waitHandler);
+    // Result writeAsync(MessageFrame& frame, WaitHandler& waitHandler);
     // Result writeAsync(const Slice& buffer, WaitHandler& waitHandler);
     Result close();
 
@@ -26,7 +26,7 @@ class MessageReader : public SyncReader<MessageFrame> {
     CircularBuffer8&  _buffer;
     const bool        _interFrameGap;
     MessageParser     _mp;
-    os::AsyncResult   _rxWaitHandler;
+    AsyncResult       _rxWaitHandler;
 };
 
-}  // namespace wibot::comm
+}  // namespace wibot

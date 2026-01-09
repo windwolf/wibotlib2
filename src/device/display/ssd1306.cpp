@@ -7,8 +7,7 @@
 #define SSD1306_COMMAND_STREAM 0x00
 #define SSD1306_COMMAND_SINGLE 0x80
 
-namespace wibot::device {
-
+namespace wibot {
 
 Ssd1306::Ssd1306(I2cMaster& i2c) : _i2c(i2c) {};
 
@@ -108,7 +107,7 @@ void Ssd1306::init() {
     _i2c.setTransitionConfig(0x78 >> 1);
 
     bufferSize = config.width * config.height / 8;
-    wibot::os::sleep(100);
+    wibot::sleep(100);
 
     display(false);
 
@@ -167,15 +166,15 @@ void Ssd1306::init() {
 
     clear();
 
-    wibot::os::sleep(100);
+    wibot::sleep(100);
 
     display(true);
 
-    wibot::os::sleep(100);
+    wibot::sleep(100);
 };
 
 void Ssd1306::draw() {
     setPos(0, 0);
     _sendData(Slice(dataBuffer, bufferSize));
 }
-}  // namespace wibot::device
+}  // namespace wibot

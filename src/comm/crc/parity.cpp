@@ -4,7 +4,7 @@
 
 #include "parity.hpp"
 
-namespace wibot::comm {
+namespace wibot {
 void ParityValidator::reset() {
     _parity = 0;
 }

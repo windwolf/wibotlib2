@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace wibot::dsp {
+namespace wibot {
 
 TrapezoidTrajectory::TrapezoidTrajectory(Config& config) : _config(config) {
 }
@@ -166,4 +166,4 @@ f32 TrapezoidTrajectory::clampValue(f32 value) const {
     return std::max(minValue, std::min(maxValue, value));
 }
 
-}  // namespace wibot::dsp
+}  // namespace wibot

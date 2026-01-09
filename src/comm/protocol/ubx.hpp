@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "type.hpp"
-namespace wibot::comm {
+namespace wibot {
 
 #define UBX_CLASSID_NAV_PVT 0x0701
 
@@ -56,4 +56,5 @@ struct UbxFrameNavPvt {
 } PACKED;
 
 bool ubx_parse(u8* msg, u32 length, u16* classId, void** payload);
-}  // namespace wibot::comm
+} // namespace wibot
+

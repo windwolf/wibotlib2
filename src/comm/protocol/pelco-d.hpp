@@ -5,7 +5,7 @@
 //
 
 #include "../msg/message-parser.hpp"
-namespace wibot::comm {
+namespace wibot {
 
 class PelcoDFrame {
    public:
@@ -99,3 +99,4 @@ class PelcoD {
 };  // namespace wibot
 
 }  // namespace wibot
+

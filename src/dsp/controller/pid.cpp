@@ -1,7 +1,7 @@
 #include "dsp/controller/pid.hpp"
 #include <algorithm>
 
-namespace wibot::dsp {
+namespace wibot {
 
 Pid::Pid(const Config& cfg)
     : _config(cfg),
@@ -70,4 +70,4 @@ void Pid::resetIntegrator() {
     _integrator = 0.0f;
 }
 
-}  // namespace wibot::dsp
+}  // namespace wibot

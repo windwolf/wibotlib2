@@ -1,9 +1,9 @@
 #include "st77xx.hpp"
 #include "type.hpp"
 
-namespace wibot::device {
+namespace wibot {
 
-St77xx::St77xx(SpiMaster &spi, hal::Pin &dcPin) : _spi(spi), _dcPin(dcPin) {
+St77xx::St77xx(SpiMaster &spi, Pin &dcPin) : _spi(spi), _dcPin(dcPin) {
     SpiConfig cfg = {
         .cpha      = SpiCpha::k1Edge,
         .cpol      = SpiCpol::k0,
@@ -65,4 +65,4 @@ Result St77xx::sendReadCommand(u8 cmdId, Slice &data) {
 Result St77xx::sendWriteCommand(u8 cmdId, const Slice &data) {
     return sendCommandData(cmdId, const_cast<Slice &>(data), true);
 }
-}  // namespace wibot::device
+}  // namespace wibot

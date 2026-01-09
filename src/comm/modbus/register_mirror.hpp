@@ -1,11 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include "../../base/type.hpp"
 #include "register.hpp"
 #include <tuple>
 #include <type_traits>
 
-namespace wibot::comm {
+namespace wibot {
 
 // ============================================================================
 // 寄存器镜像基类 - 不依赖模板参数的运行时操作
@@ -573,4 +573,5 @@ class RegisterAccessor {
     }
 };
 
-}  // namespace wibot::modbus
+} // namespace wibot
+

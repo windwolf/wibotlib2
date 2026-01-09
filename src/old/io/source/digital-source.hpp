@@ -102,7 +102,7 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
         _storage.lastOutputStatus   = 0;
         _storage.lastBufferedStatus = 0;
 
-        u32 currentTime = hal::System::getTickMs();
+        u32 currentTime = System::getTickMs();
         for (u8 i = 0; i < CHANNELS; i++) {
             _storage.lastDebounceTime[i] = currentTime;
         }
@@ -146,7 +146,7 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
             _storage.lastOutputStatus   = _storage.rawStatus ^ _config.inverse;
             // Initialize debounce time for all channels only if debounce is enabled
             if (_config.debounceTimeMs > 0) {
-                u32 currentTime = hal::System::getTickMs();
+                u32 currentTime = System::getTickMs();
                 for (u8 i = 0; i < CHANNELS; i++) {
                     _storage.lastDebounceTime[i] = currentTime;
                 }
@@ -161,7 +161,7 @@ class DigitalSource : public MultiChannelPipeline<bool, CHANNELS> {
         }
 
         // Debounce logic (only executed when debounceTimeMs > 0)
-        u32 currentTime     = hal::System::getTickMs();
+        u32 currentTime     = System::getTickMs();
         u32 changedChannels = _storage.rawStatus ^ _storage.lastBufferedStatus;
 
         if (changedChannels != 0) {

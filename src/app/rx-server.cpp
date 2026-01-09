@@ -4,8 +4,8 @@
 #include "logger.hpp"
 LOGGER("cmdsrv")
 
-namespace wibot::app {
-RxServer::RxServer(comm::MessageReader& reader) : _reader(reader) {
+namespace wibot {
+RxServer::RxServer(MessageReader& reader) : _reader(reader) {
 }
 
 RxServer::~RxServer() {
@@ -13,7 +13,7 @@ RxServer::~RxServer() {
 
 void RxServer::run() {
     Buffer<MAX_RX_SERVER_FRAME_SIZE> _frameBuffer;
-    comm::MessageFrame               frame(_frameBuffer);
+    MessageFrame                     frame(_frameBuffer);
     Result                           rst;
 
     startServer(true);
@@ -46,7 +46,7 @@ Result RxServer::startServer(bool retry) {
                 LOG_E("Failed to start server.");
                 return rst;
             }
-            os::sleep(1);
+            sleep(1);
         }
     } while (!rst.isOk() && retry);
     LOG_I("Command server started.");
@@ -73,4 +73,4 @@ Result RxServer::stopServer(bool retry) {
 void RxServer::setTimeout(u32 timeoutMs) {
     _timeoutMs = timeoutMs;
 }
-}  // namespace wibot::app
+}  // namespace wibot

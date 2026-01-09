@@ -1,12 +1,12 @@
 #include "lowpass-node.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 LowpassNode::LowpassNode(Config& config) : _config(config), _filter(config) {
 }
 
 bool LowpassNode::ready() {
-    return inputs.x.bound() && outputs.y.bound() && dsp::Lowpass::isConfigValid(_config);
+    return inputs.x.bound() && outputs.y.bound() && Lowpass::isConfigValid(_config);
 }
 
 void LowpassNode::process() {
@@ -17,4 +17,4 @@ void LowpassNode::reset() {
     _filter.reset();
 }
 
-}  // namespace wibot::pp
+}  // namespace wibot

@@ -2,7 +2,7 @@
 
 #include "os/os.hpp"
 
-namespace wibot::os {
+namespace wibot {
 template <u16 stack_size>
 Thread<stack_size>::Thread(const char* name, Worker& worker, u32 priority,
                            const ThreadConfig& config)
@@ -19,4 +19,4 @@ void Thread<stack_size>::start() {
     _instance->run();
 };
 
-}  // namespace wibot::os
+}  // namespace wibot

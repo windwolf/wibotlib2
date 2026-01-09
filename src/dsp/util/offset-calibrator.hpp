@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 
-namespace wibot::dsp {
+namespace wibot {
 
 /**
  * @brief 偏移校准器核心
@@ -62,4 +62,5 @@ class OffsetCalibrator {
     i16 _offset{0};              // 计算得出的偏移量
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

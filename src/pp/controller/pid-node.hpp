@@ -1,9 +1,9 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/controller/pid.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 class PidNode : public INode {
    public:
@@ -16,7 +16,7 @@ class PidNode : public INode {
         Out<f32> output;
     } outputs;
 
-    explicit PidNode(dsp::Pid::Config& config);
+    explicit PidNode(Pid::Config& config);
 
     bool ready() override;
 
@@ -27,7 +27,7 @@ class PidNode : public INode {
     void resetIntegrator();
 
    private:
-    dsp::Pid _pid;
+    Pid _pid;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

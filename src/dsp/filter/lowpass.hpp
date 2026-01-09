@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "type.hpp"
 
-namespace wibot::dsp {
+namespace wibot {
 
 /**
  * @brief 一阶低通滤波器
@@ -52,4 +52,5 @@ class Lowpass {
     bool          _first;
 };
 
-}  // namespace wibot::dsp
+} // namespace wibot
+

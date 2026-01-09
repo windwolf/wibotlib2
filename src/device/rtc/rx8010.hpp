@@ -3,7 +3,7 @@
 #include "chrono.hpp"
 #include "bus.hpp"
 
-namespace wibot::device {
+namespace wibot {
 
 class Rx8010 {
    public:
@@ -19,4 +19,5 @@ class Rx8010 {
     Result     _writeI2c(u16 address, void *data, u32 dataSize);
 };
 
-}  // namespace wibot::device
+} // namespace wibot
+

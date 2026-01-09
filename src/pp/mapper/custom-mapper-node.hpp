@@ -1,14 +1,14 @@
-#pragma once
+﻿#pragma once
 
 #include "../pipeline.hpp"
 #include "dsp/mapper/custom-mapper.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 template <typename TIn, typename TOut>
 class CustomMapperNode : public INode {
    public:
-    using Config = typename dsp::CustomMapper<TIn, TOut>::Config;
+    using Config = typename CustomMapper<TIn, TOut>::Config;
 
     struct Inputs {
         In<TIn> x;
@@ -33,7 +33,7 @@ class CustomMapperNode : public INode {
     }
 
    private:
-    dsp::CustomMapper<TIn, TOut> _mapper;
+    CustomMapper<TIn, TOut> _mapper;
 };
 
-}  // namespace wibot::pp
+}  // namespace wibot

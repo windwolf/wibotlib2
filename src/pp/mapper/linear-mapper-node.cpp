@@ -1,12 +1,12 @@
 #include "linear-mapper-node.hpp"
 
-namespace wibot::pp {
+namespace wibot {
 
 LinearMapperNode::LinearMapperNode(Config& config) : _config(config), _mapper(config) {
 }
 
 bool LinearMapperNode::ready() {
-    return inputs.x.bound() && outputs.y.bound() && dsp::LinearMapper::isConfigValid(_config);
+    return inputs.x.bound() && outputs.y.bound() && LinearMapper::isConfigValid(_config);
 }
 
 void LinearMapperNode::process() {
@@ -16,4 +16,4 @@ void LinearMapperNode::process() {
 void LinearMapperNode::reset() {
 }
 
-}  // namespace wibot::pp
+}  // namespace wibot

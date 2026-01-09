@@ -4,17 +4,17 @@
 
 #ifdef HAL_UART_MODULE_ENABLED
 
-namespace wibot::hal {
+namespace wibot {
 LOGGER("uart")
 
 void Uart::_onWriteCplt(UART_HandleTypeDef *handle) {
-    auto perip = (hal::Uart *)PeripheralManager::getInstance().getPeripheral(handle);
+    auto perip = (Uart *)PeripheralManager::getInstance().getPeripheral(handle);
     perip->txCount++;
     perip->_txAsyncSource.setDone();
 };
 
 void Uart::_onReadCplt(UART_HandleTypeDef *handle) {
-    auto perip        = (hal::Uart *)PeripheralManager::getInstance().getPeripheral(handle);
+    auto perip        = (Uart *)PeripheralManager::getInstance().getPeripheral(handle);
     auto rxUserBuffer = perip->_rxUserBuffer;
     if (rxUserBuffer != nullptr) {
 #ifdef STM32H7xx
@@ -28,7 +28,7 @@ void Uart::_onReadCplt(UART_HandleTypeDef *handle) {
 };
 
 void Uart::_onCircularDataReceived(UART_HandleTypeDef *handle, u16 pos) {
-    auto perip    = (hal::Uart *)PeripheralManager::getInstance().getPeripheral(handle);
+    auto perip    = (Uart *)PeripheralManager::getInstance().getPeripheral(handle);
     auto rxBuffer = perip->_rxBuffer;
 #ifdef STM32H7xx
 #if CHIP_UART_READ_DMA_ENABLED
@@ -44,7 +44,7 @@ void Uart::_onCircularDataReceived(UART_HandleTypeDef *handle, u16 pos) {
 };
 
 void Uart::_onError(UART_HandleTypeDef *handle) {
-    hal::Uart *perip = (hal::Uart *)PeripheralManager::getInstance().getPeripheral(handle);
+    Uart *perip = (Uart *)PeripheralManager::getInstance().getPeripheral(handle);
 #ifdef STM32H7xx
 #if CHIP_UART_READ_DMA_ENABLED
     if (perip->_rxBuffer != nullptr) {
@@ -131,17 +131,17 @@ bool Uart::_isCircularMode() const {
     return _rxBuffer != nullptr;
 };
 
-os::AsyncResult Uart::subscribe() {
+AsyncResult Uart::subscribe() {
     return _rxAsyncSource.getResult(true);
 };
 
-os::AsyncResult Uart::read(const Slice &data) {
+AsyncResult Uart::read(const Slice &data) {
     if (_isCircularMode()) {
-        return os::AsyncResult::fromError(Result::kNotSupport);
+        return AsyncResult::fromError(Result::kNotSupport);
     }
 
     if ((HAL_UART_GetState(_handle) & HAL_UART_STATE_BUSY_RX) || _rxUserBuffer != nullptr) {
-        return os::AsyncResult::fromError(Result::kBusy);
+        return AsyncResult::fromError(Result::kBusy);
     }
 
     _rxUserBuffer = &data;
@@ -154,14 +154,14 @@ os::AsyncResult Uart::read(const Slice &data) {
 #endif
     if (rst != HAL_OK) {
         _rxUserBuffer = nullptr;
-        return os::AsyncResult::fromResult((Result)rst);
+        return AsyncResult::fromResult((Result)rst);
     }
     return _rxAsyncSource.getResult();
 };
 
-os::AsyncResult Uart::write(const Slice &data) {
+AsyncResult Uart::write(const Slice &data) {
     if ((HAL_UART_GetState(_handle) & HAL_UART_STATE_BUSY_TX) == HAL_UART_STATE_BUSY_TX) {
-        return os::AsyncResult::fromResult(Result::kBusy);
+        return AsyncResult::fromResult(Result::kBusy);
     }
 
     //_txUserBuffer = &data;
@@ -177,7 +177,7 @@ os::AsyncResult Uart::write(const Slice &data) {
 #endif
 
     if (rst != HAL_OK) {
-        return os::AsyncResult::fromResult((Result)rst);
+        return AsyncResult::fromResult((Result)rst);
     }
     return _txAsyncSource.getResult();
 };
@@ -273,7 +273,7 @@ Result Uart::setConfig(UartConfig &config) {
     return Result::kOk;
 }
 
-};  // namespace wibot::hal
+};  // namespace wibot
 
 void UartSendByte(const char *data, u16 len) {
     for (u16 todo = 0; todo < len; todo++) {

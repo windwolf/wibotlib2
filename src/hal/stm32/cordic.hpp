@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "type.hpp"
 #include "chip.hpp"
 #include "peripheral.hpp"
@@ -9,7 +9,7 @@
 #define WIBOT_CORDIC_THREAD_SAFE 1
 #endif
 
-namespace wibot::hal {
+namespace wibot {
 
 #ifdef HAL_CORDIC_MODULE_ENABLED
 
@@ -66,4 +66,5 @@ class Cordic : private PeripheralBase {
 };
 
 #endif
-}  // namespace wibot::hal
+} // namespace wibot
+

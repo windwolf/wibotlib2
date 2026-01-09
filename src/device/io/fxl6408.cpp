@@ -5,7 +5,7 @@
 #include "fxl6408.hpp"
 #include "buffer.hpp"
 
-namespace wibot::device {
+namespace wibot {
 Fxl6408I2c::Fxl6408I2c(I2cMaster& i2c, bool isAddr0) : _i2c(i2c), _isAddr0(isAddr0) {
     _i2c.setTransitionConfig(_isAddr0 ? 0x43 : 0x44);
 }
@@ -102,4 +102,4 @@ void Fxl6408I2c::configInputDefault(Fxl6408Pins values) {
     auto ar = _i2c.writeReg(0x09, Slice(&values, 1));
     ar.wait(TIMEOUT_FOREVER);
 }
-}  // namespace wibot::comm
+}  // namespace wibot

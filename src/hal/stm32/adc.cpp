@@ -1,7 +1,7 @@
 
 #include "hal/stm32/adc.hpp"
 
-namespace wibot::hal {
+namespace wibot {
 
 AdcRegularSource::AdcRegularSource(ADC_HandleTypeDef& hadc, const Config& config)
     : _ins(&hadc), _config(config), _isRunning(false) {
@@ -53,14 +53,14 @@ bool AdcRegularSource::isRunning() const {
     return _isRunning;
 }
 
-os::AsyncResult AdcRegularSource::triggerSingleConversion(Slice buffer) {
+AsyncResult AdcRegularSource::triggerSingleConversion(Slice buffer) {
     if (_config.continuousMode) {
-        return os::AsyncResult::fromError(Result::kNotSupport);
+        return AsyncResult::fromError(Result::kNotSupport);
     }
 
     HAL_StatusTypeDef status = HAL_ADC_Start_DMA(_ins, (u32*)buffer.data, buffer.size / 2);
     if (status != HAL_OK) {
-        return os::AsyncResult::fromError(Result(status));
+        return AsyncResult::fromError(Result(status));
     }
     return _asyncSource.getResult(false);
 }
@@ -89,4 +89,4 @@ Result AdcRegularSource::_validateConfig() const {
     return Result::kOk;
 }
 
-}  // namespace wibot::hal
+}  // namespace wibot

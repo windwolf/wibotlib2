@@ -10,13 +10,13 @@ LOGGER("os")
 extern "C" {
 #endif
 void runStub(ULONG instance) {
-    static_cast<wibot::os::Worker*>(reinterpret_cast<void*>(instance))->run();
+    static_cast<wibot::Worker*>(reinterpret_cast<void*>(instance))->run();
 };
 #ifdef __cplusplus
 }
 #endif
 
-namespace wibot::os {
+namespace wibot {
 
 void sleep(u32 ms) {
     switch (getContextMode()) {
@@ -37,7 +37,7 @@ void sleep(u32 ms) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-            hal::System::delayMs(ms);
+            System::delayMs(ms);
 #ifdef _MSC_VER
 #pragma warning(pop)
 #elif defined(__clang__)
@@ -148,4 +148,4 @@ Result MessageQueue::flush() {
     return (tx_queue_flush(&(_instance)) == TX_SUCCESS) ? Result::kOk : Result::kError;
 };
 
-}  // namespace wibot::os
+}  // namespace wibot

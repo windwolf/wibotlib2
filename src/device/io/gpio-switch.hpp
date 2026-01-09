@@ -6,7 +6,7 @@
 
 #include "hal/stm32/gpio.hpp"
 
-namespace wibot::device {
+namespace wibot {
 class GpioSwitch {
    public:
     enum class Mode {
@@ -15,21 +15,21 @@ class GpioSwitch {
     };
 
    public:
-    GpioSwitch(hal::Pin& pinIn, hal::Pin& pinOut, Mode mode = Mode::kSync, u32 delay = 0);
+    GpioSwitch(Pin& pinIn, Pin& pinOut, Mode mode = Mode::kSync, u32 delay = 0);
 
     void update();
 
    private:
-    hal::Pin& _pinIn;
-    hal::Pin& _pinOut;
-    Mode      _mode;
-    u32       _delay;
-    bool      _lastInState;
-    u32       _lastInTriggerTick;
-    bool      _outState;
+    Pin& _pinIn;
+    Pin& _pinOut;
+    Mode _mode;
+    u32  _delay;
+    bool _lastInState;
+    u32  _lastInTriggerTick;
+    bool _outState;
 
     void updateSync();
     void updateHold();
 };
 
-}  // namespace wibot::device
+}  // namespace wibot

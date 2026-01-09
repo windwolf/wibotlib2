@@ -121,7 +121,7 @@
 //// W25QXX_EVENTS_DEVICE_BUSY_RESET(instance)
 //// EVENTS_RESET_FLAGS(instance->events, W25QXX_EVENT_DEVICE_BUSY)
 //
-//namespace wibot::device {
+//namespace wibot {
 //
 //W25qxxSpicmd::W25qxxSpicmd(SpiMasterBus *spi, u32 timeout) : _spi(spi), _timeout(timeout){};
 //
@@ -405,7 +405,7 @@
 //        if (!status1.BUSY) {
 //            return Result::kOk;
 //        } else {
-//            os::sleep(1);
+//            sleep(1);
 //        }
 //    } while (1);
 //};

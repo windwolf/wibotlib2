@@ -3,7 +3,7 @@
 #include "bus.hpp"
 #include "hal/stm32/gpio.hpp"
 
-namespace wibot::device {
+namespace wibot {
 
 enum class RolaE22Mode {
     kTransmition,
@@ -121,14 +121,14 @@ struct RolaE22Config {
  */
 class RolaE22Uart {
    public:
-    RolaE22Uart(UartStream& uart, hal::Pin& m0, hal::Pin& m1, hal::Pin& aux);
+    RolaE22Uart(UartStream& uart, Pin& m0, Pin& m1, Pin& aux);
 
     Result         setConfig(RolaE22Config& config);
     RolaE22Config& getConfig();
 
-    os::AsyncResult send(const Slice& data);
+    AsyncResult send(const Slice& data);
 
-    os::AsyncResult receive(Slice& data);
+    AsyncResult receive(Slice& data);
 
     void setMode(RolaE22Mode mode);
 
@@ -139,9 +139,9 @@ class RolaE22Uart {
     UartStream&   _uart;
     RolaE22Config _config;
 
-    hal::Pin&   _m0;
-    hal::Pin&   _m1;
-    hal::Pin&   _aux;
+    Pin&        _m0;
+    Pin&        _m1;
+    Pin&        _aux;
     RolaE22Mode _mode;
 };
-}  // namespace wibot::device
+}  // namespace wibot

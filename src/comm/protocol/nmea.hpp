@@ -10,7 +10,7 @@
 #include <cmath>
 #include <cctype>
 
-namespace wibot::comm {
+namespace wibot {
 
 // 使用constexpr替代宏定义
 static constexpr u32 kMaxSentenceEntries = 16;
@@ -434,4 +434,5 @@ class FieldParser {
     bool                          has_error_{false};
 };
 
-}  // namespace wibot::protocol
+} // namespace wibot
+

@@ -1,13 +1,13 @@
-#pragma once
+﻿#pragma once
 
-#include "hal/index.hpp"
+#include "hal/stm32/uart.hpp"
 #include "../crc/crc16.hpp"
 
 #ifndef MODBUS_BUFFER_SIZE
 #define MODBUS_BUFFER_SIZE 255  // 支持多寄存器读写的最大缓冲区
 #endif
 
-namespace wibot::comm {
+namespace wibot {
 
 enum class RegisterType : u8 {
     kCoil,
@@ -28,19 +28,18 @@ class ModbusMaster {
 
    public:
     // 通用读取函数
-    Result read(RegisterType type, u8 deviceAddr, u16 addr, u16 length, const Slice& data);
+    Result      read(RegisterType type, u8 deviceAddr, u16 addr, u16 length, const Slice& data);
     // 通用写入函数（带响应）
-    Result write(RegisterType type, u8 deviceAddr, u16 addr, u16 length, const Slice& data);
+    Result      write(RegisterType type, u8 deviceAddr, u16 addr, u16 length, const Slice& data);
     // 通用写入函数（无响应）
-    os::AsyncResult writeWithoutResponse(RegisterType type, u8 deviceAddr, u16 addr, u16 length,
-                                         const Slice& data);
+    AsyncResult writeWithoutResponse(RegisterType type, u8 deviceAddr, u16 addr, u16 length,
+                                     const Slice& data);
 
    private:
-    os::AsyncResult sendSimpleCommand(u8 deviceAddr, u8 functionCode, u16 regAddr,
-                                      u16 lengthOrValue);
-    os::AsyncResult sendMultiWriteCommand(RegisterType type, u8 deviceAddr, u8 functionCode,
-                                          u16 addr, u16 length, const Slice& data);
-    bool            validateCrc(const Slice& buf, u16 length);
+    AsyncResult sendSimpleCommand(u8 deviceAddr, u8 functionCode, u16 regAddr, u16 lengthOrValue);
+    AsyncResult sendMultiWriteCommand(RegisterType type, u8 deviceAddr, u8 functionCode, u16 addr,
+                                      u16 length, const Slice& data);
+    bool        validateCrc(const Slice& buf, u16 length);
 
    private:
     UartStream&                _uart;
@@ -142,4 +141,4 @@ class ModbusSlave {
     u16                        _receivedLength;
 };
 
-}  // namespace wibot::comm
+}  // namespace wibot
