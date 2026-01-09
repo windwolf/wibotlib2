@@ -41,8 +41,7 @@ class GpioDigitalSourceNode : public INode {
      * @brief GPIO数字输入源配置
      */
     struct Config {
-        hal::Pin::Config* pins;      ///< GPIO引脚配置数组，最多32个
-        u8                pinCount;  ///< 实际使用的引脚数量
+        hal::Pin::Config pins[CHANNELS];  ///< GPIO引脚配置数组，最多32个
     };
 
     struct Outputs {
@@ -78,7 +77,7 @@ class GpioDigitalSourceNode : public INode {
         u32 result = 0;
 
         // 逐个读取每个通道的GPIO状态
-        for (u8 i = 0; i < _config.pinCount && i < CHANNELS; i++) {
+        for (u8 i = 0; i < CHANNELS; i++) {
             if (_config.pins[i].port != nullptr) {
                 GPIO_PinState pinState =
                     HAL_GPIO_ReadPin(_config.pins[i].port, _config.pins[i].pin);
