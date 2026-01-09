@@ -2,7 +2,7 @@
 
 #include "arch.hpp"
 
-namespace wibot {
+namespace wibot::os {
 
 os::ContextMode os::getContextMode() {
     if (os::isInThread()) {

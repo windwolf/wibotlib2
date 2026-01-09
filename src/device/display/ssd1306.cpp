@@ -1,13 +1,14 @@
 #include "ssd1306.hpp"
 
-#include "os.hpp"
+#include "os/os.hpp"
 
 #define SSD1306_DATA_STREAM    0x40
 #define SSD1306_DATA_SINGLE    0xC0
 #define SSD1306_COMMAND_STREAM 0x00
 #define SSD1306_COMMAND_SINGLE 0x80
 
-namespace wibot {
+namespace wibot::device {
+
 
 Ssd1306::Ssd1306(I2cMaster& i2c) : _i2c(i2c) {};
 
@@ -107,7 +108,7 @@ void Ssd1306::init() {
     _i2c.setTransitionConfig(0x78 >> 1);
 
     bufferSize = config.width * config.height / 8;
-    os::sleep(100);
+    wibot::os::sleep(100);
 
     display(false);
 
@@ -166,15 +167,15 @@ void Ssd1306::init() {
 
     clear();
 
-    os::sleep(100);
+    wibot::os::sleep(100);
 
     display(true);
 
-    os::sleep(100);
+    wibot::os::sleep(100);
 };
 
 void Ssd1306::draw() {
     setPos(0, 0);
     _sendData(Slice(dataBuffer, bufferSize));
 }
-}  // namespace wibot
+}  // namespace wibot::device

@@ -3,7 +3,7 @@
 #include "chip.hpp"
 #include "type.hpp"
 
-namespace wibot {
+namespace wibot::hal {
 
 class System {
    public:

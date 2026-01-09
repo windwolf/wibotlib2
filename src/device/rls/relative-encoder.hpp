@@ -7,7 +7,7 @@
 // #include "type.hpp"
 // #include "filter/lp.hpp"
 
-// namespace wibot {
+// namespace wibot::device {
 
 // struct RelativeEncoderConfig {
 //     u32 wrapRange;

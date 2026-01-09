@@ -1,6 +1,6 @@
 #include "eventgrouppool.hpp"
 
-namespace wibot {
+namespace wibot::os {
 // EventGroupPool implementation
 EventGroupPool& EventGroupPool::getInstance() {
     static EventGroupPool pool;

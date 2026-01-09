@@ -1,19 +1,19 @@
 #pragma once
 
+#include "chip.hpp"
 #include "bus.hpp"
 #include "circular-buffer.hpp"
-#include "constant-source.hpp"
-#include "crc8.hpp"
-#include "dshot.hpp"
-#include "message-reader.hpp"
+#include "comm/crc/crc8.hpp"
+#include "comm/protocol/dshot.hpp"
+#include "comm/msg/message-reader.hpp"
 #include "rx-server.hpp"
-#include "slope-trajectory.hpp"
+#include "dsp/controller/slope.hpp"
 #include "type.hpp"
-#include "uart.hpp"
+#include "hal/stm32/uart.hpp"
 
 #if defined(HAL_TIM_MODULE_ENABLED) && defined(HAL_UART_MODULE_ENABLED)
 
-namespace wibot {
+namespace wibot::device {
 extern "C" struct WibotRcState {
     /**
    * 100 rpm
@@ -38,7 +38,7 @@ extern "C" struct WibotRcState {
     uint16_t consumption;
 };
 
-class WibotRcTelemetry : public RxServer {
+class WibotRcTelemetry : public app::RxServer {
    public:
     WibotRcTelemetry(UART_HandleTypeDef& uart);
 
@@ -48,18 +48,18 @@ class WibotRcTelemetry : public RxServer {
     };
 
    private:
-    bool validateFrame(const MessageFrame& frame) override;
-    void processCommandFrame(const MessageFrame& frame) override;
+    bool validateFrame(const comm::MessageFrame& frame) override;
+    void processCommandFrame(const comm::MessageFrame& frame) override;
 
    private:
-    static constexpr MessageSchema schema = {
+    static constexpr comm::MessageSchema schema = {
         // .prefix            = {0x55},
         .prefixSize        = 0,
         .commandSize       = DataWidth::kNone,
         // .lengthSchemas     = nullptr,
         .lengthSchemaCount = 0,
         .defaultLength{
-            .mode  = MessageLengthSchemaMode::kFixedLength,
+            .mode  = comm::MessageLengthSchemaMode::kFixedLength,
             .fixed = {.length = 10},
         },
         .alterDataSize = DataWidth::kNone,
@@ -68,21 +68,15 @@ class WibotRcTelemetry : public RxServer {
         // .suffix     = nullptr,
         .suffixSize    = 0};
 
-    Buffer<32>      _msgBuffer;
-    CircularBuffer8 _msgCircBuffer{_msgBuffer};
-    Uart            _uart;
-    MessageReader   _reader{&_uart, _msgCircBuffer, schema, true};
-    Crc8Validator   _crcValidator{0x07, 0x00, 0x00, false};
-    WibotRcState    _state{};
+    Buffer<32>          _msgBuffer;
+    CircularBuffer8     _msgCircBuffer{_msgBuffer};
+    hal::Uart           _uart;
+    comm::MessageReader _reader{&_uart, _msgCircBuffer, schema, true};
+    comm::Crc8Validator _crcValidator{0x07, 0x00, 0x00, false};
+    WibotRcState        _state{};
 };
 
-class WibotRcController : public Worker {
-   public:
-    struct Storage {
-        ConstantSource<f32>::Storage  throttle;
-        SlopeTrajectory<f32>::Storage slope;
-    };
-
+class WibotRcController : public os::Worker {
    public:
     WibotRcController(TIM_HandleTypeDef& tim, u8 timChannel)
         : _dshot(tim), _timChannel(timChannel) {};
@@ -94,20 +88,19 @@ class WibotRcController : public Worker {
     void run() override;
 
    private:
-    DShot                      _dshot;
-    u8                         _timChannel;
-    Storage                    _storage;
-    ConstantSource<f32>        _throttleSource{_storage.throttle};
-    SlopeTrajectoryConfig<f32> _slopeConfig{{
-                                                .slopeRate   = 1.0f,   // 1 unit per second
-                                                .sampleTime  = 0.02f,  // 20 ms
-                                                .enableClamp = false,
-                                            },
-                                            0.0f,
-                                            1.0f};
-    SlopeTrajectory<f32>       _trajectory{_throttleSource, _slopeConfig, _storage.slope};
+    comm::DShot                             _dshot;
+    u8                                _timChannel;
+    f32                               _throttle;
+    f32                               _slopedThrottle{0.0f};
+    dsp::SlopeTrajectory<f32>::Config _slopeConfig{.slopeRate   = 1.0f,   // 1 unit per second
+                                                   .sampleTime  = 0.02f,  // 20 ms
+                                                   .enableClamp = false,
+
+                                                   .minValue = 0.0f,
+                                                   .maxValue = 1.0f};
+    dsp::SlopeTrajectory<f32>         _trajectory{_slopeConfig};
 };
 
-}  // namespace wibot
+}  // namespace wibot::device
 
 #endif  // HAL_TIM_MODULE_ENABLED && HAL_UART_MODULE_ENABLED

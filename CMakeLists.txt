@@ -63,73 +63,43 @@ target_link_libraries(wibotlib_impl PUBLIC wibotlib)
 
 
 # wibotlib INCLUDES
+target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/base)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/base)
-
-
 target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/log/macro-log)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/log/rtt)
+target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/port/chip)
+target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/port/os)
+
+
+
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/base)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/log/macro-log)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/log/rtt)
-
-
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/port/arch)
-
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/port/chip)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/port/chip)
-
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/port/os)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/os)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/port/os)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/os)
-
-
-
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/port/chip)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/hal)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/hal/stm32)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/hal)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/hal/stm32)
 
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/dsp)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/dsp/controller)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/dsp/filter)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/dsp/mapper)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/dsp/util)
 
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/io)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/io/source)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/io/mapper)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/io/filter)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/io/adapter)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/io/rw)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/io/controller)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/io/util)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/io)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/io/filter)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/io/source)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/io/mapper)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/io/adapter)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/io/rw)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/io/controller)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/io/util)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/pp)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/pp/controller)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/pp/filter)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/pp/mapper)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/pp/source)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/pp/util)
 
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/comm)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/comm/msg)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/comm/crc)
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/comm/protocol)
 
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/camera)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/dshot)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/gnss)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/crc)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/modbus)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/camera)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/dshot)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/gnss)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/crc)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/protocol/modbus)
-
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/device)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/device/display)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/device/io)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/device/misc)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/device/rf)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/device/rls)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/device/rtc)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/device/storage)
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/device/motor)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/device)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/device/display)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/device/io)
@@ -140,16 +110,22 @@ target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/device/rtc)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/device/storage)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/device/motor)
 
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/math)
 target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/math)
 
-target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/graph)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/graph)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/graph/fonts)
+# target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/graph)
+# target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/graph/fonts)
+
+target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/app)
+
+
+
+
+
+
 
 
 target_include_directories(wibotlib INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/app)
-target_sources_batch(wibotlib_impl ${CMAKE_CURRENT_SOURCE_DIR}/src/app)
+
 
 
 # ------------------------------

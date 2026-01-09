@@ -4,9 +4,9 @@
 
 #include "rola-e22.hpp"
 #
-#include "system.hpp"
+#include "hal/system.hpp"
 
-namespace wibot {
+namespace wibot::device {
 
 void RolaE22Uart::waitAux() {
     // check and ensure AUX is high.
@@ -37,7 +37,7 @@ void RolaE22Uart::setMode(RolaE22Mode mode) {
     }
     _mode = mode;
 }
-RolaE22Uart::RolaE22Uart(UartStream& uart, Pin& m0, Pin& m1, Pin& aux)
+RolaE22Uart::RolaE22Uart(UartStream& uart, hal::Pin& m0, hal::Pin& m1, hal::Pin& aux)
     : _uart(uart), _m0(m0), _m1(m1), _aux(aux) {
     _config.address         = 0x0000;
     _config.netId           = 0x00;
@@ -88,13 +88,13 @@ Result RolaE22Uart::setConfig(RolaE22Config& config) {
     waitAux();
     return rst;
 }
-AsyncResult RolaE22Uart::send(const Slice& data) {
+os::AsyncResult RolaE22Uart::send(const Slice& data) {
     setMode(RolaE22Mode::kTransmition);
     waitAux();
     os::sleep(1);
     return _uart.write(data);
 }
-AsyncResult RolaE22Uart::receive(Slice& data) {
+os::AsyncResult RolaE22Uart::receive(Slice& data) {
     setMode(RolaE22Mode::kTransmition);
     waitAux();
     os::sleep(1);
@@ -140,4 +140,4 @@ RolaE22Config& RolaE22Uart::getConfig() {
     return _config;
 }
 
-}  // namespace wibot
+}  // namespace wibot::device

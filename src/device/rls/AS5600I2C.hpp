@@ -19,7 +19,7 @@
 #define AS5600_I2C_MAGNITUDE 0x1B
 #define AS5600_I2C_BURN      0xFF
 
-namespace wibot {
+namespace wibot::device {
 
 struct As5600I2cConfig {};
 class As5600I2c {
@@ -40,4 +40,4 @@ class As5600I2c {
    private:
     I2cMaster& _i2c;
 };
-}  // namespace wibot
+}  // namespace wibot::device

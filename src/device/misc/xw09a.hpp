@@ -5,7 +5,7 @@
 //
 
 #include "bus.hpp"
-namespace wibot {
+namespace wibot::device {
 
 class XW09A {
    public:
@@ -30,4 +30,4 @@ class XW09A {
     u16        _state;
 };
 
-}  // namespace wibot
+}  // namespace wibot::device

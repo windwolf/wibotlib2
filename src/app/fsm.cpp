@@ -1,7 +1,2 @@
 #include "fsm.hpp"
-namespace wibot {
-
-
-
-
-}  // namespace wibot
+namespace wibot::app {}  // namespace wibot::app

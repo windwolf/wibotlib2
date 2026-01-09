@@ -2,8 +2,7 @@
 
 #include "bus.hpp"
 
-using namespace wibot;
-
+namespace wibot::device {
 class Tm1652 {
    public:
     Tm1652(UartStream& uart) : _uart(uart) {
@@ -18,12 +17,13 @@ class Tm1652 {
      * @param mode  0x00: 8sig/5grid, 0x01: 7sig/6grid
      * @param waitHandler 
      */
-    AsyncResult setup(u8 brightness, u8 current, u8 mode);
+    os::AsyncResult setup(u8 brightness, u8 current, u8 mode);
 
-    AsyncResult updateDisplay(u8* data, u8 length, u8 startGrid);
-    AsyncResult updateDisplay(u8* data, u8 length);
+    os::AsyncResult updateDisplay(u8* data, u8 length, u8 startGrid);
+    os::AsyncResult updateDisplay(u8* data, u8 length);
 
    private:
     UartStream& _uart;
     u8          _cmdBuf[7];
 };
+}  // namespace wibot::device

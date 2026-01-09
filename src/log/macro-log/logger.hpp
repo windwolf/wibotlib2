@@ -59,12 +59,16 @@ extern "C" {
 #define LOG_CTRL_TEXT_BRIGHT_CYAN
 #define LOG_CTRL_TEXT_BRIGHT_WHITE
 #endif
-#include "SEGGER_RTT.h"
+
+#ifdef USE_RTT_PRINT
+#include "../rtt/SEGGER_RTT.h"
+#endif
 #include "string.h"
 
 #define LOGGER(name) [[maybe_unused]] static const char *LOG_NAME__ = name;
 
-#define LOG(NAME, LEVEL, COLOR, FMT, ...) SEGGER_RTT_printf(0, COLOR LEVEL " %s " FMT "\n", NAME, ##__VA_ARGS__)
+#define LOG(NAME, LEVEL, COLOR, FMT, ...) \
+    SEGGER_RTT_printf(0, COLOR LEVEL " %s " FMT "\n", NAME, ##__VA_ARGS__)
 
 #if (LOG_LEVEL__ >= LOG_LEVEL_ERROR_)
 #define LOG_E(FMT, ...) LOG(LOG_NAME__, "E", LOG_CTRL_TEXT_BRIGHT_RED, FMT, ##__VA_ARGS__)

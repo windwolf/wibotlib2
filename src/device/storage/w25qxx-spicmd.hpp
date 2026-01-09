@@ -9,7 +9,7 @@
 //
 //#include "w25qxx-spi.hpp"
 //
-//namespace wibot {
+//namespace wibot::device {
 //
 //class W25qxxSpicmd {
 //   public:

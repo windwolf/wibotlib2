@@ -1,7 +1,7 @@
 #pragma once
 
 #include "cmsis_os2.h"
-#include "os.hpp"
+#include "os/os.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,7 +11,7 @@ void runStub(void* instance);
 }
 #endif
 
-namespace wibot {
+namespace wibot::os {
 template <u16 stack_size>
 Thread<stack_size>::Thread(const char* name, Worker& worker, u32 priority,
                            const ThreadConfig& config) {

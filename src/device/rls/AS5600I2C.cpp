@@ -5,7 +5,7 @@
 #include "AS5600I2C.hpp"
 #
 
-namespace wibot {
+namespace wibot::device {
 As5600I2c::As5600I2c(I2cMaster& i2c) : _i2c(i2c) {
     _i2c.setTransitionConfig(AS5600_I2C_ADDRESS);
 };

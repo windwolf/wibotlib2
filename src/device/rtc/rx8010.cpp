@@ -3,7 +3,7 @@
 #
 #include "logger.hpp"
 
-namespace wibot {
+namespace wibot::device {
 LOGGER("rx8010")
 #define RX8010_ADDRESS 0x64U
 

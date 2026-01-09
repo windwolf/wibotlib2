@@ -1,13 +1,12 @@
 #include "timer.hpp"
-#include "async.hpp"
-#
+
 #include "peripheral.hpp"
-#include "system.hpp"
+#include "../system.hpp"
 #include <utility>
 
 #ifdef HAL_TIM_MODULE_ENABLED
 
-namespace wibot {
+namespace wibot::hal {
 
 Timer::Timer(TIM_HandleTypeDef& htim) : _instance(&htim), _updateEventSource() {
     HAL_TIM_RegisterCallback(&htim, HAL_TIM_PERIOD_ELAPSED_CB_ID, _onPeriodElapsedCplt);
@@ -26,10 +25,10 @@ void Timer::_onPeriodElapsedCplt(TIM_HandleTypeDef* htim) {
     }
 }
 
-AsyncResult Timer::start(u32 freq) {
+os::AsyncResult Timer::start(u32 freq) {
     auto rst = startInternal(freq);
     if (!rst.isOk()) {
-        return AsyncResult::fromError(rst);
+        return os::AsyncResult::fromError(rst);
     }
     return _updateEventSource.getResult(true);
 };
@@ -42,7 +41,7 @@ void Timer::start(u32 freq, TimerInteruptHandler handler) {
 };
 
 Result Timer::startInternal(u32 freq) {
-    u32 pclkTimFreq = System::getTIMFreq(_instance->Instance);
+    u32 pclkTimFreq = hal::System::getTIMFreq(_instance->Instance);
 
     // 根据 PCLK 和要求的频率,计算 prescaler 和 period
     // 目标: pclkTimFreq / (prescaler * period) = freq
@@ -96,6 +95,6 @@ Result Timer::stop() {
     return HAL_TIM_Base_Stop_IT(_instance);
 }
 
-}  // namespace wibot
+}  // namespace wibot::hal
 
 #endif  // HAL_TIM_MODULE_ENABLED

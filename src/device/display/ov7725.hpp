@@ -2,4 +2,4 @@
 
 #include "type.hpp"
 
-namespace wibot {}  // namespace wibot
+namespace wibot::device {}  // namespace wibot

@@ -3,26 +3,18 @@
 
 #include <algorithm>
 
-#include "cordic.hpp"
-
-#if defined(HAL_CORDIC_MODULE_ENABLED)
-extern "C" {
-#include "cordic.h"
-}
-#endif
-
 #if defined(CMSIS_DSP_ENABLED)
 extern "C" {
 #include "arm_math.h"
 }
 #endif
 
-namespace wibot {
+namespace wibot::math {
 
 Math::Math() {
 }
 #ifdef HAL_CORDIC_MODULE_ENABLED
-Math::Math(Cordic& hcordic) : _cordic(&hcordic) {
+Math::Math(hal::Cordic& hcordic) : _cordic(&hcordic) {
 }
 #endif
 

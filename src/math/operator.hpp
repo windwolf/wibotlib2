@@ -3,44 +3,36 @@
 #include <cmath>
 #include <type_traits>
 #include "math.hpp"
-#include "cordic.hpp"
 
-namespace wibot {
+#include "hal/stm32/cordic.hpp"
 
-template <typename T>
-concept Arithmetic = std::is_arithmetic_v<T>;
-template <typename T>
-concept SupportUint = std::is_same_v<T, u8> || std::is_same_v<T, u16> || std::is_same_v<T, u32>;
-template <typename T>
-concept SupportFloat = std::is_same_v<T, f32> || std::is_same_v<T, f64>;
-template <typename T>
-concept SupportFloatOrQ = std::is_same_v<T, f32> || std::is_same_v<T, f64> ||
-                          std::is_same_v<T, q15> || std::is_same_v<T, q31>;
+namespace wibot::math {
 
 class Math {
    public:
     Math();
 #ifdef HAL_CORDIC_MODULE_ENABLED
-    Math(Cordic& hcordic);
+
+    Math(hal::Cordic& hcordic);
 #endif
     // 基础运算
-    template <Arithmetic T>
+    template <SupportArithmetic T>
     T add(const T a, const T b) {
         return a + b;
     };
-    template <Arithmetic T>
+    template <SupportArithmetic T>
     T sub(const T a, const T b) {
         return a - b;
     };
-    template <Arithmetic T>
+    template <SupportArithmetic T>
     T mul(const T a, const T b) {
         return a * b;
     };
-    template <Arithmetic T>
+    template <SupportArithmetic T>
     T sign(const T a) {
         return (a > 0) ? static_cast<T>(1) : ((a < 0) ? static_cast<T>(-1) : static_cast<T>(0));
     };
-    template <Arithmetic T>
+    template <SupportArithmetic T>
     Vector2<T> sign(const Vector2<T> a) {
         return {sign(a.v1), sign(a.v2)};
     };
@@ -111,7 +103,7 @@ class Math {
 
    private:
 #ifdef HAL_CORDIC_MODULE_ENABLED
-    Cordic* _cordic;
+    hal::Cordic* _cordic;
 #endif
 };
 

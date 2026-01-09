@@ -52,7 +52,16 @@ struct Slice {
     void setFloat(u16 index, f32 value, Endian endian = Endian::kBig) const;
     //void setFloat(f32 value, Endian endian = Endian::kBig);
 
+    /**
+     * @brief 数据指针
+     * 
+     */
     u8 *data;
+
+    /**
+     * @brief 数据长度（字节）
+     * 
+     */
     u16 size;
 };
 

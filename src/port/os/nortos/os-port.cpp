@@ -1,13 +1,13 @@
-#include "os.hpp"
-#include "system.hpp"
+#include "os/os.hpp"
+#include "hal/system.hpp"
 #include "logger.hpp"
 LOGGER("os")
 
-namespace wibot {
+namespace wibot::os {
 
-void os::sleep(u32 ms) {
-    switch (os::getContextMode()) {
-        case os::ContextMode::kThread:
+void sleep(u32 ms) {
+    switch (getContextMode()) {
+        case ContextMode::kThread:
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4996)
@@ -18,7 +18,7 @@ void os::sleep(u32 ms) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-            System::delayMs(ms);
+            hal::System::delayMs(ms);
 #ifdef _MSC_VER
 #pragma warning(pop)
 #elif defined(__clang__)
@@ -27,10 +27,10 @@ void os::sleep(u32 ms) {
 #pragma GCC diagnostic pop
 #endif
             break;
-        case os::ContextMode::kISR:
-            ASSERT(false, "Cannot call os::sleep in ISR context.");
+        case ContextMode::kISR:
+            ASSERT(false, "Cannot call sleep in ISR context.");
             return;
-        case os::ContextMode::kInit:
+        case ContextMode::kInit:
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4996)
@@ -41,7 +41,7 @@ void os::sleep(u32 ms) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-            System::delayMs(ms);
+            hal::System::delayMs(ms);
 #ifdef _MSC_VER
 #pragma warning(pop)
 #elif defined(__clang__)
@@ -56,7 +56,7 @@ void os::sleep(u32 ms) {
     }
 };
 
-bool os::isInThread() {
+bool isInThread() {
     return !arch::isIsr();
 }
 
@@ -80,9 +80,9 @@ Result Mutex::lock(u32 timeout) {
         if (arch::isIsr()) {
             return Result::kNotSupport;
         } else {
-            uint32_t start = System::getTickMs();
+            uint32_t start = hal::System::getTickMs();
             while (this->_instance) {
-                if (System::getDurationMs(start) > timeout) {
+                if (hal::System::getDurationMs(start) > timeout) {
                     return Result::kTimeout;
                 }
             };
@@ -137,10 +137,10 @@ Result EventGroup::wait(u32 flags, u32& actualFlags, EventOptions options, u32 t
         if (arch::isIsr()) {
             return Result::kNotSupport;
         } else {
-            uint32_t start = System::getTickMs();
+            uint32_t start = hal::System::getTickMs();
             if ((options & EventOptions_WaitFlag) == EventOptions_WaitForAll) {
                 while ((ins & flags) != flags) {
-                    if (System::getDurationMs(start) > timeout) {
+                    if (hal::System::getDurationMs(start) > timeout) {
                         rst = Result::kTimeout;
                         break;
                     }
@@ -148,7 +148,7 @@ Result EventGroup::wait(u32 flags, u32& actualFlags, EventOptions options, u32 t
                 };
             } else {
                 while ((ins & flags) == 0) {
-                    if (System::getDurationMs(start) > timeout) {
+                    if (hal::System::getDurationMs(start) > timeout) {
                         rst = Result::kTimeout;
                         break;
                     }
@@ -183,9 +183,9 @@ Result MessageQueue::send(const void* msg, uint32_t timeout) {
             if (arch::isIsr()) {
                 return Result::kNotSupport;
             } else {
-                uint32_t start = System::getTickMs();
+                uint32_t start = hal::System::getTickMs();
                 while (_instance.isFull()) {
-                    if (System::getDurationMs(start) > timeout) {
+                    if (hal::System::getDurationMs(start) > timeout) {
                         rst = Result::kTimeout;
                         break;
                     }
@@ -211,9 +211,9 @@ Result MessageQueue::receive(void* msg, uint32_t timeout) {
             if (arch::isIsr()) {
                 return Result::kNotSupport;
             } else {
-                uint32_t start = System::getTickMs();
+                uint32_t start = hal::System::getTickMs();
                 while (_instance.isEmpty()) {
-                    if (System::getDurationMs(start) > timeout) {
+                    if (hal::System::getDurationMs(start) > timeout) {
                         rst = Result::kTimeout;
                         break;
                     }
@@ -231,7 +231,8 @@ Result MessageQueue::flush() {
     return Result::kOk;
 }
 
-OsTimer::OsTimer(const char* name, Worker& worker, u32 period, u32 firstDelay) : _instance(&worker) {
+OsTimer::OsTimer(const char* name, Worker& worker, u32 period, u32 firstDelay)
+    : _instance(&worker) {
     ASSERT(false, "OsTimer not support in NORTOS mode.");
 }
 OsTimer::~OsTimer() {

@@ -1,7 +1,7 @@
 #include "i2c.hpp"
 
 #ifdef HAL_I2C_MODULE_ENABLED
-namespace wibot {
+namespace wibot::hal {
 HardI2cMaster::HardI2cMaster(I2C_HandleTypeDef& handle) : _handle(&handle) {
     HAL_I2C_RegisterCallback(_handle, HAL_I2C_MEM_TX_COMPLETE_CB_ID, &HardI2cMaster::onWriteCplt);
     HAL_I2C_RegisterCallback(_handle, HAL_I2C_MEM_RX_COMPLETE_CB_ID, &HardI2cMaster::onReadCplt);
@@ -16,9 +16,9 @@ HardI2cMaster::~HardI2cMaster() {
     PeripheralManager::getInstance().registerPeripheral(this, _handle);
 };
 
-AsyncResult HardI2cMaster::readReg(u16 regAddr, const Slice& data) {
+os::AsyncResult HardI2cMaster::readReg(u16 regAddr, const Slice& data) {
     if (HAL_I2C_GetState(_handle) != HAL_I2C_STATE_READY) {
-        return AsyncResult::fromResult(Result::kBusy);
+        return os::AsyncResult::fromResult(Result::kBusy);
     }
 #if CHIP_I2C_READ_DMA_ENABLED
 #ifdef STM32H7xx
@@ -38,15 +38,15 @@ AsyncResult HardI2cMaster::readReg(u16 regAddr, const Slice& data) {
                                    data.data, data.size);
 #endif
     if (rst != HAL_OK) {
-        return AsyncResult::fromResult((Result)rst);
+        return os::AsyncResult::fromResult((Result)rst);
     }
 
     return _asyncSource.getResult();
 };
 
-AsyncResult HardI2cMaster::writeReg(u16 regAddr, const Slice& data) {
+os::AsyncResult HardI2cMaster::writeReg(u16 regAddr, const Slice& data) {
     if (HAL_I2C_GetState(_handle) != HAL_I2C_STATE_READY) {
-        return AsyncResult::fromResult(Result::kBusy);
+        return os::AsyncResult::fromResult(Result::kBusy);
     }
 #if CHIP_I2C_WRITE_DMA_ENABLED
 #ifdef STM32H7xx
@@ -66,15 +66,15 @@ AsyncResult HardI2cMaster::writeReg(u16 regAddr, const Slice& data) {
                                     data.data, data.size);
 #endif
     if (rst != HAL_OK) {
-        return AsyncResult::fromResult((Result)rst);
+        return os::AsyncResult::fromResult((Result)rst);
     }
 
     return _asyncSource.getResult();
 };
 
-AsyncResult HardI2cMaster::read(const Slice& data) {
+os::AsyncResult HardI2cMaster::read(const Slice& data) {
     if (HAL_I2C_GetState(_handle) != HAL_I2C_STATE_READY) {
-        return AsyncResult::fromResult(Result::kBusy);
+        return os::AsyncResult::fromResult(Result::kBusy);
     }
 #if CHIP_I2C_READ_DMA_ENABLED
 #ifdef STM32H7xx
@@ -89,14 +89,14 @@ AsyncResult HardI2cMaster::read(const Slice& data) {
 #endif
 
     if (rst != HAL_OK) {
-        return AsyncResult::fromResult((Result)rst);
+        return os::AsyncResult::fromResult((Result)rst);
     }
 
     return _asyncSource.getResult();
 };
-AsyncResult HardI2cMaster::write(const Slice& data) {
+os::AsyncResult HardI2cMaster::write(const Slice& data) {
     if (HAL_I2C_GetState(_handle) != HAL_I2C_STATE_READY) {
-        return AsyncResult::fromResult(Result::kBusy);
+        return os::AsyncResult::fromResult(Result::kBusy);
     }
 #if CHIP_I2C_WRITE_DMA_ENABLED
 #ifdef STM32H7xx
@@ -109,7 +109,7 @@ AsyncResult HardI2cMaster::write(const Slice& data) {
                                           data.size);
 #endif
     if (rst != HAL_OK) {
-        return AsyncResult::fromResult((Result)rst);
+        return os::AsyncResult::fromResult((Result)rst);
     }
 
     return _asyncSource.getResult();
@@ -149,6 +149,6 @@ Result HardI2cMaster::setTransitionConfig(I2cMasterTransitionConfig& config) {
     return Result::kOk;
 }
 
-}  // namespace wibot
+}  // namespace wibot::hal
 
 #endif

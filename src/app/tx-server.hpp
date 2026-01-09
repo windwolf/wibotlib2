@@ -1,7 +1,7 @@
 #pragma once
 
 #include "circular-buffer.hpp"
-#include "os.hpp"
+#include "os/os.hpp"
 #include "bus.hpp"
 
 #ifndef MAX_TX_SERVER_FRAME_SIZE
@@ -12,7 +12,7 @@
 #endif
 
 namespace wibot {
-class TxServer : public Worker {
+class TxServer : public os::Worker {
    public:
     TxServer(AsyncWriter<Slice>* writer);
     ~TxServer();
@@ -25,6 +25,6 @@ class TxServer : public Worker {
     AsyncWriter<Slice>* _writer;
 
     Buffer<sizeof(Buffer<MAX_TX_SERVER_FRAME_SIZE>) * MAX_TX_SERVER_FIFO_LENGTH> _fifoBuffer;
-    MessageQueue                                                                 _fifo;
+    os::MessageQueue                                                             _fifo;
 };
 }  // namespace wibot

@@ -2,7 +2,7 @@
 
 #include "circular-buffer.hpp"
 
-namespace wibot {
+namespace wibot::os {
 
 #define LAST_BIT_MASK     0x80000000
 #define LAST_TWO_BIT_MASK 0xC0000000

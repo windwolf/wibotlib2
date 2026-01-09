@@ -1,13 +1,13 @@
 #pragma once
 
-#include "async.hpp"
+#include "os/async.hpp"
 #include "chip.hpp"
 #include <functional>
 #include "peripheral.hpp"
 
 #ifdef HAL_TIM_MODULE_ENABLED
 
-namespace wibot {
+namespace wibot::hal {
 
 class Timer : private PeripheralBase {
    public:
@@ -21,17 +21,17 @@ class Timer : private PeripheralBase {
      * @brief 
      * 
      * @param freq 1Hz ~ 1MHz
-     * @return AsyncResult 
+     * @return os::AsyncResult 
      */
-    AsyncResult start(u32 freq);
+    os::AsyncResult start(u32 freq);
     /**
      * @brief 
      * 
      * @param freq 
      * @param handler 定时器回调 
      */
-    void        start(u32 freq, TimerInteruptHandler handler);
-    Result      stop();
+    void            start(u32 freq, TimerInteruptHandler handler);
+    Result          stop();
 
    private:
     static void _onPeriodElapsedCplt(TIM_HandleTypeDef* htim);
@@ -39,10 +39,10 @@ class Timer : private PeripheralBase {
     Result startInternal(u32 freq);
 
     TIM_HandleTypeDef*   _instance;
-    AsyncSource          _updateEventSource;
+    os::AsyncSource      _updateEventSource;
     TimerInteruptHandler _updateEventHandler;
 };
 
-}  // namespace wibot
+}  // namespace wibot::hal
 
 #endif

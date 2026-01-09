@@ -121,7 +121,7 @@
 // W25QXX_EVENTS_DEVICE_BUSY_RESET(instance)
 // EVENTS_RESET_FLAGS(instance->events, W25QXX_EVENT_DEVICE_BUSY)
 
-namespace wibot {
+namespace wibot::device {
 
 W25qxxSpi::W25qxxSpi(SpiMaster &spi, u32 timeout) : _spi(spi), _timeout(timeout) {};
 
@@ -373,14 +373,14 @@ Result W25qxxSpi::_eraseChipCommand() {
     return rst;
 };
 
-W25qxxSpiBlock::W25qxxSpiBlock(W25qxxSpi &w25qxx, Slice buffer) : Block(buffer), _w25qxx(w25qxx) {
-    setConfig(BlockConfig{
+W25qxxSpiBlock::W25qxxSpiBlock(W25qxxSpi &w25qxx, Slice buffer) : hal::Block(buffer), _w25qxx(w25qxx) {
+    setConfig(hal::Block::Config{
         .readBlockSize        = 0,
         .writeBlockSize       = kW25qxxPageSize,
         .eraseBlockSize       = kW25qxxBlockSize,
-        .readMode             = BlockMode::kRandom,
-        .writeMode            = BlockMode::kWrap,
-        .eraseMode            = BlockMode::kRandomBlock,
+        .readMode             = hal::Block::Mode::kRandom,
+        .writeMode            = hal::Block::Mode::kWrap,
+        .eraseMode            = hal::Block::Mode::kRandomBlock,
         .needEraseBeforeWrite = true,
     });
 };

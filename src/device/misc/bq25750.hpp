@@ -2,7 +2,7 @@
 
 #include "bus.hpp"
 
-namespace wibot {
+namespace wibot::device {
 class Bq25750 {
    public:
     enum struct ChargeStat : u8 {
@@ -219,4 +219,4 @@ class Bq25750 {
    private:
     I2cMaster& _i2c;
 };
-}  // namespace wibot
+}  // namespace wibot::device

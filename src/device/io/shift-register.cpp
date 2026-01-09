@@ -1,8 +1,8 @@
 #include "shift-register.hpp"
-#include "system.hpp"
+#include "hal/system.hpp"
 
-namespace wibot {
-SinPoutShiftRegister::SinPoutShiftRegister(SpiMaster& spi, Pin& stcpPin)
+namespace wibot::device {
+SinPoutShiftRegister::SinPoutShiftRegister(SpiMaster& spi, hal::Pin& stcpPin)
     : _spi(spi), _stcpPin(&stcpPin) {
     _stcpPin->setValue(false);
 };
@@ -16,24 +16,25 @@ Result SinPoutShiftRegister::write(Slice data) {
     if (rst != Result::kOk) {
         return rst;
     }
-    System::delayUs(1);
+    hal::System::delayUs(1);
     _stcpPin->setValue(true);
-    System::delayUs(1);  // 确保数据锁存
+    hal::System::delayUs(1);  // 确保数据锁存
     _stcpPin->setValue(false);
 
     return Result::kOk;
 };
 
-PinSoutShiftRegister::PinSoutShiftRegister(SpiMaster& spi, Pin& plPin) : _spi(spi), _plPin(&plPin) {
+PinSoutShiftRegister::PinSoutShiftRegister(SpiMaster& spi, hal::Pin& plPin)
+    : _spi(spi), _plPin(&plPin) {
     _plPin->setValue(true);
 };
 
 Result PinSoutShiftRegister::read(const Slice& data) {
     Result rst;
     _plPin->setValue(false);
-    System::delayUs(1);  // 确保数据准备好
+    hal::System::delayUs(1);  // 确保数据准备好
     _plPin->setValue(true);
-    System::delayUs(1);
+    hal::System::delayUs(1);
     _spi.begin();
     // 通过SPI读取数据
     rst = _spi.writeRead(Slice(nullptr, data.size), data).wait(TIMEOUT_FOREVER);
@@ -45,4 +46,4 @@ Result PinSoutShiftRegister::read(const Slice& data) {
     return Result::kOk;
 };
 
-}  // namespace wibot
+}  // namespace wibot::device

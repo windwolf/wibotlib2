@@ -2,8 +2,8 @@
 // Created by zhouj on 2023/9/12.
 //
 #include "stm32g031xx.h"
-#include "system.hpp"
-namespace wibot {
+#include "hal/system.hpp"
+namespace wibot::hal {
 
 __STATIC_INLINE u32 LL_SYSTICK_IsActiveCounterFlag() {
     return ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) == (SysTick_CTRL_COUNTFLAG_Msk));

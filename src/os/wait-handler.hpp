@@ -3,7 +3,7 @@
 #include "os.hpp"
 #include "eventgrouppool.hpp"
 
-namespace wibot {
+namespace wibot::os {
 
 class WaitTrigger;
 

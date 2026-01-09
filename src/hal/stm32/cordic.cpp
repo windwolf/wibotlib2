@@ -2,7 +2,7 @@
 
 #ifdef HAL_CORDIC_MODULE_ENABLED
 
-namespace wibot {
+namespace wibot::hal {
 
 Cordic::Cordic(CORDIC_HandleTypeDef& ins) : _ins(&ins) {
     PeripheralManager::getInstance().registerPeripheral(this, _ins);

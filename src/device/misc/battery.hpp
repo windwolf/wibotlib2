@@ -4,10 +4,9 @@
 // Created by zhouj on 2024/1/30.
 //
 
-#include <cstdint>
-#include "custom-mapper.hpp"
+#include "type.hpp"
 
-namespace wibot {
+namespace wibot::device {
 class Battery {
    public:
     enum class Type {

@@ -3,9 +3,9 @@
 //
 #include "system.hpp"
 
-namespace wibot {
+namespace wibot::hal {
 u32 System::getDurationMs(u32 tick) {
     return getTickMs() - tick;
 }
 
-}  // namespace wibot
+}  // namespace wibot::hal

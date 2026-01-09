@@ -1,7 +1,7 @@
 
 #include "cmsis_os2.h"
-#include "os.hpp"
-#include "system.hpp"
+#include "os/os.hpp"
+#include "hal/system.hpp"
 #include "logger.hpp"
 LOGGER("os")
 
@@ -9,13 +9,13 @@ LOGGER("os")
 extern "C" {
 #endif
 void runStub(void* instance) {
-    static_cast<wibot::Worker*>(instance)->run();
+    static_cast<wibot::os::Worker*>(instance)->run();
 };
 #ifdef __cplusplus
 }
 #endif
 
-namespace wibot {
+namespace wibot::os {
 
 static const Result OsStatusToResult(osStatus_t status) {
     switch (status) {
@@ -40,15 +40,15 @@ static const Result OsStatusToResult(osStatus_t status) {
     }
 }
 
-void os::sleep(u32 ms) {
-    switch (os::getContextMode()) {
-        case os::ContextMode::kThread:
+void sleep(u32 ms) {
+    switch (getContextMode()) {
+        case ContextMode::kThread:
             osDelay(ms);
             break;
-        case os::ContextMode::kISR:
-            ASSERT(false, "Cannot call os::sleep in ISR context.");
+        case ContextMode::kISR:
+            ASSERT(false, "Cannot call sleep in ISR context.");
             return;
-        case os::ContextMode::kInit:
+        case ContextMode::kInit:
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4996)
@@ -59,7 +59,7 @@ void os::sleep(u32 ms) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-            System::delayMs(ms);
+            hal::System::delayMs(ms);
 #ifdef _MSC_VER
 #pragma warning(pop)
 #elif defined(__clang__)
@@ -74,7 +74,7 @@ void os::sleep(u32 ms) {
     }
 };
 
-bool os::isInThread() {
+bool isInThread() {
     if (osKernelGetState() == osKernelState_t::osKernelRunning && osThreadGetId() != NULL) {
         return true;
     }

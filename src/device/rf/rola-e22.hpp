@@ -1,9 +1,9 @@
 ﻿#pragma once
 
 #include "bus.hpp"
-#include "gpio.hpp"
+#include "hal/stm32/gpio.hpp"
 
-namespace wibot {
+namespace wibot::device {
 
 enum class RolaE22Mode {
     kTransmition,
@@ -121,14 +121,14 @@ struct RolaE22Config {
  */
 class RolaE22Uart {
    public:
-    RolaE22Uart(UartStream& uart, Pin& m0, Pin& m1, Pin& aux);
+    RolaE22Uart(UartStream& uart, hal::Pin& m0, hal::Pin& m1, hal::Pin& aux);
 
     Result         setConfig(RolaE22Config& config);
     RolaE22Config& getConfig();
 
-    AsyncResult send(const Slice& data);
+    os::AsyncResult send(const Slice& data);
 
-    AsyncResult receive(Slice& data);
+    os::AsyncResult receive(Slice& data);
 
     void setMode(RolaE22Mode mode);
 
@@ -139,9 +139,9 @@ class RolaE22Uart {
     UartStream&   _uart;
     RolaE22Config _config;
 
-    Pin&        _m0;
-    Pin&        _m1;
-    Pin&        _aux;
+    hal::Pin&   _m0;
+    hal::Pin&   _m1;
+    hal::Pin&   _aux;
     RolaE22Mode _mode;
 };
-}  // namespace wibot
+}  // namespace wibot::device

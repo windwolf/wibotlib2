@@ -3,11 +3,11 @@
 #include "rls.hpp"
 #include "chip.hpp"
 #include "bus.hpp"
-#include "parity.hpp"
+#include "comm/crc/parity.hpp"
 
 #ifdef HAL_SPI_MODULE_ENABLED
 
-namespace wibot {
+namespace wibot::device {
 
 struct Mt6816SpiConfig {};
 
@@ -29,6 +29,6 @@ class Mt6816Spi : public Rls {
     ParityValidator _parity;
 };
 
-}  // namespace wibot
+}  // namespace wibot::device
 
 #endif  // HAL_SPI_MODULE_ENABLED

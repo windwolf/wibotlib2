@@ -5,7 +5,7 @@
 #include "os.hpp"
 #include "eventgrouppool.hpp"
 
-namespace wibot {
+namespace wibot::os {
 
 class AsyncResult;
 
@@ -91,10 +91,10 @@ class AsyncResult {
    private:
     AsyncSource::State _state;
     AsyncSource       *_source;
-    Result             _ErrorResult;
-    bool               _autoReset;
+    Result                 _ErrorResult;
+    bool                   _autoReset;
 };
 
-}  // namespace wibot
+}  // namespace wibot::os
 
 #endif  // WIBOTLIB_OS_ASYNC_RESULT_HPP__

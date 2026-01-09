@@ -1,0 +1,19 @@
+#include "linear-mapper-node.hpp"
+
+namespace wibot::pipeline {
+
+LinearMapperNode::LinearMapperNode(Config& config) : _config(config), _mapper(config) {
+}
+
+bool LinearMapperNode::ready() {
+    return inputs.x.bound() && outputs.y.bound() && dsp::LinearMapper::isConfigValid(_config);
+}
+
+void LinearMapperNode::process() {
+    outputs.y.ref() = _mapper.process(inputs.x.get());
+}
+
+void LinearMapperNode::reset() {
+}
+
+}  // namespace wibot::pipeline

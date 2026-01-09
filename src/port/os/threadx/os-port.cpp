@@ -1,6 +1,6 @@
 #include "tx_port.h"
-#include "os.hpp"
-#include "system.hpp"
+#include "os/os.hpp"
+#include "hal/system.hpp"
 #include "tx_api.h"
 
 #include "logger.hpp"
@@ -10,23 +10,23 @@ LOGGER("os")
 extern "C" {
 #endif
 void runStub(ULONG instance) {
-    static_cast<wibot::Worker*>(reinterpret_cast<void*>(instance))->run();
+    static_cast<wibot::os::Worker*>(reinterpret_cast<void*>(instance))->run();
 };
 #ifdef __cplusplus
 }
 #endif
 
-namespace wibot {
+namespace wibot::os {
 
-void os::sleep(u32 ms) {
-    switch (os::getContextMode()) {
-        case os::ContextMode::kThread:
+void sleep(u32 ms) {
+    switch (getContextMode()) {
+        case ContextMode::kThread:
             tx_thread_sleep(ms);
             break;
-        case os::ContextMode::kISR:
-            ASSERT(false, "Cannot call os::sleep in ISR context.");
+        case ContextMode::kISR:
+            ASSERT(false, "Cannot call sleep in ISR context.");
             return;
-        case os::ContextMode::kInit:
+        case ContextMode::kInit:
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4996)
@@ -37,7 +37,7 @@ void os::sleep(u32 ms) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-            System::delayMs(ms);
+            hal::System::delayMs(ms);
 #ifdef _MSC_VER
 #pragma warning(pop)
 #elif defined(__clang__)
@@ -52,13 +52,14 @@ void os::sleep(u32 ms) {
     }
 };
 
-bool os::isInThread() {
+bool isInThread() {
     return tx_thread_identify() != TX_NULL;
 }
 
 OsTimer::OsTimer(const char* name, Worker& worker, u32 period, u32 firstDelay) {
-    auto rst = tx_timer_create(&_instance, const_cast<CHAR*>(name), runStub,
-                               reinterpret_cast<ULONG>(&worker), firstDelay, period, TX_NO_ACTIVATE);
+    auto rst =
+        tx_timer_create(&_instance, const_cast<CHAR*>(name), runStub,
+                        reinterpret_cast<ULONG>(&worker), firstDelay, period, TX_NO_ACTIVATE);
     ASSERT(rst == TX_SUCCESS, "create OsTimer failed.")
 };
 
@@ -147,4 +148,4 @@ Result MessageQueue::flush() {
     return (tx_queue_flush(&(_instance)) == TX_SUCCESS) ? Result::kOk : Result::kError;
 };
 
-}  // namespace wibot
+}  // namespace wibot::os

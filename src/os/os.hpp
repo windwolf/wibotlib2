@@ -2,12 +2,10 @@
 
 #include "type.hpp"
 #include "os-port.hpp"
-#
 #include "buffer.hpp"
 
-namespace wibot {
+namespace wibot::os {
 
-namespace os {
 enum class ContextMode {
     kThread = 0,
     kISR    = 1,
@@ -20,7 +18,7 @@ bool        isInThread();
 uint32_t getTickMs();
 
 void sleep(uint32_t ms);
-}  // namespace os
+
 
 class Worker {
    public:
@@ -124,5 +122,3 @@ class MessageQueue {
 };
 
 }  // namespace wibot
-
-#include "os-port.tpp"

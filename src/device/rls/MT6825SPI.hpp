@@ -9,7 +9,7 @@
 #include "bus.hpp"
 
 #ifdef HAL_SPI_MODULE_ENABLED
-namespace wibot {
+namespace wibot::device {
 
 struct MT6825SpiConfig {};
 
@@ -26,6 +26,6 @@ class Mt6825Spi {
     u8         _cmd[4];
 };
 
-}  // namespace wibot
+}  // namespace wibot::device
 
 #endif

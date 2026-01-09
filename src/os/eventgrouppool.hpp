@@ -3,7 +3,7 @@
 #include "type.hpp"
 #include "os.hpp"
 
-namespace wibot {
+namespace wibot::os {
 class EventGroupPool {
    public:
     struct EventGroupStub {

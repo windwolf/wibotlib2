@@ -4,7 +4,7 @@
 
 #include "AS5047SPI.hpp"
 
-namespace wibot {
+namespace wibot::device {
 
 u32 As5047Spi::getAngle() {
     _cmd[0] = AS5047_CMD_READ_ANGLECOM;

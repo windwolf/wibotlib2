@@ -2,7 +2,7 @@
 
 #include "tx_api.h"
 
-namespace wibot {
+namespace wibot::os {
 
 #define LAST_BIT_MASK     0x80000000
 #define LAST_TWO_BIT_MASK 0xC0000000
@@ -24,4 +24,4 @@ struct ThreadConfig {
     UINT timeSlice;
 };
 
-}  // namespace wibot
+}  // namespace wibot::os

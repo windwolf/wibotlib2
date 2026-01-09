@@ -3,7 +3,7 @@
 
 #include "arch.hpp"
 
-namespace wibot {
+namespace wibot::os {
 AsyncSource::AsyncSource() : _result(Result::kOk) {
     Result rst = EventGroupPool::getInstance().fetch(_eventGroup);
     ASSERT(rst.isOk(), "Failed to fetch event group from pool");
@@ -144,4 +144,4 @@ AsyncResult AsyncResult::fromSource(AsyncSource& source, bool autoReset) {
     return AsyncResult(source, autoReset);
 };
 
-}  // namespace wibot
+}  // namespace wibot::os

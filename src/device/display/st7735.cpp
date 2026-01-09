@@ -1,6 +1,6 @@
 #include "st7735.hpp"
 
-namespace wibot {
+namespace wibot::device {
 #define ST7735_INTERNAL_BUFFER_SIZE (16)
 
 Result ST7735::init() {
@@ -286,8 +286,8 @@ Result ST7735::readId(u32 *id) {
 
     return Result::kOk;
 }
-ST7735::ST7735(SpiMaster &spi, Pin &dcPin)
+ST7735::ST7735(SpiMaster &spi, hal::Pin &dcPin)
     : St77xx(spi, dcPin) {
 
       };
-}  // namespace wibot
+}  // namespace wibot::device

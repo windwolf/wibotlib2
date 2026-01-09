@@ -1,6 +1,5 @@
 #pragma once
 
-#include "async.hpp"
 #include "chip.hpp"
 #include "buffer.hpp"
 #include "circular-buffer.hpp"
@@ -8,7 +7,7 @@
 #include "bus.hpp"
 
 #ifdef HAL_UART_MODULE_ENABLED
-namespace wibot {
+namespace wibot::hal {
 
 /**
  * @brief UART的流式处理
@@ -21,36 +20,36 @@ class Uart : public UartStream, public PeripheralBase {
     ~Uart();
     Result setConfig(UartConfig &config) override;
 
-    AsyncResult subscribe() override;
+    os::AsyncResult subscribe() override;
     /**
    * To use listen, underlying UART must be configured Rx with DMA.
    * @return
    */
-    Result      start() override;
-    Result      stop() override;
+    Result          start() override;
+    Result          stop() override;
 
     /**
      * @brief 读取rx数据. 直到填满data缓冲区为止才发出完成通知.
      * @note `read`和`readNotify`都不能并行使用
      * @note 调用者需确保在异步通知到达前, data缓冲区不会被修改或释放.
      * @param data 
-     * @return AsyncResult 
+     * @return os::AsyncResult 
      */
-    AsyncResult read(const Slice &data) override;
+    os::AsyncResult read(const Slice &data) override;
     /**
      * @brief 写入tx数据, 直到完成才发出完成通知.
      * @note `write`不能并行使用
      * @note 调用者需确保在异步通知到达前, data缓冲区不会被修改或释放.
      * @param data 
-     * @return AsyncResult 
+     * @return os::AsyncResult 
      */
-    AsyncResult write(const Slice &data) override;
+    os::AsyncResult write(const Slice &data) override;
     // /**
     //  * @brief 发起内部缓存中tx数据的实际发送. 当发送完成后, 产生通知.
     //  * @note `write`和`writeNotify`都不能并行使用
-    //  * @return AsyncResult
+    //  * @return os::AsyncResult
     //  */
-    // AsyncResult writeNotify() override;
+    // os::AsyncResult writeNotify() override;
 
     const char *getName() const {
         return _name;
@@ -63,8 +62,8 @@ class Uart : public UartStream, public PeripheralBase {
     UART_HandleTypeDef *_handle;
     const char         *_name;
     UartConfig          _config;
-    AsyncSource         _txAsyncSource;
-    AsyncSource         _rxAsyncSource;
+    os::AsyncSource     _txAsyncSource;
+    os::AsyncSource     _rxAsyncSource;
     //CircularBuffer8    &_txBuffer;
     CircularBuffer8    *_rxBuffer;
     // const Slice       *_txUserBuffer;
@@ -84,7 +83,7 @@ class Uart : public UartStream, public PeripheralBase {
     static void _onError(UART_HandleTypeDef *handle);
 };
 
-}  // namespace wibot
+}  // namespace wibot::hal
 
 #ifdef __cplusplus
 extern "C" {

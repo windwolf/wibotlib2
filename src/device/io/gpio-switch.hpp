@@ -4,9 +4,9 @@
 // Created by zhouj on 2024/1/24.
 //
 
-#include "gpio.hpp"
+#include "hal/stm32/gpio.hpp"
 
-namespace wibot {
+namespace wibot::device {
 class GpioSwitch {
    public:
     enum class Mode {
@@ -15,21 +15,21 @@ class GpioSwitch {
     };
 
    public:
-    GpioSwitch(Pin& pinIn, Pin& pinOut, Mode mode = Mode::kSync, u32 delay = 0);
+    GpioSwitch(hal::Pin& pinIn, hal::Pin& pinOut, Mode mode = Mode::kSync, u32 delay = 0);
 
     void update();
 
    private:
-    Pin& _pinIn;
-    Pin& _pinOut;
-    Mode _mode;
-    u32  _delay;
-    bool _lastInState;
-    u32  _lastInTriggerTick;
-    bool _outState;
+    hal::Pin& _pinIn;
+    hal::Pin& _pinOut;
+    Mode      _mode;
+    u32       _delay;
+    bool      _lastInState;
+    u32       _lastInTriggerTick;
+    bool      _outState;
 
     void updateSync();
     void updateHold();
 };
 
-}  // namespace wibot
+}  // namespace wibot::device

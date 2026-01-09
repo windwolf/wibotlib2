@@ -1,13 +1,11 @@
 #include "rx-server.hpp"
 #include "buffer.hpp"
-#include "model.hpp"
 
 #include "logger.hpp"
-#include "os.hpp"
 LOGGER("cmdsrv")
 
-namespace wibot {
-RxServer::RxServer(MessageReader& reader) : _reader(reader) {
+namespace wibot::app {
+RxServer::RxServer(comm::MessageReader& reader) : _reader(reader) {
 }
 
 RxServer::~RxServer() {
@@ -15,7 +13,7 @@ RxServer::~RxServer() {
 
 void RxServer::run() {
     Buffer<MAX_RX_SERVER_FRAME_SIZE> _frameBuffer;
-    MessageFrame                     frame(_frameBuffer);
+    comm::MessageFrame               frame(_frameBuffer);
     Result                           rst;
 
     startServer(true);
@@ -75,4 +73,4 @@ Result RxServer::stopServer(bool retry) {
 void RxServer::setTimeout(u32 timeoutMs) {
     _timeoutMs = timeoutMs;
 }
-}  // namespace wibot
+}  // namespace wibot::app

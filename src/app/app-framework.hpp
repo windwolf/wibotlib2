@@ -4,12 +4,11 @@
 // Created by zhouj on 2023/9/13.
 //
 
-#
 #include "logger.hpp"
 #include "type.hpp"
 
 #ifdef USE_RTT_PRINT
-#include "SEGGER_RTT.h"
+#include "log/rtt/SEGGER_RTT.h"
 #endif
 
 namespace wibot {

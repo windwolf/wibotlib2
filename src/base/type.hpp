@@ -5,6 +5,7 @@
 //
 #include <stdint.h>
 #include <stddef.h>
+#include <type_traits>
 
 using u8  = uint8_t;
 using u16 = uint16_t;
@@ -20,6 +21,22 @@ using f64 = double;
 
 using q15 = int16_t;
 using q31 = int32_t;
+
+template <typename T>
+concept SupportArithmetic = std::is_arithmetic_v<T>;
+template <typename T>
+concept SupportInt = std::is_same_v<T, i8> || std::is_same_v<T, i16> || std::is_same_v<T, i32>;
+template <typename T>
+concept SupportUint = std::is_same_v<T, u8> || std::is_same_v<T, u16> || std::is_same_v<T, u32>;
+template <typename T>
+concept SupportFloat = std::is_same_v<T, f32> || std::is_same_v<T, f64>;
+template <typename T>
+concept SupportFloatOrQ = std::is_same_v<T, f32> || std::is_same_v<T, f64> ||
+                          std::is_same_v<T, q15> || std::is_same_v<T, q31>;
+
+#define TIMEOUT_NOWAIT  0x00000000
+// There is no difference between any two known u32 values greater than 0xFFFFFFFF.
+#define TIMEOUT_FOREVER 0xFFFFFFFF
 
 #define ALIGN(n)      __attribute__((aligned(n)))
 #define ALIGN32       __attribute__((aligned(32)))
@@ -150,8 +167,5 @@ class LinkList {
     LinkList *_next;
 };
 
-#define TIMEOUT_NOWAIT  0x00000000
-// There is no difference between any two known u32 values greater than 0xFFFFFFFF.
-#define TIMEOUT_FOREVER 0xFFFFFFFF
 
 }  // namespace wibot

@@ -1,14 +1,13 @@
 #pragma once
 
-#include "async.hpp"
+#include "os/async.hpp"
 #include "chip.hpp"
-#include "analog-source.hpp"
-#include "system.hpp"
+#include "../system.hpp"
 #include "peripheral.hpp"
 #include <cstring>
 
 #ifdef HAL_COMP_MODULE_ENABLED
-namespace wibot {
+namespace wibot::hal {
 
 enum class ComparerLevel {
     kLow  = 0,
@@ -19,8 +18,8 @@ class Comparer : private PeripheralBase {
    public:
     Comparer(COMP_HandleTypeDef& ins);
 
-    AsyncResult start();
-    Result      stop();
+    os::AsyncResult start();
+    Result          stop();
 
     ComparerLevel getLevel() const;
 
@@ -29,9 +28,9 @@ class Comparer : private PeripheralBase {
 
    private:
     COMP_HandleTypeDef* _ins;
-    AsyncSource         _compareEventSource;
+    os::AsyncSource     _compareEventSource;
 };
 
-}  // namespace wibot
+}  // namespace wibot::hal
 
 #endif

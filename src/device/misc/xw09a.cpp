@@ -5,7 +5,7 @@
 #include "xw09a.hpp"
 #include "buffer.hpp"
 
-namespace wibot {
+namespace wibot::device {
 
 XW09A::XW09A(I2cMaster& i2c) : _i2c(i2c) {
 }

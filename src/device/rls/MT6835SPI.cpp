@@ -4,12 +4,12 @@
 
 #include "MT6835SPI.hpp"
 
+namespace wibot::device {
+
 #ifdef HAL_SPI_MODULE_ENABLED
 
 #define MT6835SPI_READ_CMD  0xA0
 #define MT6835SPI_ANGLE_REG 0x03
-
-namespace wibot {
 
 u32 Mt6835Spi::getAngle() {
     _buf[0] = MT6835SPI_READ_CMD;
@@ -35,6 +35,6 @@ u32 Mt6835Spi::GetData() {
     return getAngle();
 }
 
-}  // namespace wibot
-
 #endif  // HAL_SPI_MODULE_ENABLED
+
+}  // namespace wibot::device
