@@ -1,6 +1,7 @@
 #include "wibotrc.hpp"
 #include "os/os.hpp"
 #include "type.hpp"
+#include "hal/system.hpp"
 
 #if defined(HAL_TIM_MODULE_ENABLED) && defined(HAL_UART_MODULE_ENABLED)
 
@@ -45,7 +46,7 @@ void WibotRcController::setThrottle(f32 throttle) {
 
 void WibotRcController::run() {
     while (true) {
-        _slopedThrottle   = _trajectory.update(_throttle);
+        _slopedThrottle   = _trajectory.update(_throttle, System::getTickMs());
         auto dshotCommand = static_cast<u16>(_slopedThrottle * 2000.0f + 48.0f);
         auto rst          = _dshot.send(_timChannel, dshotCommand, false);
         rst.wait(TIMEOUT_NOWAIT);

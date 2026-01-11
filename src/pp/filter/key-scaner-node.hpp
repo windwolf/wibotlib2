@@ -39,7 +39,7 @@ class KeyScanerNode : public INode {
     void process() override {
         _core.scan(inputs.pinStatusMask.get(), inputs.tickMs.get());
         for (u8 ch = 0; ch < CHANNELS; ++ch) {
-            outputs.events[ch].ref() = _core.getLastEvent(ch);
+            outputs.events[ch].ref() = _core.getCurrentEvent(ch);
         }
     }
 

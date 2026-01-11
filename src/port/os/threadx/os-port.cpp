@@ -56,6 +56,11 @@ bool isInThread() {
     return tx_thread_identify() != TX_NULL;
 }
 
+
+u32 getTickMs() {
+    return tx_time_get();
+};
+
 OsTimer::OsTimer(const char* name, Worker& worker, u32 period, u32 firstDelay) {
     auto rst =
         tx_timer_create(&_instance, const_cast<CHAR*>(name), runStub,

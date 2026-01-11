@@ -57,7 +57,7 @@ AsyncResult AdcRegularSource::triggerSingleConversion(Slice buffer) {
     if (_config.continuousMode) {
         return AsyncResult::fromError(Result::kNotSupport);
     }
-
+    // FIXME: should handle interrupt and DMA complete callback to set result
     HAL_StatusTypeDef status = HAL_ADC_Start_DMA(_ins, (u32*)buffer.data, buffer.size / 2);
     if (status != HAL_OK) {
         return AsyncResult::fromError(Result(status));

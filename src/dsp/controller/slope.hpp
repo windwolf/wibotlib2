@@ -15,14 +15,14 @@ class SlopeTrajectory {
    public:
     struct Config {
         f32  slopeRate{0.0f};              // 斜坡速率 (单位/秒)
-        f32  sampleTime{0.0f};             // 采样时间 (秒)
         bool enableClamp{false};           // 是否启用最大最小值钳位
         T    minValue{static_cast<T>(0)};  // 最小值限制
         T    maxValue{static_cast<T>(0)};  // 最大值限制
     };
     struct State {
-        T output{static_cast<T>(0)};
-        T setPoint{static_cast<T>(0)};
+        T   output{static_cast<T>(0)};
+        T   setPoint{static_cast<T>(0)};
+        u32 lastTick{0};  // 上次更新时间戳 (ms)
     };
 
    public:
@@ -32,6 +32,7 @@ class SlopeTrajectory {
     void reset() {
         _state.output   = static_cast<T>(0);
         _state.setPoint = static_cast<T>(0);
+        _state.lastTick = 0;
     }
 
     void setInitialValue(T value) {
@@ -39,39 +40,60 @@ class SlopeTrajectory {
         _state.setPoint = _state.output;
     }
 
-    T update(T setPoint)
+    T update(T setPoint, u32 currentTick)
         requires SupportFloat<T>
     {
         _state.setPoint = clampValue(setPoint);
         T error         = _state.setPoint - _state.output;
         if (std::abs(error) < static_cast<T>(1e-9)) {
-            _state.output = _state.setPoint;
+            _state.output   = _state.setPoint;
+            _state.lastTick = currentTick;
             return _state.output;
         }
-        T maxChange = static_cast<T>(_config.slopeRate * _config.sampleTime);
+
+        // 计算时间增量（秒）
+        f32 deltaTime   = (_state.lastTick == 0) ? 0.0f : (currentTick - _state.lastTick) / 1000.0f;
+        _state.lastTick = currentTick;
+
+        if (deltaTime <= 0.0f) {
+            return _state.output;  // 时间未流逝，不更新
+        }
+
+        T maxChange = static_cast<T>(_config.slopeRate * deltaTime);
         T change    = (error > 0) ? std::min(error, maxChange) : std::max(error, -maxChange);
         _state.output += change;
         return _state.output;
     }
 
-    T update(T setPoint)
+    T update(T setPoint, u32 currentTick)
         requires SupportInt<T> or SupportUint<T>
     {
         _state.setPoint = clampValue(setPoint);
-        T error         = _state.setPoint - _state.output;
-        if (error == 0) {
-            return _state.output;
+
+        // 计算时间增量（秒）
+        f32 deltaTime   = (_state.lastTick == 0) ? 0.0f : (currentTick - _state.lastTick) / 1000.0f;
+        _state.lastTick = currentTick;
+
+        if (deltaTime <= 0.0f) {
+            return _state.output;  // 时间未流逝，不更新
         }
-        // 基于采样时间与速率计算步进
-        T maxChange = static_cast<T>(_config.slopeRate * _config.sampleTime);
+
+        // 计算最大变化量
+        T maxChange = static_cast<T>(_config.slopeRate * deltaTime);
         if (maxChange == 0) {
             maxChange = 1;  // 最小步进
         }
-        if (error > 0) {
+
+        // 使用比较避免无符号数下溢
+        if (_state.setPoint > _state.output) {
+            T error = _state.setPoint - _state.output;
             _state.output += std::min(error, maxChange);
-        } else {
-            _state.output -= std::min<T>(-error, maxChange);
+        } else if (_state.setPoint < _state.output) {
+            T error = _state.output - _state.setPoint;
+            _state.output -= std::min(error, maxChange);
         }
+        // 否则相等，无需改变
+
         return _state.output;
     }
 
@@ -110,5 +132,4 @@ class SlopeTrajectory {
     State   _state;
 };
 
-} // namespace wibot
-
+}  // namespace wibot

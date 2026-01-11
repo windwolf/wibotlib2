@@ -15,9 +15,9 @@ enum class ContextMode {
 ContextMode getContextMode();
 bool        isInThread();
 
-uint32_t getTickMs();
+u32 getTickMs();
 
-void sleep(uint32_t ms);
+void sleep(u32 ms);
 
 class Worker {
    public:
@@ -27,7 +27,7 @@ class Worker {
 template <u16 stack_size>
 class Thread {
    public:
-    Thread(const char* name, Worker& worker, uint32_t priority,
+    Thread(const char* name, Worker& worker, u32 priority,
            const ThreadConfig& config = ThreadConfig());
     ~Thread();
 
@@ -40,7 +40,7 @@ class Thread {
 
 class OsTimer {
    public:
-    OsTimer(const char* name, Worker& worker, uint32_t period, uint32_t firstDelay);
+    OsTimer(const char* name, Worker& worker, u32 period, u32 firstDelay);
     ~OsTimer();
 
     void start();
@@ -72,7 +72,7 @@ constexpr EventOptions EventOptions_ClearFlag  = 0x01;
 constexpr EventOptions EventOptions_NoClear    = 0x00;
 constexpr EventOptions EventOptions_Clear      = EventOptions_ClearFlag;
 
-using EventFlag = uint32_t;
+using EventFlag = u32;
 
 /**
  *
@@ -84,16 +84,16 @@ class EventGroup {
     ~EventGroup();
 
    public:
-    Result    set(uint32_t flags);
-    Result    reset(uint32_t flags);
-    Result    wait(uint32_t flags, uint32_t& actual_flags, EventOptions options, uint32_t timeout);
+    Result    set(u32 flags);
+    Result    reset(u32 flags);
+    Result    wait(u32 flags, u32& actual_flags, EventOptions options, u32 timeout);
     EventFlag fetchFlag();
     EventFlag fetchFlagPair();
     void      releaseFlag(EventFlag flag);
 
    private:
     EVENTGROUP_TYPEDEF _instance;
-    uint32_t           _usedFlags{};
+    u32           _usedFlags{};
 };
 
 class MessageQueue {
@@ -105,11 +105,11 @@ class MessageQueue {
      * @param msgSize message size in WORD
      * @param queueSize queue size in message
      */
-    MessageQueue(const char* name, void* msgAddr, uint32_t msgSize, uint32_t queueSize);
+    MessageQueue(const char* name, void* msgAddr, u32 msgSize, u32 queueSize);
     ~MessageQueue();
 
-    Result send(const void* msg, uint32_t timeout);
-    Result receive(void* msg, uint32_t timeout);
+    Result send(const void* msg, u32 timeout);
+    Result receive(void* msg, u32 timeout);
     /**
      * @brief clear the message queue
      * @return

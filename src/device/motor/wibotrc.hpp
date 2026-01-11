@@ -92,8 +92,7 @@ class WibotRcController : public Worker {
     u8                           _timChannel;
     f32                          _throttle;
     f32                          _slopedThrottle{0.0f};
-    SlopeTrajectory<f32>::Config _slopeConfig{.slopeRate   = 1.0f,   // 1 unit per second
-                                              .sampleTime  = 0.02f,  // 20 ms
+    SlopeTrajectory<f32>::Config _slopeConfig{.slopeRate   = 1.0f,  // 1 unit per second
                                               .enableClamp = false,
 
                                               .minValue = 0.0f,
