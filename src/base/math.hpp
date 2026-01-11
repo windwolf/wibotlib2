@@ -4,18 +4,20 @@
 
 namespace wibot {
 
-constexpr f32 kPI      = 3.14159265358979323846f;
-constexpr f32 k2PI     = 6.28318530717958647692f;
-constexpr f32 kPI_2    = 1.57079632679489661923f;
-constexpr f32 kPI_3    = 1.04719755119659774615f;
-constexpr f32 k2PI_3   = 2.09439510239319549231f;
-constexpr f32 k4PI_3   = 4.18879020478639098462f;
-constexpr f32 k5PI_3   = 5.23598775598298873078f;
-constexpr f32 kSQRT3   = 1.73205080756887729352f;
-constexpr f32 kSQRT3_2 = 0.86602540378443864676f;
-constexpr f32 k1_SQRT3 = 0.57735026918962576450f;
-constexpr f32 k2_SQRT3 = 1.15470053837925152900f;
-constexpr f32 k1_3     = 0.33333333333333333333f;
+constexpr f32 kPI      = 3.14159265358979323846f;  // π
+constexpr f32 k2PI     = 6.28318530717958647692f;  // 2π
+constexpr f32 kPI_2    = 1.57079632679489661923f;  // π/2
+constexpr f32 kPI_3    = 1.04719755119659774615f;  // π/3
+constexpr f32 k2PI_3   = 2.09439510239319549231f;  // 2π/3
+constexpr f32 k4PI_3   = 4.18879020478639098462f;  // 4π/3
+constexpr f32 k5PI_3   = 5.23598775598298873078f;  // 5π/3
+constexpr f32 kSQRT3   = 1.73205080756887729352f;  // √(3)
+constexpr f32 kSQRT3_2 = 0.86602540378443864676f;  // √(3)/2
+constexpr f32 k1_SQRT3 = 0.57735026918962576450f;  // 1/√(3)
+constexpr f32 k2_SQRT3 = 1.15470053837925152900f;  // 2/√(3)
+constexpr f32 k1_3     = 0.33333333333333333333f;  // 1/3
+constexpr f32 kSQRT2_3 = 0.81649658092772603273f;  // √(2/3)
+constexpr f32 kSQRT2_9 = 0.47140452079103168293f;  // √(2)/3
 
 constexpr f32 kQ15Scale = 32768.0f;
 constexpr f32 kQ31Scale = 2147483648.0f;
@@ -401,6 +403,5 @@ void operator/=(const Vector4<T>& one, const T other) {
 using Vector4f = Vector4<f32>;
 using Vector4b = Vector4<u8>;
 using Vector4i = Vector4<u32>;
-
 
 }  // namespace wibot

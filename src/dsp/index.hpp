@@ -12,3 +12,4 @@
 #include "mapper/linear-mapper.hpp"
 #include "mapper/piecewise-linear-mapper.hpp"
 #include "mapper/custom-mapper.hpp"
+#include "transform/clarke-park.hpp"
