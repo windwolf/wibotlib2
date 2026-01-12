@@ -1,10 +1,15 @@
 
 #include "hal/stm32/adc.hpp"
+#include "adc.hpp"
+#include "stm32g4xx_hal_adc.h"
 
 namespace wibot {
 
 AdcRegularSource::AdcRegularSource(ADC_HandleTypeDef& hadc, const Config& config)
     : _ins(&hadc), _config(config), _isRunning(false) {
+    PeripheralManager::getInstance().registerPeripheral(this, _ins);
+    HAL_ADC_RegisterCallback(_ins, HAL_ADC_CONVERSION_COMPLETE_CB_ID, onConversionCplt);
+    HAL_ADC_RegisterCallback(_ins, HAL_ADC_ERROR_CB_ID, onError);
 }
 
 AdcRegularSource::AdcRegularSource(ADC_HandleTypeDef& hadc, u8 adcResolution, bool continuousMode)
@@ -17,6 +22,10 @@ AdcRegularSource::~AdcRegularSource() {
         HAL_ADC_Stop_DMA(_ins);
     }
     _isRunning = false;
+
+    HAL_ADC_UnRegisterCallback(_ins, HAL_ADC_ERROR_CB_ID);
+    HAL_ADC_UnRegisterCallback(_ins, HAL_ADC_CONVERSION_COMPLETE_CB_ID);
+    PeripheralManager::getInstance().unregisterPeripheral(this);
 }
 
 Result AdcRegularSource::start(Slice buffer) {
@@ -57,7 +66,6 @@ AsyncResult AdcRegularSource::triggerSingleConversion(Slice buffer) {
     if (_config.continuousMode) {
         return AsyncResult::fromError(Result::kNotSupport);
     }
-    // FIXME: should handle interrupt and DMA complete callback to set result
     HAL_StatusTypeDef status = HAL_ADC_Start_DMA(_ins, (u32*)buffer.data, buffer.size / 2);
     if (status != HAL_OK) {
         return AsyncResult::fromError(Result(status));
@@ -87,6 +95,18 @@ Result AdcRegularSource::_validateConfig() const {
     }
 
     return Result::kOk;
+}
+
+void AdcRegularSource::onConversionCplt(ADC_HandleTypeDef* instance) {
+    auto peripheral =
+        static_cast<AdcRegularSource*>(PeripheralManager::getInstance().getPeripheral(instance));
+    peripheral->_asyncSource.setDone();
+}
+
+void AdcRegularSource::onError(ADC_HandleTypeDef* instance) {
+    auto peripheral =
+        static_cast<AdcRegularSource*>(PeripheralManager::getInstance().getPeripheral(instance));
+    peripheral->_asyncSource.setError(Result::kError);
 }
 
 }  // namespace wibot

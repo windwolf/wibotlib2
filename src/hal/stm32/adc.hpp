@@ -3,6 +3,7 @@
 #include "os/async.hpp"
 #include "chip.hpp"
 #include "../system.hpp"
+#include "peripheral.hpp"
 #include <cstring>
 
 namespace wibot {
@@ -15,7 +16,7 @@ namespace wibot {
  * 
  * @tparam CHANNELS ADC通道数量（最多16个通道）
  */
-class AdcRegularSource {
+class AdcRegularSource : private PeripheralBase {
    public:
     /**
      * @brief ADC配置结构
@@ -91,6 +92,10 @@ class AdcRegularSource {
      * @return Result::kOk 配置有效，其他值表示配置无效
      */
     Result _validateConfig() const;
+
+   private:
+    static void onConversionCplt(ADC_HandleTypeDef* instance);
+    static void onError(ADC_HandleTypeDef* instance);
 
    private:
     ADC_HandleTypeDef* _ins;
