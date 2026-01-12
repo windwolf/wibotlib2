@@ -7,7 +7,6 @@ namespace wibot {
 /**
  * @brief 线性映射
  * 
- * 面向对象实现。
  */
 class LinearMapper {
    public:
