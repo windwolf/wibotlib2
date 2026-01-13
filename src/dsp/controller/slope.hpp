@@ -20,9 +20,8 @@ class SlopeTrajectory {
         T    maxValue{static_cast<T>(0)};  // 最大值限制
     };
     struct State {
-        T   output{static_cast<T>(0)};
-        T   setPoint{static_cast<T>(0)};
-        u32 lastTick{0};  // 上次更新时间戳 (ms)
+        T output{static_cast<T>(0)};
+        T setPoint{static_cast<T>(0)};
     };
 
    public:
@@ -32,7 +31,6 @@ class SlopeTrajectory {
     void reset() {
         _state.output   = static_cast<T>(0);
         _state.setPoint = static_cast<T>(0);
-        _state.lastTick = 0;
     }
 
     void setInitialValue(T value) {
@@ -40,46 +38,37 @@ class SlopeTrajectory {
         _state.setPoint = _state.output;
     }
 
-    T update(T setPoint, u32 currentTick)
+    T update(T setPoint, f32 samplePeriod)
         requires SupportFloat<T>
     {
         _state.setPoint = clampValue(setPoint);
         T error         = _state.setPoint - _state.output;
         if (std::abs(error) < static_cast<T>(1e-9)) {
-            _state.output   = _state.setPoint;
-            _state.lastTick = currentTick;
+            _state.output = _state.setPoint;
             return _state.output;
         }
 
-        // 计算时间增量（秒）
-        f32 deltaTime   = (_state.lastTick == 0) ? 0.0f : (currentTick - _state.lastTick) / 1000.0f;
-        _state.lastTick = currentTick;
-
-        if (deltaTime <= 0.0f) {
-            return _state.output;  // 时间未流逝，不更新
+        if (samplePeriod <= 0.0f) {
+            return _state.output;  // 采样周期无效，不更新
         }
 
-        T maxChange = static_cast<T>(_config.slopeRate * deltaTime);
+        T maxChange = static_cast<T>(_config.slopeRate * samplePeriod);
         T change    = (error > 0) ? std::min(error, maxChange) : std::max(error, -maxChange);
         _state.output += change;
         return _state.output;
     }
 
-    T update(T setPoint, u32 currentTick)
+    T update(T setPoint, f32 samplePeriod)
         requires SupportInt<T> or SupportUint<T>
     {
         _state.setPoint = clampValue(setPoint);
 
-        // 计算时间增量（秒）
-        f32 deltaTime   = (_state.lastTick == 0) ? 0.0f : (currentTick - _state.lastTick) / 1000.0f;
-        _state.lastTick = currentTick;
-
-        if (deltaTime <= 0.0f) {
-            return _state.output;  // 时间未流逝，不更新
+        if (samplePeriod <= 0.0f) {
+            return _state.output;  // 采样周期无效，不更新
         }
 
         // 计算最大变化量
-        T maxChange = static_cast<T>(_config.slopeRate * deltaTime);
+        T maxChange = static_cast<T>(_config.slopeRate * samplePeriod);
         if (maxChange == 0) {
             maxChange = 1;  // 最小步进
         }

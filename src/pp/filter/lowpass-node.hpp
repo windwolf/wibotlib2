@@ -1,13 +1,13 @@
 ﻿#pragma once
 
 #include "../pipeline.hpp"
-#include "dsp/filter/lowpass.hpp"
+#include "dsp/filter/iir.hpp"
 
 namespace wibot {
 
 class LowpassNode : public INode {
    public:
-    using Config = Lowpass::Config;
+    using Config = IIR::Config;
 
     struct Inputs {
         In<f32> x;
@@ -27,7 +27,7 @@ class LowpassNode : public INode {
 
    private:
     Config& _config;
-    Lowpass _filter;
+    IIR     _filter;
 };
 
 }  // namespace wibot

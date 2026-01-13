@@ -12,7 +12,8 @@ class SlopeTrajectoryNode : public INode {
     using Config = typename SlopeTrajectory<T>::Config;
 
     struct Inputs {
-        In<T> setPoint;
+        In<T>   setPoint;
+        In<f32> samplePeriod;  // 采样周期（秒）
     } inputs;
 
     struct Outputs {
@@ -23,11 +24,11 @@ class SlopeTrajectoryNode : public INode {
     }
 
     bool ready() override {
-        return inputs.setPoint.bound() && outputs.output.bound();
+        return inputs.setPoint.bound() && inputs.samplePeriod.bound() && outputs.output.bound();
     }
 
     void process() override {
-        outputs.output.ref() = _trajectory.update(inputs.setPoint.get());
+        outputs.output.ref() = _trajectory.update(inputs.setPoint.get(), inputs.samplePeriod.get());
     }
 
     void reset() override {

@@ -17,4 +17,5 @@
 #include "source/constant-source.hpp"
 #include "source/memory-source.hpp"
 #include "source/system-tick-source.hpp"
+#include "source/sample-period-source.hpp"
 #include "transform/clarke-park-node.hpp"

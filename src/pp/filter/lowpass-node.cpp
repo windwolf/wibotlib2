@@ -6,7 +6,7 @@ LowpassNode::LowpassNode(Config& config) : _config(config), _filter(config) {
 }
 
 bool LowpassNode::ready() {
-    return inputs.x.bound() && outputs.y.bound() && Lowpass::isConfigValid(_config);
+    return inputs.x.bound() && outputs.y.bound() && IIR::isConfigValid(_config);
 }
 
 void LowpassNode::process() {

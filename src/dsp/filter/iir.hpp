@@ -5,14 +5,17 @@
 namespace wibot {
 
 /**
- * @brief 一阶低通滤波器
+ * @brief 一阶IIR低通滤波器
  * 
  * 面向对象实现，支持非周期和周期数据。
+ * 支持两种工作模式：
+ * - 固定采样周期模式：samplePeriod在Config中设定，系数预计算，每次调用filter(input)
+ * - 可变采样周期模式：samplePeriod由调用者传入，每次filter调用时动态计算系数
  */
-class Lowpass {
+class IIR {
    public:
     struct Config {
-        f32 samplePeriod;  // 默认采样周期（秒），用于等间隔采样
+        f32 samplePeriod;  // 采样周期（秒）。固定模式下用于预计算；可变模式下作为备用默认值
         f32 cutoffFreq;    // 截止频率（Hz）
         f32 wrapValue;     // 折叠值（周期性数据），0表示禁用
     };
@@ -24,7 +27,7 @@ class Lowpass {
      *       1. constexpr Config 用于运行时无需修改的参数
      *       2. 非const Config 用于运行时需要修改的参数
      */
-    explicit Lowpass(const Config& cfg);
+    explicit IIR(const Config& cfg);
 
     /**
      * @brief 应用配置（当外部修改了引用指向的配置对象时调用）
@@ -33,19 +36,21 @@ class Lowpass {
     bool applyConfig();
 
     /**
-     * @brief 处理单个样本（等间隔采样）
+     * @brief 处理单个样本（固定采样周期模式）
      * @param input 输入样本
      * @return 滤波后的输出
-     * @note 使用Config中的samplePeriod作为采样周期
+     * @note 使用Config中预计算的采样周期系数
+     *       模式：固定采样周期。Config中的samplePeriod在构造时已预计算系数
      */
     f32 filter(f32 input);
 
     /**
-     * @brief 处理单个样本（不等间隔采样）
+     * @brief 处理单个样本（可变采样周期模式）
      * @param input 输入样本
      * @param samplePeriod 当前采样间隔（秒）
      * @return 滤波后的输出
-     * @note 适用于采样周期变化的场景，每次根据dt重新计算滤波系数
+     * @note 模式：可变采样周期。每次调用根据samplePeriod重新计算系数
+     *       适用于采样周期动态变化的场景（如jitter采样、事件驱动）
      */
     f32 filter(f32 input, f32 samplePeriod);
 

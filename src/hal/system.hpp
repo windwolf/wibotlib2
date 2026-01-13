@@ -30,4 +30,25 @@ class System {
     static u32 getTIMFreq(TIM_TypeDef* tim);
 };
 
+class SystemTick {
+   public:
+    static u32 getTickMs() {
+        return System::getTickMs();
+    }
+    u32 reset() {
+        u32 currentTickMs = System::getTickMs();
+        _lastTickMs       = currentTickMs;
+        return _lastTickMs;
+    }
+    u32 getSamplePeriodMs() {
+        u32 currentTickMs = System::getTickMs();
+        u32 samplePeriod  = currentTickMs - _lastTickMs;
+        _lastTickMs       = currentTickMs;
+        return samplePeriod;
+    }
+
+   private:
+    u32 _lastTickMs;
+};
+
 }  // namespace wibot

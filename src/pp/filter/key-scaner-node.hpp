@@ -14,7 +14,7 @@ class KeyScanerNode : public INode {
 
     struct Inputs {
         In<u32> pinStatusMask;
-        In<u32> tickMs;
+        In<u32> samplePeriodMs;
     } inputs;
 
     struct Outputs {
@@ -25,7 +25,7 @@ class KeyScanerNode : public INode {
     }
 
     bool ready() override {
-        if (!inputs.pinStatusMask.bound() || !inputs.tickMs.bound()) {
+        if (!inputs.pinStatusMask.bound() || !inputs.samplePeriodMs.bound()) {
             return false;
         }
         for (u8 ch = 0; ch < CHANNELS; ++ch) {
@@ -37,7 +37,7 @@ class KeyScanerNode : public INode {
     }
 
     void process() override {
-        _core.scan(inputs.pinStatusMask.get(), inputs.tickMs.get());
+        _core.scan(inputs.pinStatusMask.get(), inputs.samplePeriodMs.get());
         for (u8 ch = 0; ch < CHANNELS; ++ch) {
             outputs.events[ch].ref() = _core.getCurrentEvent(ch);
         }

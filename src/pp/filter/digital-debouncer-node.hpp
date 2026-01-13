@@ -14,7 +14,7 @@ class DigitalDebouncerNode : public INode {
 
     struct Inputs {
         In<u32> rawMask;
-        In<u32> tickMs;
+        In<u32> samplePeriodMs;
     } inputs;
 
     struct Outputs {
@@ -25,17 +25,16 @@ class DigitalDebouncerNode : public INode {
     }
 
     bool ready() override {
-        return inputs.rawMask.bound() && inputs.tickMs.bound() && outputs.status.bound();
+        return inputs.rawMask.bound() && inputs.samplePeriodMs.bound() && outputs.status.bound();
     }
 
     void process() override {
         _core.updateRawValues(inputs.rawMask.get());
-        outputs.status.ref() = _core.process(inputs.tickMs.get());
+        outputs.status.ref() = _core.process(inputs.samplePeriodMs.get());
     }
 
     void reset() override {
-        const u32 tick = inputs.tickMs.bound() ? inputs.tickMs.get() : 0U;
-        _core.reset(tick);
+        _core.reset();
     }
 
     u32 getChannel(u8 channel) const {

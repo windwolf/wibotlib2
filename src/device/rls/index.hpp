@@ -7,4 +7,4 @@
 #include "MT6816SPI.hpp"
 #include "MT6825SPI.hpp"
 #include "MT6835SPI.hpp"
-#include "relative-encoder.hpp"
+#include "absolute-encoder.hpp"

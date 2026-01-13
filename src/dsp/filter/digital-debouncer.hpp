@@ -32,20 +32,20 @@ class DigitalDebouncer {
         u32  rawStatus{0};
         u32  lastOutputStatus{0};
         u32  lastBufferedStatus{0};
-        u32  lastDebounceTime[CHANNELS]{};
+        u8   debounceTimers[CHANNELS]{};  // 各通道累积去抖时间（毫秒，最大255ms）
     };
 
    public:
     explicit DigitalDebouncer(Config& config) : _config(config) {
     }
 
-    void reset(u32 currentTick = 0) {
+    void reset() {
         _state.isFirstValue       = true;
         _state.lastOutputStatus   = 0;
         _state.lastBufferedStatus = 0;
 
         for (u8 i = 0; i < CHANNELS; ++i) {
-            _state.lastDebounceTime[i] = currentTick;
+            _state.debounceTimers[i] = 0;
         }
     }
 
@@ -56,10 +56,10 @@ class DigitalDebouncer {
     /**
      * @brief 处理数字输入
      * 
-     * @param currentTick 当前时刻 (ms)
+     * @param samplePeriodMs 当前采样周期 (ms)
      * @return u32 处理后的多通道输出（位掩码）
      */
-    u32 process(u32 currentTick) {
+    u32 process(u32 samplePeriodMs) {
         if (_state.isFirstValue) {
             _state.isFirstValue       = false;
             _state.lastBufferedStatus = _state.rawStatus;
@@ -67,7 +67,7 @@ class DigitalDebouncer {
 
             if (_config.debounceTimeMs > 0) {
                 for (u8 i = 0; i < CHANNELS; ++i) {
-                    _state.lastDebounceTime[i] = currentTick;
+                    _state.debounceTimers[i] = 0;
                 }
             }
             return _state.lastOutputStatus;
@@ -87,7 +87,7 @@ class DigitalDebouncer {
             _state.lastBufferedStatus = _state.rawStatus;
             for (u8 i = 0; i < CHANNELS; ++i) {
                 if (changedChannels & (1U << i)) {
-                    _state.lastDebounceTime[i] = currentTick;
+                    _state.debounceTimers[i] = 0;
                 }
             }
         }
@@ -102,14 +102,19 @@ class DigitalDebouncer {
                 ((_config.inverse >> j) & 1U) ? (!bufferedBit) : bufferedBit;
 
             if (processedBufferedBit != outputBit) {
-                // 通道值改变，检查去抖时间是否超过阈值
-                if (currentTick - _state.lastDebounceTime[j] > _config.debounceTimeMs) {
+                // 通道值改变，累积去抖时间
+                u32 newTimerValue = _state.debounceTimers[j] + samplePeriodMs;
+
+                // 检查去抖时间是否达到阈值
+                if (newTimerValue >= _config.debounceTimeMs) {
                     // 更新输出状态位
                     if (processedBufferedBit) {
                         _state.lastOutputStatus |= (1U << j);
                     } else {
                         _state.lastOutputStatus &= ~(1U << j);
                     }
+                } else {
+                    _state.debounceTimers[j] = static_cast<u8>(newTimerValue);
                 }
             }
         }
@@ -133,9 +138,8 @@ class DigitalDebouncer {
     }
 
    private:
-    Config&           _config{};
-    State _state;
+    Config& _config{};
+    State   _state;
 };
 
-} // namespace wibot
-
+}  // namespace wibot

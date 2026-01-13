@@ -34,54 +34,35 @@ WibotLib是一个为STM32系列MCU设计的现代C++嵌入式开发库，提供�
 
 ## 目录结构
 
-- `src/`: 库的主要源代码目录
-  - `base/`: 基础组件（类型系统、缓冲区、时间、数学运算）
-  - `os/`: 操作系统抽象层（异步机制、事件组、等待处理器）
-  - `hal/`: 硬件抽象层
-    - `stm32/`: STM32平台的外设驱动（ADC、GPIO、I2C、SPI、UART、Timer等）
-    - `bus.hpp`: 总线抽象
-    - `block.hpp`: 块设备抽象
-    - `system.hpp`: 系统级功能
-  - `io/`: 数据流处理模型
-    - `source/`: 数据源（常量源、数字源、模拟源等）
-    - `filter/`: 滤波器（低通滤波器、中值滤波器等）
-    - `mapper/`: 数据映射器（线性映射、分段线性映射等）
-    - `controller/`: 控制器（PID控制器等）
-    - `adapter/`: 适配器
-    - `rw/`: 读写接口
-    - `util/`: 工具类
-  - `protocol/`: 通信协议实现
-    - `gnss/`: GNSS定位协议（NMEA、UBX等）
-    - `camera/`: 摄像头协议
-    - `dshot/`: DShot电机协议
-    - `crc/`: CRC校验
-    - `modbus/`: Modbus协议
-  - `device/`: 设备驱动
-    - `display/`: 显示设备（SSD1306、ST7735、ST77xx等）
-    - `storage/`: 存储设备（Flash、EEPROM等）
-    - `motor/`: 电机驱动
-    - `rf/`: 射频模块（LoRa等）
-    - `rtc/`: 实时时钟（RX8010等）
-    - `io/`: IO扩展设备
-    - `rls/`: 位置传感器
-    - `misc/`: 其他设备
-  - `app/`: 应用框架
-    - `app-framework.hpp`: 应用框架基础
-    - `control-loop.hpp`: 控制循环
-    - `fsm.hpp`: 有限状态机
-    - `rx-server.hpp`: 接收服务器
-    - `tx-server.hpp`: 发送服务器
-  - `graph/`: 图形系统（字体等）
-  - `log/`: 日志系统
-    - `macro-log/`: 宏日志
-    - `rtt/`: RTT日志
-  - `port/`: 平台移植相关
-- `docs/`: 详细的使用文档和指南
-- `example/`: 示例代码
-- `test/`: 测试代码
-- `cmake/`: CMake配置文件
-- `CMakeLists.txt`: 主CMake配置文件
-- `README.md`: 库的详细说明文档
+```
+root/
+├── src/                          # 主要源代码
+│   ├── base/                     # 基础组件（类型、缓冲、时间、数学）
+│   ├── os/                       # 操作系统抽象层
+│   ├── hal/                      # 硬件抽象层（含stm32平台驱动）
+│   ├── pp/                       # 数据流处理模型（source、filter、mapper、controller等）
+│   ├── comm/                     # 通信和协议层（protocol、crc、modbus、msg）
+│   ├── device/                   # 设备驱动（display、storage、motor、rf、rtc、io、rls、misc）
+│   ├── app/                      # 应用框架
+│   ├── graph/                    # 图形系统
+│   ├── dsp/                      # 数字信号处理
+│   ├── math/                     # 数学库（扩展）
+│   ├── log/                      # 日志系统
+│   ├── port/                     # 平台移植层
+│   ├── old/                      # 过期代码（备用）
+│   ├── boot.h                    # 启动定义
+│   └── .clang-format             # Clang-format配置
+│
+├── docs/                         # 使用文档和指南
+├── example/                      # 示例代码
+├── test/                         # 单元测试
+├── cmake/                        # CMake配置文件
+├── CMakeLists.txt               # 主构建配置
+├── README.md                    # 库说明文档
+├── AGENTS.md                    # AI助手指南（本文件）
+├── LICENSE                      # MIT许可证
+└── .gitignore                   # Git忽略列表
+```
 
 ## 核心功能特性
 
@@ -117,7 +98,8 @@ WibotLib是一个为STM32系列MCU设计的现代C++嵌入式开发库，提供�
 - **摄像头接口**: OV7725等摄像头模块支持
 - **电机控制**: DShot协议支持
 - **Modbus**: Modbus主从站协议
-- **通用协议**: CRC校验、数据编解码等
+- **CRC校验**: 多种CRC算法支持
+- **消息系统**: 统一的消息定义和编解码框架
 
 ## 代码规范
 
@@ -133,7 +115,8 @@ WibotLib是一个为STM32系列MCU设计的现代C++嵌入式开发库，提供�
 - 函数名使用camelCase（如：`getValue()`）
 - 变量名使用camelCase（如：`adcValue`）
 - 常量使用UPPER_CASE或kConstantName
-- 命名空间：所有代码都在`wibot`命名空间下，子模块使用子命名空间（如：`wibot::protocol`）
+- 命名空间：所有代码都在`wibot`命名空间下
+- 类的内部配置结构体统一命名为`Config`, 外部配置类以`XXXConfig`命名.
 
 ### 包含文件规则
 - source文件和header文件使用相对路径包含
@@ -146,6 +129,15 @@ WibotLib是一个为STM32系列MCU设计的现代C++嵌入式开发库，提供�
 - `s8`, `s16`, `s32`, `s64`: 有符号整数
 - `f32`, `f64`: 浮点数
 - `Result`: 统一的错误处理机制
+
+### 运行时配置管理
+
+- 如果类的实现需要配置, 那么优先在类内部设置配置结构体.
+- 需要配置的情况下, 配置结构体应作为引用传入构造函数, 避免拷贝开销.
+- 配置结构体成员变量应设置默认值, 以简化使用.
+- 提供`setConfig()`方法以便运行时修改配置.
+- 提供`getConfig()`方法以便查询当前配置. 配置使用引用返回.
+- 当外部修改了引用的内部配置后,提供`applyConfig()`方法以便应用配置更改.
 
 ## 构建系统
 
@@ -310,12 +302,19 @@ if (status.isOk()) {
 
 - `src/base/type.hpp`: 统一的类型定义
 - `src/base/buffer.hpp`: 缓冲区管理
+- `src/base/circular-buffer.hpp`: 循环缓冲区
 - `src/base/chrono.hpp`: 时间系统
 - `src/os/os.hpp`: 操作系统抽象层统一接口
 - `src/os/async.hpp`: 异步编程支持
 - `src/hal/system.hpp`: 系统级功能（延时、时钟等）
-- `src/io/model.hpp`: 数据流模型基础定义
+- `src/pp/pipeline.hpp`: 数据流模型基础定义
+- `src/pp/transform/`: 数据转换器组件（新增）
+- `src/comm/protocol/`: 通信协议实现目录
+- `src/comm/crc/`: CRC校验库
+- `src/comm/modbus/`: Modbus协议实现
 - `src/app/app-framework.hpp`: 应用程序框架
+- `src/dsp/`: 数字信号处理库（新增）
+- `src/math/`: 高级数学库（新增）
 
 ## 文档资源
 

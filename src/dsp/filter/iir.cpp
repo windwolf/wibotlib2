@@ -1,14 +1,14 @@
-#include "dsp/filter/lowpass.hpp"
+#include "dsp/filter/iir.hpp"
 #include "math.hpp"
 #include <cmath>
 
 namespace wibot {
 
-Lowpass::Lowpass(const Config& cfg) : _config(cfg), _y_last(0.0f), _first(true) {
+IIR::IIR(const Config& cfg) : _config(cfg), _y_last(0.0f), _first(true) {
     _updateCoefficients();
 }
 
-bool Lowpass::applyConfig() {
+bool IIR::applyConfig() {
     if (!isConfigValid(_config)) {
         return false;
     }
@@ -16,7 +16,7 @@ bool Lowpass::applyConfig() {
     return true;
 }
 
-f32 Lowpass::filter(f32 input) {
+f32 IIR::filter(f32 input) {
     if (_first) {
         _y_last = input;
         _first  = false;
@@ -34,7 +34,7 @@ f32 Lowpass::filter(f32 input) {
     return _y_last;
 }
 
-f32 Lowpass::filter(f32 input, f32 samplePeriod) {
+f32 IIR::filter(f32 input, f32 samplePeriod) {
     const f32 alpha           = _computeAlpha(samplePeriod);
     const f32 one_minus_alpha = 1.0f - alpha;
 
@@ -55,12 +55,12 @@ f32 Lowpass::filter(f32 input, f32 samplePeriod) {
     return _y_last;
 }
 
-void Lowpass::reset() {
+void IIR::reset() {
     _y_last = 0.0f;
     _first  = true;
 }
 
-bool Lowpass::isConfigValid(const Config& cfg) {
+bool IIR::isConfigValid(const Config& cfg) {
     if (cfg.samplePeriod <= 0.0f || cfg.cutoffFreq <= 0.0f) {
         return false;
     }
@@ -74,17 +74,17 @@ bool Lowpass::isConfigValid(const Config& cfg) {
     return true;
 }
 
-void Lowpass::_updateCoefficients() {
+void IIR::_updateCoefficients() {
     _alpha           = _computeAlpha(_config.samplePeriod);
     _one_minus_alpha = 1.0f - _alpha;
 }
 
-f32 Lowpass::_computeAlpha(f32 samplePeriod) const {
+f32 IIR::_computeAlpha(f32 samplePeriod) const {
     const f32 omega = 2.0f * kPI * _config.cutoffFreq * samplePeriod;
     return omega / (1.0f + omega);
 }
 
-f32 Lowpass::_wrap(f32 x, f32 w) {
+f32 IIR::_wrap(f32 x, f32 w) {
     return x - 2.0f * w * std::floor((x + w) / (2.0f * w));
 }
 
