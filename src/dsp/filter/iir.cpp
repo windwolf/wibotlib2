@@ -27,8 +27,8 @@ f32 IIR::filter(f32 input) {
         } else {
             // 周期数据（如角度）
             const f32 diff        = input - _y_last;
-            const f32 wrappedDiff = _wrap(diff, _config.wrapValue);
-            _y_last               = _wrap(_y_last + _alpha * wrappedDiff, _config.wrapValue);
+            const f32 wrappedDiff = _wrapDiff(diff, _config.wrapValue);
+            _y_last               = _wrapPeriod(_y_last + _alpha * wrappedDiff, _config.wrapValue);
         }
     }
     return _y_last;
@@ -48,8 +48,8 @@ f32 IIR::filter(f32 input, f32 samplePeriod) {
         } else {
             // 周期数据（如角度）
             const f32 diff        = input - _y_last;
-            const f32 wrappedDiff = _wrap(diff, _config.wrapValue);
-            _y_last               = _wrap(_y_last + alpha * wrappedDiff, _config.wrapValue);
+            const f32 wrappedDiff = _wrapDiff(diff, _config.wrapValue);
+            _y_last               = _wrapPeriod(_y_last + alpha * wrappedDiff, _config.wrapValue);
         }
     }
     return _y_last;
@@ -84,8 +84,27 @@ f32 IIR::_computeAlpha(f32 samplePeriod) const {
     return omega / (1.0f + omega);
 }
 
-f32 IIR::_wrap(f32 x, f32 w) {
-    return x - 2.0f * w * std::floor((x + w) / (2.0f * w));
+f32 IIR::_wrapPeriod(f32 x, f32 period) {
+    if (period <= 0.0f) {
+        return x;
+    }
+    f32 r = std::fmod(x, period);
+    if (r < 0.0f) {
+        r += period;
+    }
+    return r;  // [0, period)
+}
+
+f32 IIR::_wrapDiff(f32 d, f32 period) {
+    if (period <= 0.0f) {
+        return d;
+    }
+    const f32 half = 0.5f * period;
+    f32       r    = std::fmod(d + half, period);
+    if (r < 0.0f) {
+        r += period;
+    }
+    return r - half;  // (-period/2, period/2]
 }
 
 }  // namespace wibot
