@@ -8,6 +8,7 @@
 #include "filter/digital-debouncer.hpp"
 #include "filter/key-scaner.hpp"
 #include "filter/iir.hpp"
+#include "filter/movavg.hpp"
 #include "filter/fir.hpp"
 #include "filter/median.hpp"
 #include "mapper/linear-mapper.hpp"

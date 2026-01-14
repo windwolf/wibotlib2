@@ -189,100 +189,6 @@ cmake ..
 cmake --build . --config Debug
 ```
 
-## 使用指南
-
-### 基本使用流程
-
-1. **包含头文件**
-
-```cpp
-#include "wibotlib.hpp"  // 包含所有核心功能
-```
-
-1. **初始化系统**
-
-```cpp
-wibot::System::init();
-```
-
-1. **创建线程**
-
-```cpp
-class MyWorker : public wibot::Worker {
-public:
-    void run() override {
-        while (true) {
-            // 工作逻辑
-            wibot::os::sleep(100);
-        }
-    }
-};
-
-MyWorker worker;
-wibot::Thread<1024> thread("worker", &worker, 5);
-thread.start();
-```
-
-1. **使用设备驱动**
-
-```cpp
-// SSD1306 OLED显示屏
-wibot::SSD1306 display(i2c, 0x3C);
-display.init();
-display.print("Hello WibotLib!");
-display.refresh();
-
-// LoRa通信模块
-wibot::RolaE22 lora(uart, gpio_m0, gpio_m1);
-lora.init();
-lora.sendData(data, sizeof(data));
-```
-
-### 数据处理Pipeline示例
-
-```cpp
-// 构建温度控制系统
-AdcSource tempSensor;                 // 温度传感器
-LowPassFilter filter(&tempSensor);    // 噪声滤波
-LinearMapper mapper(&filter);         // 电压到温度转换
-PidController<1> heaterCtrl(&mapper); // PID温度控制
-
-// 配置PID参数
-PidControllerConfig config;
-config.Kp = 2.0f;
-config.Ki = 0.5f; 
-config.Kd = 0.1f;
-config.setPoint = 25.0f; // 目标温度25°C
-heaterCtrl.setConfig(config);
-
-// 控制循环
-while (true) {
-    heaterCtrl.update();
-    f32 heaterPower = heaterCtrl.getValue(0);
-    pwm.setDutyCycle(heaterPower);
-    wibot::os::sleep(100);
-}
-```
-
-### 异步编程示例
-
-```cpp
-// 异步数据读取
-AsyncSource source;
-AsyncResult result = source.getResult();
-
-// 启动异步操作
-dma.startRead(buffer, size);
-
-// 等待完成
-Result status = result.wait(1000); // 等待最多1000ms
-if (status.isOk()) {
-    // 处理接收到的数据
-} else if (status.isTimeout()) {
-    // 处理超时
-}
-```
-
 ## AI助手操作指南
 
 ### 添加新功能时
@@ -334,13 +240,12 @@ if (status.isOk()) {
 - `src/os/async.hpp`: 异步编程支持
 - `src/hal/system.hpp`: 系统级功能（延时、时钟等）
 - `src/pp/pipeline.hpp`: 数据流模型基础定义
-- `src/pp/transform/`: 数据转换器组件（新增）
 - `src/comm/protocol/`: 通信协议实现目录
 - `src/comm/crc/`: CRC校验库
 - `src/comm/modbus/`: Modbus协议实现
 - `src/app/app-framework.hpp`: 应用程序框架
-- `src/dsp/`: 数字信号处理库（新增）
-- `src/math/`: 高级数学库（新增）
+- `src/dsp/`: 数字信号处理库
+- `src/math/`: 高级数学库
 
 ## 文档资源
 
@@ -361,13 +266,3 @@ if (status.isOk()) {
 4. **内存管理**: 库使用静态内存分配，注意堆栈大小配置
 5. **中断安全**: 某些API不是中断安全的，需在文档中查看说明
 6. **线程安全**: 多线程环境下注意使用互斥锁保护共享资源
-
-## 许可证
-
-本项目采用MIT许可证。
-
-## 技术支持
-
-- **GitHub Issues**: 报告bug和功能请求
-- **文档**: 查看docs目录获取详细使用说明
-- **示例代码**: 参考example目录中的完整示例
