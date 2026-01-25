@@ -17,7 +17,7 @@ class IIR {
     struct Config {
         f32 samplePeriod;  // 采样周期（秒）。固定模式下用于预计算；可变模式下作为备用默认值
         f32 cutoffFreq;    // 截止频率（Hz）
-        f32 wrapValue;     // 折叠值（周期性数据），0表示禁用
+        f32 wrapValue;     // 周期（P）。当>0时启用周期数据处理；输入范围要求为 [0, P)
     };
 
     /**
@@ -69,7 +69,10 @@ class IIR {
 
     f32 _computeAlpha(f32 dt) const;
 
-    static f32 _wrap(f32 x, f32 w);
+    // 将值归一化到 [0, period) 区间
+    static f32 _wrapPeriod(f32 x, f32 period);
+    // 将差值归一化到 (-period/2, period/2] 区间（最短路径差）
+    static f32 _wrapDiff(f32 d, f32 period);
 
    private:
     const Config& _config;

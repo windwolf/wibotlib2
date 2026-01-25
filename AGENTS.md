@@ -107,6 +107,13 @@ root/
 - **CRC校验**: 多种CRC算法支持
 - **消息系统**: 统一的消息定义和编解码框架
 
+### 7. CMSIS-DSP 库集成
+
+- 可选集成ARM CMSIS-DSP库，充分利用ARM Cortex-M处理器的DSP指令集加速运算
+- 通过在 `project-defs.cmake` 文件中添加`option(CMSIS_DSP_ENABLED "" ON)`来开启CMSIS-DSP支持
+- 通过宏标记`CMSIS_DSP_ENABLED`实现条件编译
+- 库内部可根据宏标记切换使用CMSIS-DSP优化实现或通用实现
+
 ## 代码规范
 
 ### 编码风格
@@ -265,4 +272,5 @@ cmake --build . --config Debug
 3. **外设配置**: 硬件外设需要在STM32CubeMX中预先配置
 4. **内存管理**: 库使用静态内存分配，注意堆栈大小配置
 5. **中断安全**: 某些API不是中断安全的，需在文档中查看说明
-6. **线程安全**: 多线程环境下注意使用互斥锁保护共享资源
+6. **线程安全**: 多线程环境下注意使用互方锁保护共享资源
+7. **CMSIS-DSP集成**: 如项目中使用CMSIS-DSP库，确保CMake能正确检测并链接，WibotLib会自动启用优化实现
