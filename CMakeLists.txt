@@ -136,3 +136,4 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     wibotlib
     # Add user defined libraries
 )
+

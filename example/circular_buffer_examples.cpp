@@ -532,11 +532,11 @@ public:
       LOG_I("Packet %d: length=%d", packetCount, payloadLen);
 
       // 打印有效载荷
-      printf("  Payload: ");
+      LOG_I("  Payload: ");
       for (u32 i = 0; i < payloadLen; i++) {
-        printf("0x%02X ", payload[i]);
+        LOG_I("0x%02X ", payload[i]);
       }
-      printf("\n");
+      LOG_I("\n");
     }
 
     LOG_I("Total packets parsed: %d", packetCount);

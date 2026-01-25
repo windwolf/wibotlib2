@@ -5,32 +5,31 @@
 namespace wibot {
 
 enum class KeyEvent : u8 {
-    kNone,
-    kPress,    // 按下
-    kHold,     // 长按
-    kRelease,  // 释放
-    kClick,    // 单击（释放后）
-    kClick2,   // 连击2次
-};
-
-enum class KeyState : u8 {
-    kNone,
-    kPress,
-    kHold,
-    kRelease,
-    kReleaseHold,
+    kNone    = 0,
+    kPress   = 1,  // 按下
+    kHold    = 2,  // 长按
+    kRelease = 3,  // 释放
+    kClick   = 4,  // 单击（释放后）
+    kClick2  = 5,  // 连击2次
+    kClick3  = 6,  // 连击3次
 };
 
 /**
  * @brief 多通道按键扫描核心
- * 
- * 处理多个按键通道的事件检测，逻辑与 io 层保持一致：按下、长按、释放、单击、双击。
- * 完整的按键事件模式：
- * click once: press, release, click
- * click twice: press, release, click, press, release, click2.
- * hold: press, hold, release
- * click then hold: press, release, click, press, hold, release
- *
+ * 按键动作和事件时序如下:
+ * _表示按钮弹起状态, ‾表示按钮按下状态. -表示无事件, 1表示Press, 2表示Hold, 3表示Release, 4表示Click, 5表示Click2.
+ * 1. 单击(click once): 按下, (小于保持阈值时间内释放)单击. 如下图所示:
+ * __ˉˉ¯___
+ *   1  4
+ * 2. 双击(click twice): 按下, (小于保持阈值时间内释放)单击, (小于连击阈值内)再次按下, (小于保持阈值时间内释放)连击2. 如下图所示:
+ * __ˉˉ¯____ˉ¯ˉ¯_____
+ *   1  4   1   5    
+ * 3. 长按(hold): 按下, (超过保持阈值时间)长按, 释放. 如下图所示:
+ * __ˉˉˉˉ|ˉˉˉˉ¯_____
+ *  1    2     3
+ * 4. 两次独立的单击: 按下, (小于保持阈值时间内释放)单击, (超过连击阈值时间)再次按下, (小于保持阈值时间内释放)单击. 如下图所示:
+ * __ˉˉ¯______|__ˉˉ¯_____
+ *  1   4        1  4
  * @note 事件仅在发生的那一刻生成, 下一轮扫描会清除事件状态.
  *       因此需要及时读取事件状态. 
 
@@ -39,16 +38,31 @@ enum class KeyState : u8 {
 template <u8 CHANNELS>
 class KeyScaner {
    public:
+    enum KeyState {
+        kNone  = 0,
+        kPress = 1,
+        kHold  = 2,
+    };
+
+    union KeyStatus {
+        struct {
+            KeyState state      : 3;
+            KeyEvent event      : 3;
+            u8       clickCount : 2;  // 0~2
+        };
+        u32 raw;
+    };
+
+   public:
     struct Config {
         u16 holdThreshold{500};           // 长按阈值 (ms)
         u16 clickIntervalThreshold{300};  // 连击间隔阈值 (ms)，为0则禁用连击检测
     };
 
     struct State {
-        u16      pressTimer[CHANNELS]{};  // 按下累积时间 (ms)
-        u16      clickTimer[CHANNELS]{};  // 点击间隔累积时间 (ms)
-        KeyEvent currentEvent[CHANNELS]{KeyEvent::kNone};
-        KeyState state[CHANNELS]{KeyState::kNone};
+        u16       holdingTimer[CHANNELS]{};  // 按下累积时间 (ms)
+        u16       clickTimer[CHANNELS]{};    // 点击间隔累积时间 (ms)
+        KeyStatus state[CHANNELS]{};
     };
 
    public:
@@ -57,10 +71,9 @@ class KeyScaner {
 
     void reset() {
         for (u8 ch = 0; ch < CHANNELS; ++ch) {
-            _state.pressTimer[ch]   = 0;
+            _state.holdingTimer[ch] = 0;
             _state.clickTimer[ch]   = 0;
-            _state.currentEvent[ch] = KeyEvent::kNone;
-            _state.state[ch]        = KeyState::kNone;
+            _state.state[ch]        = {.raw = 0};
         }
     }
 
@@ -73,7 +86,7 @@ class KeyScaner {
     void scan(u32 pinStatusMask, u32 samplePeriodMs) {
         // 清除上一轮的事件状态，保证事件仅在发生的那一刻生成
         for (u8 ch = 0; ch < CHANNELS; ++ch) {
-            _state.currentEvent[ch] = KeyEvent::kNone;
+            _state.state[ch].event = KeyEvent::kNone;
         }
 
         // 处理本轮按键输入
@@ -87,75 +100,79 @@ class KeyScaner {
         if (channel >= CHANNELS) {
             return KeyEvent::kNone;
         }
-        return _state.currentEvent[channel];
+        return _state.state[channel].event;
     }
 
    private:
     void handleChannel(u8 channel, bool pressed, u32 samplePeriodMs) {
-        switch (_state.state[channel]) {
-            case KeyState::kNone:
+        auto& state = _state.state[channel];
+
+        switch (state.state) {
+            case KeyState::kNone: {
+                // 检查连击间隔阈值，超时则清除连击计数
+                if (state.clickCount > 0) {
+                    _state.clickTimer[channel] += samplePeriodMs;
+                    if (_config.clickIntervalThreshold > 0 &&
+                        _state.clickTimer[channel] >= _config.clickIntervalThreshold) {
+                        state.clickCount           = 0;
+                        _state.clickTimer[channel] = 0;
+                    }
+                }
+
+                // 新按下事件
                 if (pressed) {
-                    _state.pressTimer[channel]   = 0;
-                    _state.state[channel]        = KeyState::kPress;
-                    _state.currentEvent[channel] = KeyEvent::kPress;
+                    _state.holdingTimer[channel] = 0;
+                    state.state                  = KeyState::kPress;
+                    state.event                  = KeyEvent::kPress;
+                }
+                break;
+            }
+
+            case KeyState::kPress: {
+                // 累积按下时间
+                _state.holdingTimer[channel] += samplePeriodMs;
+
+                // 检查是否超过长按阈值
+                if (_state.holdingTimer[channel] >= _config.holdThreshold) {
+                    // 如果超时未松开, 生成Hold事件; 如果超时松开(边界条件), 也要生成Hold事件, Release事件在下一轮处理;
+                    state.state = KeyState::kHold;
+                    state.event = KeyEvent::kHold;
                 } else {
-                    // 累积点击间隔时间，用于连击检测
-                    u32 newClickTimer = _state.clickTimer[channel] + samplePeriodMs;
-                    if (newClickTimer < 65536) {  // 防止 u16 溢出
-                        _state.clickTimer[channel] = static_cast<u16>(newClickTimer);
+                    if (!pressed) {
+                        // 短按释放
+                        if (_config.clickIntervalThreshold == 0) {
+                            // 不支持连击，直接生成单击事件
+                            state.event      = KeyEvent::kClick;
+                            state.clickCount = 0;
+                        } else {
+                            if (state.clickCount == 0) {
+                                state.event      = KeyEvent::kClick;
+                                state.clickCount = 1;
+                            } else if (state.clickCount == 1) {
+                                state.event      = KeyEvent::kClick2;
+                                state.clickCount = 2;
+                            } else if (state.clickCount == 2) {
+                                state.event      = KeyEvent::kClick3;
+                                state.clickCount = 0;
+                            }
+                        }
+                        state.state                = KeyState::kNone;
+                        _state.clickTimer[channel] = 0;
                     }
                 }
                 break;
+            }
 
-            case KeyState::kPress:
-                if (pressed) {
-                    u32 newTimer = _state.pressTimer[channel] + samplePeriodMs;
-                    if (newTimer > _config.holdThreshold) {
-                        _state.state[channel]        = KeyState::kHold;
-                        _state.currentEvent[channel] = KeyEvent::kHold;
-                        _state.pressTimer[channel]   = 0;
-                    } else {
-                        _state.pressTimer[channel] = static_cast<u16>(newTimer);
-                    }
-                } else {
-                    _state.state[channel]        = KeyState::kRelease;
-                    _state.currentEvent[channel] = KeyEvent::kRelease;
-                }
-                break;
-
-            case KeyState::kHold:
+            case KeyState::kHold: {
                 if (!pressed) {
-                    _state.state[channel]        = KeyState::kReleaseHold;
-                    _state.currentEvent[channel] = KeyEvent::kRelease;
-                }
-                break;
-
-            case KeyState::kRelease:
-                _state.state[channel] = KeyState::kNone;
-
-                // 根据时间间隔判断是否为连击；阈值为0则禁用连击检测
-                KeyEvent clickEvent;
-                if (_config.clickIntervalThreshold == 0) {
-                    clickEvent                 = KeyEvent::kClick;
-                    _state.clickTimer[channel] = 0;
-                } else if (_state.clickTimer[channel] < _config.clickIntervalThreshold &&
-                           _state.clickTimer[channel] != 0) {
-                    // 在间隔内且有前置点击事件，判断为连击
-                    clickEvent                 = KeyEvent::kClick2;
-                    _state.clickTimer[channel] = 0;
-                } else {
-                    // 首次点击或超过间隔，重新开始
-                    clickEvent                 = KeyEvent::kClick;
+                    // 长按释放
+                    state.state                = KeyState::kNone;
+                    state.event                = KeyEvent::kRelease;
+                    state.clickCount           = 0;
                     _state.clickTimer[channel] = 0;
                 }
-
-                _state.currentEvent[channel] = clickEvent;
                 break;
-
-            case KeyState::kReleaseHold:
-                _state.state[channel]      = KeyState::kNone;
-                _state.clickTimer[channel] = 0;  // 长按后重置，不算连击
-                break;
+            }
         }
     }
 

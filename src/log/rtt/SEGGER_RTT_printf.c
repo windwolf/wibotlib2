@@ -244,7 +244,7 @@ static void _PrintInt(SEGGER_RTT_PRINTF_DESC * pBufferDesc, int v, unsigned Base
   if ((FieldWidth > 0u) && ((v < 0) || ((FormatFlags & FORMAT_FLAG_PRINT_SIGN) == FORMAT_FLAG_PRINT_SIGN))) {
     FieldWidth--;
   }
-
+ 
   //
   // Print leading spaces if necessary
   //

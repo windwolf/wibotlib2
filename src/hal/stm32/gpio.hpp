@@ -22,8 +22,9 @@ namespace wibot {
 class Pin {
    public:
     struct Config {
-        GPIO_TypeDef* port;  ///< GPIO端口（GPIOA, GPIOB等）
-        u16           pin;   ///< GPIO引脚（GPIO_PIN_0, GPIO_PIN_1等）
+        GPIO_TypeDef* port;             ///< GPIO端口（GPIOA, GPIOB等）
+        u16           pin;              ///< GPIO引脚（GPIO_PIN_0, GPIO_PIN_1等）
+        bool          inverse = false;  ///< 是否取反，true表示逻辑取反
     };
 
    public:
@@ -59,9 +60,7 @@ class Pin {
     void setConfig(bool inverse);
 
    private:
-    Config _pin;      ///< GPIO引脚配置
-    bool   _inverse;  ///< 取反配置参数
+    Config _pin;  ///< GPIO引脚配置
 };
 
-} // namespace wibot
-
+}  // namespace wibot

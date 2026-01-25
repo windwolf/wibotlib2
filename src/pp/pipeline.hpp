@@ -227,5 +227,4 @@ class PipelineChainBuilder {
     u8 _edgeCount;
 };
 
-} // namespace wibot
-
+}  // namespace wibot
