@@ -167,5 +167,4 @@ class LinkList {
     LinkList *_next;
 };
 
-
 }  // namespace wibot

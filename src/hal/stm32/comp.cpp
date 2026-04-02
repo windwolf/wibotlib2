@@ -1,5 +1,4 @@
 #include "comp.hpp"
-#include "stm32g4xx_hal_comp.h"
 #ifdef HAL_COMP_MODULE_ENABLED
 namespace wibot {
 

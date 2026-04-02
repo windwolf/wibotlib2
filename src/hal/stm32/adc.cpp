@@ -1,8 +1,5 @@
-
-#include "hal/stm32/adc.hpp"
 #include "adc.hpp"
-#include "stm32g4xx_hal_adc.h"
-
+#ifdef HAL_ADC_MODULE_ENABLED
 namespace wibot {
 
 AdcRegularSource::AdcRegularSource(ADC_HandleTypeDef& hadc, const Config& config)
@@ -110,3 +107,5 @@ void AdcRegularSource::onError(ADC_HandleTypeDef* instance) {
 }
 
 }  // namespace wibot
+
+#endif

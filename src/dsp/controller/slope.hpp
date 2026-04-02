@@ -121,4 +121,79 @@ class SlopeTrajectory {
     State   _state;
 };
 
+template <typename T>
+    requires SupportInt<T> or SupportUint<T>
+class SlopeTrajectoryFast {
+   public:
+    struct Config {
+        u32  slopeRate;                    // 斜坡速率 (单位/秒)
+        bool enableClamp{false};           // 是否启用最大最小值钳位
+        T    minValue{static_cast<T>(0)};  // 最小值限制
+        T    maxValue{static_cast<T>(0)};  // 最大值限制
+    };
+    struct State {
+        T output{static_cast<T>(0)};
+        T setPoint{static_cast<T>(0)};
+    };
+
+   public:
+    explicit SlopeTrajectoryFast(Config& config) : _config(config), _state() {
+    }
+
+    void reset() {
+        _state.output   = static_cast<T>(0);
+        _state.setPoint = static_cast<T>(0);
+    }
+
+    void setInitialValue(T value) {
+        _state.output   = clampValue(value);
+        _state.setPoint = _state.output;
+    }
+
+    T update(T setPoint, u32 samplePeriodMs) {
+        _state.setPoint = clampValue(setPoint);
+
+        // 计算最大变化量
+        T maxChange = static_cast<T>(_config.slopeRate * samplePeriodMs / 1000);
+        if (maxChange == 0) {
+            maxChange = 1;  // 最小步进
+        }
+
+        // 使用比较避免无符号数下溢
+        if (_state.setPoint > _state.output) {
+            T error = _state.setPoint - _state.output;
+            _state.output += std::min(error, maxChange);
+        } else if (_state.setPoint < _state.output) {
+            T error = _state.output - _state.setPoint;
+            _state.output -= std::min(error, maxChange);
+        }
+        // 否则相等，无需改变
+
+        return _state.output;
+    }
+
+    bool isReached() const
+        requires std::is_integral_v<T>
+    {
+        return _state.output == _state.setPoint;
+    }
+
+   private:
+    T clampValue(T value) const {
+        if (!_config.enableClamp) {
+            return value;
+        }
+        if (_config.minValue > _config.maxValue) {
+            return value;
+        }
+        if (value < _config.minValue) return _config.minValue;
+        if (value > _config.maxValue) return _config.maxValue;
+        return value;
+    }
+
+   private:
+    Config& _config{};
+    State   _state;
+};
+
 }  // namespace wibot

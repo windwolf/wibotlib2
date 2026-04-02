@@ -41,18 +41,28 @@ void WibotRcTelemetry::processCommandFrame(const MessageFrame& frame) {
 };
 
 void WibotRcController::setThrottle(f32 throttle) {
+    _throttle = throttle * 2000;  // scale to 0-2000 for DShot command
+};
+
+void WibotRcController::setThrottle(u16 throttle) {
     _throttle = throttle;
 };
 
-void WibotRcController::run() {
-    while (true) {
-        _slopedThrottle   = _trajectory.update(_throttle, System::getTickMs());
-        auto dshotCommand = static_cast<u16>(_slopedThrottle * 2000.0f + 48.0f);
-        auto rst          = _dshot.send(_timChannel, dshotCommand, false);
-        rst.wait(TIMEOUT_NOWAIT);
-        sleep(1);
-    }
-}
+void WibotRcController::init() {
+    _throttle       = 0;
+    _slopedThrottle = 0;
+    _trajectory.setInitialValue(0);
+    _lastUpdateTick = System::getTickMs();
+};
+
+void WibotRcController::doLoop() {
+    auto tick         = System::getTickMs();
+    _slopedThrottle   = _trajectory.update(_throttle, _lastUpdateTick - tick);
+    _lastUpdateTick   = tick;
+    auto dshotCommand = static_cast<u16>(_slopedThrottle + 48);
+    auto rst          = _dshot.send(_timChannel, dshotCommand, false);
+    rst.wait(TIMEOUT_NOWAIT);
+};
 
 }  // namespace wibot
 

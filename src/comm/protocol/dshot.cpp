@@ -91,7 +91,7 @@ u16 add_checksum(u16 packet_telemetry) {
 
 AsyncResult DShot::send(u8 channel, u16 command, bool telemetry) {
     u32 halChannel = 0;
-    switch (command) {
+    switch (channel) {
         case 1:
             halChannel = TIM_CHANNEL_1;
             break;

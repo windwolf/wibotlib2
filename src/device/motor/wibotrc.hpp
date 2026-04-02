@@ -10,6 +10,7 @@
 #include "dsp/controller/slope.hpp"
 #include "type.hpp"
 #include "hal/stm32/uart.hpp"
+#include "control-loop.hpp"
 
 #if defined(HAL_TIM_MODULE_ENABLED) && defined(HAL_UART_MODULE_ENABLED)
 
@@ -18,28 +19,33 @@ extern "C" struct WibotRcState {
     /**
    * 100 rpm
    */
-    uint16_t erpm;
+    u16 erpm;
     /**
-   * 1 degree. 0-255C
+   * 1 degree. 0-255C 
    */
-    uint8_t  temperature;
+    u8  temperature;
     /**
    * 0.01V
    */
-    uint16_t voltage;
+    u16 voltage;
     /**
    * 0.01A
    */
-    uint16_t current;
+    u16 current;
 
     /**
    * mAH
    */
-    uint16_t consumption;
+    u16 consumption;
 };
 
 class WibotRcTelemetry : public RxServer {
    public:
+    /**
+    * @brief Construct a new Wibot Rc Telemetry object
+    * 
+    * @param uart 115200 baud, 8N1, no flow control
+    */
     WibotRcTelemetry(UART_HandleTypeDef& uart);
 
    public:
@@ -76,28 +82,42 @@ class WibotRcTelemetry : public RxServer {
     WibotRcState    _state{};
 };
 
-class WibotRcController : public Worker {
+class WibotRcController : public EventDrivenControlLoop {
    public:
-    WibotRcController(TIM_HandleTypeDef& tim, u8 timChannel)
-        : _dshot(tim), _timChannel(timChannel) {};
+    WibotRcController(TIM_HandleTypeDef& tim, u8 timChannel, u16 slopeRate = 2000 /* unit/s */)
+        : _dshot(tim),
+          _timChannel(timChannel),
+          _slopeConfig{
+              .slopeRate = slopeRate, .enableClamp = false, .minValue = 0, .maxValue = 2000},
+          _trajectory(_slopeConfig) {};
 
    public:
+    /**
+    * @brief Set the Throttle object
+    * 
+    * @param throttle 0.0 - 1.0
+    */
     void setThrottle(f32 throttle);
 
-   private:
-    void run() override;
+    /**
+     * @brief Set the Throttle object
+     * 
+     * @param throttle 0 - 2000
+     */
+    void setThrottle(u16 throttle);
+
+    void init() override;
+    void doLoop() override;
 
    private:
-    DShot                        _dshot;
-    u8                           _timChannel;
-    f32                          _throttle;
-    f32                          _slopedThrottle{0.0f};
-    SlopeTrajectory<f32>::Config _slopeConfig{.slopeRate   = 1.0f,  // 1 unit per second
-                                              .enableClamp = false,
+    DShot                            _dshot;
+    u8                               _timChannel;
+    u16                              _throttle;
+    u16                              _slopedThrottle;
+    SlopeTrajectoryFast<u16>::Config _slopeConfig;
+    SlopeTrajectoryFast<u16>         _trajectory;
 
-                                              .minValue = 0.0f,
-                                              .maxValue = 1.0f};
-    SlopeTrajectory<f32>         _trajectory{_slopeConfig};
+    u32 _lastUpdateTick = 0;
 };
 
 }  // namespace wibot

@@ -20,7 +20,7 @@ class DShot : private PeripheralBase {
     ~DShot();
 
     /**
-     * @brief 
+     * @brief 发送一个DShot命令
      * 
      * @param channel 1-6
      * @param command 
@@ -28,8 +28,6 @@ class DShot : private PeripheralBase {
      * @return AsyncResult 
      */
     AsyncResult send(u8 channel, u16 command, bool telemetry);
-
-    void sendComplete(Result result);
 
    private:
     static void onCplt(TIM_HandleTypeDef* tim);
