@@ -7,7 +7,7 @@
 
 #include "hal/system.hpp"
 
-#if defined(HAL_TIM_MODULE_ENABLED)
+#ifdef HAL_TIM_MODULE_ENABLED
 
 namespace wibot {
 
