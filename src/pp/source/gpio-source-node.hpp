@@ -79,10 +79,10 @@ class GpioDigitalSourceNode : public INode {
         // 逐个读取每个通道的GPIO状态
         for (u8 i = 0; i < CHANNELS; i++) {
             if (_config.pins[i].port != nullptr) {
-                GPIO_PinState pinState =
-                    HAL_GPIO_ReadPin(_config.pins[i].port, _config.pins[i].pin);
-                if (pinState == GPIO_PIN_SET) {
-                    result |= (1U << i);  // 设置对应位
+                bool state =
+                    HAL_GPIO_ReadPin(_config.pins[i].port, _config.pins[i].pin) == GPIO_PIN_SET;
+                if (state ^ _config.pins[i].inverse) {
+                    result |= (1U << i);
                 }
             }
         }
