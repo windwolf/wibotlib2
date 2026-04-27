@@ -22,7 +22,7 @@ typedef struct __attribute__((packed)) {
 } kiss_telem_pkt_t;
 
 WibotRcTelemetry::WibotRcTelemetry(UART_HandleTypeDef& uart)
-    : RxServer(_reader), _uart{uart, "escrx", _msgCircBuffer} {};
+    : RxServer(_reader), _uart{uart, "escrx", &_msgCircBuffer} {};
 
 bool WibotRcTelemetry::validateFrame(const MessageFrame& frame) {
     _crcValidator.reset();
@@ -40,14 +40,6 @@ void WibotRcTelemetry::processCommandFrame(const MessageFrame& frame) {
     _state.consumption = buf->consumption_h << 8 | buf->consumption_l;  // mAH
 };
 
-void WibotRcController::setThrottle(f32 throttle) {
-    _throttle = throttle * 2000;  // scale to 0-2000 for DShot command
-};
-
-void WibotRcController::setThrottle(u16 throttle) {
-    _throttle = throttle;
-};
-
 void WibotRcController::init() {
     _throttle       = 0;
     _slopedThrottle = 0;
@@ -56,11 +48,19 @@ void WibotRcController::init() {
 };
 
 void WibotRcController::doLoop() {
-    auto tick         = System::getTickMs();
-    _slopedThrottle   = _trajectory.update(_throttle, _lastUpdateTick - tick);
-    _lastUpdateTick   = tick;
-    auto dshotCommand = static_cast<u16>(_slopedThrottle + 48);
-    auto rst          = _dshot.send(_timChannel, dshotCommand, false);
+    u16 dShotCommand;
+    if (_command != WibotRcCommand::kNone) {
+        dShotCommand = static_cast<u16>(_command);
+    } else {
+        auto tick       = System::getTickMs();
+        _slopedThrottle = _trajectory.update(_throttle, tick - _lastUpdateTick);
+        _lastUpdateTick = tick;
+        dShotCommand    = static_cast<u16>(
+            _slopedThrottle +
+            47);  //实测发现+48后电机会有轻微的抖动，可能是因为接近DShot的最小有效命令47，所以这里取48-1=47来避免抖动
+    }
+
+    auto rst = _dshot.send(_timChannel, dShotCommand, false);
     rst.wait(TIMEOUT_NOWAIT);
 };
 

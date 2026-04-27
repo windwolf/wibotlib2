@@ -15,8 +15,7 @@ namespace wibot {
  */
 class Uart : public UartStream, public PeripheralBase {
    public:
-    Uart(UART_HandleTypeDef &handle, const char *name, CircularBuffer8 &rxBuffer);
-    Uart(UART_HandleTypeDef &handle, const char *name);
+    Uart(UART_HandleTypeDef &handle, const char *name, CircularBuffer8 *rxBuffer = nullptr);
     ~Uart();
     Result setConfig(UartConfig &config) override;
 

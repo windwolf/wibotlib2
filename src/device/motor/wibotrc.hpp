@@ -82,10 +82,15 @@ class WibotRcTelemetry : public RxServer {
     WibotRcState    _state{};
 };
 
+enum class WibotRcCommand : u8 {
+    kNone = 0xFF,
+    kStop = 0,
+};
+
 class WibotRcController : public EventDrivenControlLoop {
    public:
     WibotRcController(TIM_HandleTypeDef& tim, u8 timChannel, u16 slopeRate = 2000 /* unit/s */)
-        : _dshot(tim),
+        : _dshot(tim, DShotProtocol::DShot600),
           _timChannel(timChannel),
           _slopeConfig{
               .slopeRate = slopeRate, .enableClamp = false, .minValue = 0, .maxValue = 2000},
@@ -97,14 +102,29 @@ class WibotRcController : public EventDrivenControlLoop {
     * 
     * @param throttle 0.0 - 1.0
     */
-    void setThrottle(f32 throttle);
+    void setThrottle(u16 throttle) {
+        _command = WibotRcCommand::kNone;
+        _throttle = throttle;
 
+    };
     /**
      * @brief Set the Throttle object
      * 
      * @param throttle 0 - 2000
      */
-    void setThrottle(u16 throttle);
+    void setThrottle(f32 throttle) {
+        _command = WibotRcCommand::kNone;
+        _throttle = throttle * 2000;  // scale to 0-2000 for DShot command
+    };
+
+    void setCommand(WibotRcCommand cmd) {
+        _command  = cmd;
+        _throttle = 0;
+    };
+
+    u16 getSlopedThrottle() const {
+        return _slopedThrottle;
+    };
 
     void init() override;
     void doLoop() override;
@@ -113,6 +133,7 @@ class WibotRcController : public EventDrivenControlLoop {
     DShot                            _dshot;
     u8                               _timChannel;
     u16                              _throttle;
+    WibotRcCommand                               _command;
     u16                              _slopedThrottle;
     SlopeTrajectoryFast<u16>::Config _slopeConfig;
     SlopeTrajectoryFast<u16>         _trajectory;
