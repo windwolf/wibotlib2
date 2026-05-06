@@ -8,13 +8,15 @@
 #define STM32G4xx
 #endif
 
-#if defined(STM32G031xx)
+#if defined(STM32G031xx) || defined(STM32G071xx)
 #define STM32G0xx
 #endif
 
 #if defined(STM32H750xx)
 #define STM32H7xx
 #endif
+
+//-------------------
 
 #if defined(STM32F1xx)
 #define CORTEX_M3

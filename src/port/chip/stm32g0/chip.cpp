@@ -1,7 +1,6 @@
 //
 // Created by zhouj on 2023/9/12.
 //
-#include "stm32g031xx.h"
 #include "hal/system.hpp"
 namespace wibot {
 
