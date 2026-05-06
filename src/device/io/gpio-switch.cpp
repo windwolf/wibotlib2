@@ -6,7 +6,13 @@
 #include "hal/system.hpp"
 namespace wibot {
 GpioSwitch::GpioSwitch(Pin& pinIn, Pin& pinOut, GpioSwitch::Mode mode, u32 delay)
-    : _pinIn(pinIn), _pinOut(pinOut), _mode(mode), _delay(delay) {
+    : _pinIn(pinIn),
+      _pinOut(pinOut),
+      _mode(mode),
+      _delay(delay),
+      _lastInState(pinIn.getValue()),
+      _lastInTriggerTick(System::getTickMs()),
+      _outState(pinOut.getValue()) {
 }
 
 void GpioSwitch::update() {

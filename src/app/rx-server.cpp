@@ -2,10 +2,12 @@
 #include "buffer.hpp"
 
 #include "logger.hpp"
-LOGGER("cmdsrv")
+#include "type.hpp"
+
+LOGGER("rxsvr")
 
 namespace wibot {
-RxServer::RxServer(MessageReader& reader) : _reader(reader) {
+RxServer::RxServer(MessageReader& reader, u32 timeoutMs) : _reader(reader), _timeoutMs(timeoutMs) {
 }
 
 RxServer::~RxServer() {
@@ -16,7 +18,9 @@ void RxServer::run() {
     MessageFrame                     frame(_frameBuffer);
     Result                           rst;
 
-    startServer(true);
+    rst = startServer(true);
+    ASSERT(!rst.isError(), "Failed to start command server. Error code: %u",
+           (unsigned int)rst.getErrorCode());
 
     while (true) {
         rst = _reader.read(frame, _timeoutMs);
@@ -27,7 +31,8 @@ void RxServer::run() {
                 LOG_W("Invalid frame received.");
             }
         } else if (rst.isError()) {
-            LOG_E("Error occurred when reading message frame: %d", rst.isError());
+            LOG_E("Error occurred when reading message frame: %u",
+                  (unsigned int)rst.getErrorCode());
             stopServer(true);
             startServer(true);
         } else if (rst.isTimeout()) {

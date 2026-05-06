@@ -5,7 +5,20 @@ namespace wibot {
 template <typename T>
 class FsmExecutor {
    public:
-   
+    FsmExecutor() : _currentState{} {
+    }
+
+    explicit FsmExecutor(T initialState) : _currentState(initialState) {
+    }
+
+    void setState(T state) {
+        _currentState = state;
+    }
+
+    T getState() const {
+        return _currentState;
+    }
+
    public:
     void update() {
         T fromState = _currentState;

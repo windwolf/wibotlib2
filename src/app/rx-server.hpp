@@ -12,7 +12,7 @@
 namespace wibot {
 class RxServer : public Worker {
    public:
-    RxServer(MessageReader& reader);
+    RxServer(MessageReader& reader, u32 timeoutMs = 1000);
     ~RxServer();
 
    public:

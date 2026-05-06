@@ -21,6 +21,8 @@ WaitHandler::WaitHandler() : _isRef(false), _autoReset(true), _triggers(nullptr)
 WaitHandler::WaitHandler(const WaitHandler& other) {
     _fetchResult = other._fetchResult;
     _isRef       = true;
+    _autoReset   = other._autoReset;
+    _triggers    = nullptr;
 }
 
 WaitHandler::~WaitHandler() {

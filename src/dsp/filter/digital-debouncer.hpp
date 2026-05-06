@@ -50,7 +50,7 @@ class DigitalDebouncer {
     }
 
     void updateRawValues(u32 rawValues) {
-        _state.rawStatus = rawValues;
+        _state.rawStatus = rawValues & channelMask();
     }
 
     /**
@@ -63,7 +63,7 @@ class DigitalDebouncer {
         if (_state.isFirstValue) {
             _state.isFirstValue       = false;
             _state.lastBufferedStatus = _state.rawStatus;
-            _state.lastOutputStatus   = _state.rawStatus ^ _config.inverse;
+            _state.lastOutputStatus   = (_state.rawStatus ^ _config.inverse) & channelMask();
 
             if (_config.debounceTimeMs > 0) {
                 for (u8 i = 0; i < CHANNELS; ++i) {
@@ -75,16 +75,16 @@ class DigitalDebouncer {
 
         // 不启用去抖时，直接反转输出
         if (_config.debounceTimeMs == 0) {
-            _state.lastOutputStatus = _state.rawStatus ^ _config.inverse;
+            _state.lastOutputStatus = (_state.rawStatus ^ _config.inverse) & channelMask();
             return _state.lastOutputStatus;
         }
 
         // 去抖逻辑
-        u32 changedChannels = _state.rawStatus ^ _state.lastBufferedStatus;
+        u32 changedChannels = (_state.rawStatus ^ _state.lastBufferedStatus) & channelMask();
 
         if (changedChannels != 0) {
             // 更新缓冲状态，重置变化通道的去抖计时器
-            _state.lastBufferedStatus = _state.rawStatus;
+            _state.lastBufferedStatus = _state.rawStatus & channelMask();
             for (u8 i = 0; i < CHANNELS; ++i) {
                 if (changedChannels & (1U << i)) {
                     _state.debounceTimers[i] = 0;
@@ -119,11 +119,12 @@ class DigitalDebouncer {
             }
         }
 
+        _state.lastOutputStatus &= channelMask();
         return _state.lastOutputStatus;
     }
 
     u32 getOutput() const {
-        return _state.lastOutputStatus;
+        return _state.lastOutputStatus & channelMask();
     }
 
     bool getChannel(u8 channel) const {
@@ -135,9 +136,18 @@ class DigitalDebouncer {
 
     void setConfig(Config config) {
         _config = config;
+        _config.inverse &= channelMask();
     }
 
    private:
+    static constexpr u32 channelMask() {
+        if constexpr (CHANNELS >= 32) {
+            return UINT32_MAX;
+        } else {
+            return (static_cast<u32>(1) << CHANNELS) - 1U;
+        }
+    }
+
     Config& _config{};
     State   _state;
 };

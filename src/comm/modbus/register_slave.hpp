@@ -222,32 +222,32 @@ class RegisterSlaveHandler : public RegisterSlaveHandlerBase, public IModbusSlav
         // 查找起始寄存器
         i16 regIndex = findRegisterIndex(type, addr);
         if (regIndex < 0) {
-            return Result::kErrorInvalidParameter;
+            return Result::kInvalidParameter;
         }
 
         // 检查读权限
         if (!checkAccess(regIndex, true)) {
-            return Result::kErrorPermissionDenied;
+            return Result::kNotSupport;
         }
 
         const auto& regInfo = kRegisterInfos[regIndex];
 
         // 检查是否跨寄存器定义
         if (addr + count > regInfo.address + regInfo.registerCount) {
-            return Result::kErrorInvalidParameter;
+            return Result::kInvalidParameter;
         }
 
         // 确保输出缓冲区足够大
-        if (data.length() < count * 2) {
-            return Result::kErrorBufferTooSmall;
+        if (data.size < count * 2) {
+            return Result::kNoResource;
         }
 
         // 通过回调读取数据
         if (!_readCallback) {
-            return Result::kErrorNotImplemented;
+            return Result::kNotSupport;
         }
 
-        u16* outData = reinterpret_cast<u16*>(data.data());
+        u16* outData = reinterpret_cast<u16*>(data.data);
         for (u16 i = 0; i < count; ++i) {
             u16 currentAddr   = addr + i;
             u16 offset        = currentAddr - regInfo.address;
@@ -257,7 +257,7 @@ class RegisterSlaveHandler : public RegisterSlaveHandlerBase, public IModbusSlav
             if (currentAddr >= regInfo.address + regInfo.registerCount) {
                 currentRegIdx = findRegisterIndex(type, currentAddr);
                 if (currentRegIdx < 0 || !checkAccess(currentRegIdx, true)) {
-                    return Result::kErrorInvalidParameter;
+                    return Result::kInvalidParameter;
                 }
             }
 
@@ -276,32 +276,32 @@ class RegisterSlaveHandler : public RegisterSlaveHandlerBase, public IModbusSlav
         // 查找起始寄存器
         i16 regIndex = findRegisterIndex(type, addr);
         if (regIndex < 0) {
-            return Result::kErrorInvalidParameter;
+            return Result::kInvalidParameter;
         }
 
         // 检查写权限
         if (!checkAccess(regIndex, false)) {
-            return Result::kErrorPermissionDenied;
+            return Result::kNotSupport;
         }
 
         const auto& regInfo = kRegisterInfos[regIndex];
 
         // 检查是否跨寄存器定义
         if (addr + count > regInfo.address + regInfo.registerCount) {
-            return Result::kErrorInvalidParameter;
+            return Result::kInvalidParameter;
         }
 
         // 确保输入缓冲区足够大
-        if (data.length() < count * 2) {
-            return Result::kErrorBufferTooSmall;
+        if (data.size < count * 2) {
+            return Result::kNoResource;
         }
 
         // 通过回调写入数据
         if (!_writeCallback) {
-            return Result::kErrorNotImplemented;
+            return Result::kNotSupport;
         }
 
-        const u16* inData = reinterpret_cast<const u16*>(data.data());
+        const u16* inData = reinterpret_cast<const u16*>(data.data);
         for (u16 i = 0; i < count; ++i) {
             u16 currentAddr   = addr + i;
             u16 offset        = currentAddr - regInfo.address;
@@ -311,7 +311,7 @@ class RegisterSlaveHandler : public RegisterSlaveHandlerBase, public IModbusSlav
             if (currentAddr >= regInfo.address + regInfo.registerCount) {
                 currentRegIdx = findRegisterIndex(type, currentAddr);
                 if (currentRegIdx < 0 || !checkAccess(currentRegIdx, false)) {
-                    return Result::kErrorInvalidParameter;
+                    return Result::kInvalidParameter;
                 }
             }
 
@@ -484,23 +484,23 @@ class RegisterSlaveHandlerWithDefaults : public RegisterSlaveHandler<RegDefs...>
         // 查找起始寄存器
         i16 regIndex = this->findRegisterIndex(type, addr);
         if (regIndex < 0) {
-            return Result::kErrorInvalidParameter;
+            return Result::kInvalidParameter;
         }
 
         if (!this->checkAccess(regIndex, true)) {
-            return Result::kErrorPermissionDenied;
+            return Result::kNotSupport;
         }
 
         const auto& regInfo = Base::kRegisterInfos[regIndex];
         if (addr + count > regInfo.address + regInfo.registerCount) {
-            return Result::kErrorInvalidParameter;
+            return Result::kInvalidParameter;
         }
 
-        if (data.length() < count * 2) {
-            return Result::kErrorBufferTooSmall;
+        if (data.size < count * 2) {
+            return Result::kNoResource;
         }
 
-        u16* outData = reinterpret_cast<u16*>(data.data());
+        u16* outData = reinterpret_cast<u16*>(data.data);
         for (u16 i = 0; i < count; ++i) {
             u16 currentAddr = addr + i;
             u16 offset      = currentAddr - regInfo.address;
@@ -528,23 +528,23 @@ class RegisterSlaveHandlerWithDefaults : public RegisterSlaveHandler<RegDefs...>
         // 查找起始寄存器
         i16 regIndex = this->findRegisterIndex(type, addr);
         if (regIndex < 0) {
-            return Result::kErrorInvalidParameter;
+            return Result::kInvalidParameter;
         }
 
         if (!this->checkAccess(regIndex, false)) {
-            return Result::kErrorPermissionDenied;
+            return Result::kNotSupport;
         }
 
         const auto& regInfo = Base::kRegisterInfos[regIndex];
         if (addr + count > regInfo.address + regInfo.registerCount) {
-            return Result::kErrorInvalidParameter;
+            return Result::kInvalidParameter;
         }
 
-        if (data.length() < count * 2) {
-            return Result::kErrorBufferTooSmall;
+        if (data.size < count * 2) {
+            return Result::kNoResource;
         }
 
-        const u16* inData = reinterpret_cast<const u16*>(data.data());
+        const u16* inData = reinterpret_cast<const u16*>(data.data);
         for (u16 i = 0; i < count; ++i) {
             u16 currentAddr = addr + i;
             u16 offset      = currentAddr - regInfo.address;

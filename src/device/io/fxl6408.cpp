@@ -91,7 +91,7 @@ void Fxl6408I2c::disablePull(Fxl6408Pins pins) {
     auto ar = _i2c.readReg(0x0B, e);
     ar.wait(TIMEOUT_FOREVER);
     e &= ~pins;
-    _i2c.writeReg(0x0B, e);
+    ar = _i2c.writeReg(0x0B, e);
     ar.wait(TIMEOUT_FOREVER);
 }
 void Fxl6408I2c::configInterruptMask(Fxl6408Pins masks) {

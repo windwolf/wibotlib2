@@ -20,16 +20,15 @@ AsyncResult Tm1652::setup(u8 brightness, u8 current, u8 mode) {
 }
 
 AsyncResult Tm1652::updateDisplay(u8* data, u8 length, u8 startGrid) {
-    if (length > 6 || length == 0 || startGrid > 7) {
+    if (data == nullptr || length > 6 || length == 0 || startGrid > 7 ||
+        startGrid + length > 8) {
         return AsyncResult::fromError(Result::kInvalidParameter);
     }
 
     _cmdBuf[0] = ((startGrid & 0x07) << 5) | 0x08;
-    _cmdBuf[1] = data[4];
-    _cmdBuf[2] = data[3];
-    _cmdBuf[3] = data[2];
-    _cmdBuf[4] = data[1];
-    _cmdBuf[5] = data[0];
+    for (u8 i = 0; i < length; ++i) {
+        _cmdBuf[i + 1] = data[length - 1 - i];
+    }
 
     return _uart.write(Slice(_cmdBuf, length + 1));
 }

@@ -22,7 +22,7 @@ typedef struct __attribute__((packed)) {
 } kiss_telem_pkt_t;
 
 WibotRcTelemetry::WibotRcTelemetry(UART_HandleTypeDef& uart)
-    : RxServer(_reader), _uart{uart, "escrx", &_msgCircBuffer} {};
+    : RxServer(_reader, TIMEOUT_FOREVER), _uart{uart, "escrx", &_msgCircBuffer} {};
 
 bool WibotRcTelemetry::validateFrame(const MessageFrame& frame) {
     _crcValidator.reset();
@@ -42,6 +42,7 @@ void WibotRcTelemetry::processCommandFrame(const MessageFrame& frame) {
 
 void WibotRcController::init() {
     _throttle       = 0;
+    _command        = WibotRcCommand::kStop;
     _slopedThrottle = 0;
     _trajectory.setInitialValue(0);
     _lastUpdateTick = System::getTickMs();

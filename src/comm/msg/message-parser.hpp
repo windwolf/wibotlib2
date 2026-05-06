@@ -260,6 +260,8 @@ class MessageParser {
     u32 _parseLength(const MessageLengthSchema* lengthSchema,
                      u8 (&buf)[kMessageParserCmdLengthCrcBufferSize]) const;
 
+    bool _validateCrc() const;
+
     void _prepareFrame();
 };
 

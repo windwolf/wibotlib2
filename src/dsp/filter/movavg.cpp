@@ -9,9 +9,7 @@ MovingAverage::MovingAverage(const Config& cfg) : _config(cfg) {
 }
 
 bool MovingAverage::applyConfig() {
-    if (!isConfigValid(_config)) {
-        return false;
-    }
+    ASSERT(isConfigValid(_config), "Invalid MovingAverage config");
     _designWindow(_config.samplePeriod);
     _lastDesignPeriod = _config.samplePeriod;
     return true;

@@ -11,7 +11,7 @@
 #define MT6701_I2C_ANGLE_L6 0x04
 
 namespace wibot {
-Mt6701I2c::Mt6701I2c(I2cMaster& i2c) : _i2c(i2c) {
+Mt6701I2c::Mt6701I2c(I2cMaster& i2c) : _i2c(i2c), _value(0) {
     _i2c.setTransitionConfig(MT6701_I2C_ADDRESS);
 };
 

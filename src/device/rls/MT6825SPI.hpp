@@ -15,7 +15,7 @@ struct MT6825SpiConfig {};
 
 class Mt6825Spi {
    public:
-    Mt6825Spi(SpiMaster& spi) : _spi(spi) {};
+    Mt6825Spi(SpiMaster& spi) : _spi(spi), _angle(0) {};
 
     u32 GetAngle();
 
@@ -24,6 +24,7 @@ class Mt6825Spi {
    private:
     SpiMaster& _spi;
     u8         _cmd[4];
+    u32        _angle;
 };
 
 } // namespace wibot

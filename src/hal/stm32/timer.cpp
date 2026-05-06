@@ -14,11 +14,16 @@ Timer::Timer(TIM_HandleTypeDef& htim) : _instance(&htim), _updateEventSource() {
 }
 
 Timer::~Timer() {
+    HAL_TIM_Base_Stop_IT(_instance);
+    HAL_TIM_UnRegisterCallback(_instance, HAL_TIM_PERIOD_ELAPSED_CB_ID);
     PeripheralManager::getInstance().unregisterPeripheral(this);
 }
 
 void Timer::_onPeriodElapsedCplt(TIM_HandleTypeDef* htim) {
     auto ins = (Timer*)PeripheralManager::getInstance().getPeripheral(htim);
+    if (ins == nullptr) {
+        return;
+    }
     ins->_updateEventSource.setDone();
     if (ins->_updateEventHandler) {
         ins->_updateEventHandler();

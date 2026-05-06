@@ -56,6 +56,8 @@ class Uart : public UartStream, public PeripheralBase {
 
    private:
     bool _isCircularMode() const;
+    bool _isRxTransferArmed() const;
+    void _clearRxErrorFlags();
 
    private:
     UART_HandleTypeDef *_handle;

@@ -13,47 +13,37 @@ St77xx::St77xx(SpiMaster &spi, Pin &dcPin) : _spi(spi), _dcPin(dcPin) {
 };
 
 Result St77xx::sendCommand(u8 cmdId) {
-    Result rst;
-    do {
-        _dcPin.setValue(0);
-        _spi.begin();
-        auto ar = _spi.write(Slice(&cmdId, 1));
-
-        rst = ar.wait(TIMEOUT_FOREVER);
-        if (rst != Result::kOk) {
-            break;
-        }
-        _spi.end();
+    _dcPin.setValue(0);
+    auto rst = _spi.begin();
+    if (rst != Result::kOk) {
         return rst;
-    } while (0);
-
+    }
+    auto ar = _spi.write(Slice(&cmdId, 1));
+    rst     = ar.wait(TIMEOUT_FOREVER);
+    _spi.end();
     return rst;
 };
 
 Result St77xx::sendCommandData(u8 cmdId, Slice &data, bool isWrite) {
-    Result rst;
-    do {
-        _dcPin.setValue(0);
-        _spi.begin();
-        auto ar = _spi.write(data);
-        rst     = ar.wait(TIMEOUT_FOREVER);
-        if (rst != Result::kOk) {
-            break;
-        }
+    _dcPin.setValue(0);
+    auto rst = _spi.begin();
+    if (rst != Result::kOk) {
+        return rst;
+    }
+    auto ar = _spi.write(Slice(&cmdId, 1));
+    rst     = ar.wait(TIMEOUT_FOREVER);
+    if (rst != Result::kOk) {
         _spi.end();
-        _dcPin.setValue(1);
-        _spi.begin();
-        if (isWrite) {
-            ar = _spi.write(data);
+        return rst;
+    }
 
-        } else {
-            ar = _spi.read(data);
-        }
-        rst = ar.wait(TIMEOUT_FOREVER);
-        if (rst != Result::kOk) {
-            break;
-        }
-    } while (0);
+    _dcPin.setValue(1);
+    if (isWrite) {
+        ar = _spi.write(data);
+    } else {
+        ar = _spi.read(data);
+    }
+    rst = ar.wait(TIMEOUT_FOREVER);
     _spi.end();
     return rst;
 }

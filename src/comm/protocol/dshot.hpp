@@ -41,6 +41,8 @@ class DShot : private PeripheralBase {
     u32                             _pulse1;
     __attribute__((aligned(4))) u16 _framebuffer[17];  // 16个字节的帧缓冲区
     AsyncSource                     _asyncSource;
+    volatile bool                   _isTransmitting = false;
+    u32                             _activeChannel  = 0;
 };
 
 }  // namespace wibot

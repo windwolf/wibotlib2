@@ -3,6 +3,10 @@
 #ifdef HAL_I2C_MODULE_ENABLED
 namespace wibot {
 HardI2cMaster::HardI2cMaster(I2C_HandleTypeDef& handle) : _handle(&handle) {
+    HAL_I2C_RegisterCallback(_handle, HAL_I2C_MASTER_TX_COMPLETE_CB_ID,
+                             &HardI2cMaster::onWriteCplt);
+    HAL_I2C_RegisterCallback(_handle, HAL_I2C_MASTER_RX_COMPLETE_CB_ID,
+                             &HardI2cMaster::onReadCplt);
     HAL_I2C_RegisterCallback(_handle, HAL_I2C_MEM_TX_COMPLETE_CB_ID, &HardI2cMaster::onWriteCplt);
     HAL_I2C_RegisterCallback(_handle, HAL_I2C_MEM_RX_COMPLETE_CB_ID, &HardI2cMaster::onReadCplt);
     HAL_I2C_RegisterCallback(_handle, HAL_I2C_ERROR_CB_ID, &HardI2cMaster::onError);
@@ -10,10 +14,12 @@ HardI2cMaster::HardI2cMaster(I2C_HandleTypeDef& handle) : _handle(&handle) {
 };
 
 HardI2cMaster::~HardI2cMaster() {
+    HAL_I2C_UnRegisterCallback(_handle, HAL_I2C_MASTER_TX_COMPLETE_CB_ID);
+    HAL_I2C_UnRegisterCallback(_handle, HAL_I2C_MASTER_RX_COMPLETE_CB_ID);
     HAL_I2C_UnRegisterCallback(_handle, HAL_I2C_MEM_TX_COMPLETE_CB_ID);
     HAL_I2C_UnRegisterCallback(_handle, HAL_I2C_MEM_RX_COMPLETE_CB_ID);
     HAL_I2C_UnRegisterCallback(_handle, HAL_I2C_ERROR_CB_ID);
-    PeripheralManager::getInstance().registerPeripheral(this, _handle);
+    PeripheralManager::getInstance().unregisterPeripheral(this);
 };
 
 AsyncResult HardI2cMaster::readReg(u16 regAddr, const Slice& data) {
@@ -52,7 +58,7 @@ AsyncResult HardI2cMaster::writeReg(u16 regAddr, const Slice& data) {
 #ifdef STM32H7xx
     SCB_CleanDCache_by_Addr((u32*)data.data, data.size);
 #endif
-    auto rst = HAL_I2C_Mem_Write_DMA(&_handle, _transitionConfig.deviceAddr << 1, address,
+    auto rst = HAL_I2C_Mem_Write_DMA(_handle, _transitionConfig.deviceAddr << 1, regAddr,
                                      _transitionConfig.dataWidth == DataWidth::k8Bits
                                          ? I2C_MEMADD_SIZE_8BIT
                                          : I2C_MEMADD_SIZE_16BIT,
@@ -102,7 +108,8 @@ AsyncResult HardI2cMaster::write(const Slice& data) {
 #ifdef STM32H7xx
     SCB_CleanDCache_by_Addr((u32*)data.data, data.size);
 #endif
-    auto rst = HAL_I2C_Master_Transmit_DMA(&_handle, _deviceAddr << 1, data.data, data.size);
+    auto rst =
+        HAL_I2C_Master_Transmit_DMA(_handle, _transitionConfig.deviceAddr << 1, data.data, data.size);
 #endif
 #if CHIP_I2C_WRITE_IT_ENABLED
     auto rst = HAL_I2C_Master_Transmit_IT(_handle, _transitionConfig.deviceAddr << 1, data.data,
@@ -117,6 +124,9 @@ AsyncResult HardI2cMaster::write(const Slice& data) {
 
 void HardI2cMaster::onReadCplt(I2C_HandleTypeDef* instance) {
     auto perip = (HardI2cMaster*)PeripheralManager::getInstance().getPeripheral(instance);
+    if (perip == nullptr) {
+        return;
+    }
 #ifdef STM32H7xx
 #if CHIP_I2C_READ_DMA_ENABLED
     SCB_InvalidateDCache_by_Addr(perip->_rxUserBuffer.data, perip->_rxUserBuffer.size);
@@ -126,10 +136,16 @@ void HardI2cMaster::onReadCplt(I2C_HandleTypeDef* instance) {
 };
 void HardI2cMaster::onWriteCplt(I2C_HandleTypeDef* instance) {
     auto perip = (HardI2cMaster*)PeripheralManager::getInstance().getPeripheral(instance);
+    if (perip == nullptr) {
+        return;
+    }
     perip->_asyncSource.setDone();
 };
 void HardI2cMaster::onError(I2C_HandleTypeDef* instance) {
     auto perip = (HardI2cMaster*)PeripheralManager::getInstance().getPeripheral(instance);
+    if (perip == nullptr) {
+        return;
+    }
 #ifdef STM32H7xx
 #if CHIP_I2C_READ_DMA_ENABLED
     SCB_InvalidateDCache_by_Addr(perip->_rxUserBuffer.data, perip->_rxUserBuffer.size);

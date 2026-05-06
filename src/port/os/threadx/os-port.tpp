@@ -2,6 +2,8 @@
 
 #include "os/os.hpp"
 
+#include <cstdlib>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -11,25 +13,37 @@ void runStub(ULONG instance);
 #endif
 
 namespace wibot {
-template <u16 stack_size>
-Thread<stack_size>::Thread(const char* name, Worker& worker, u32 priority,
-                           const ThreadConfig& config) {
+
+inline Thread::Thread(const char* name, Worker& worker, u32 priority,
+                      const ThreadConfig& config)
+    : Thread(name, worker, priority, kDefaultStackSize, config) {
+}
+
+inline Thread::Thread(const char* name, Worker& worker, u32 priority, u16 stackSize,
+                      const ThreadConfig& config) {
+    ASSERT(stackSize > 0, "Thread stack size must be greater than 0.");
+    _stack = static_cast<u8*>(std::malloc(stackSize));
+    ASSERT(_stack != nullptr, "allocate Thread stack failed.");
+    _stackSize = stackSize;
+
     auto preemptionThreshold = config.preemptionThreshold;
     if (preemptionThreshold == 0) {
         preemptionThreshold = priority;
     }
     auto rst = tx_thread_create(&_instance, const_cast<CHAR*>(name), runStub,
-                                reinterpret_cast<ULONG>(&worker), _stack, stack_size, priority,
+                                reinterpret_cast<ULONG>(&worker), _stack, _stackSize, priority,
                                 preemptionThreshold, config.timeSlice, TX_DONT_START);
     ASSERT(rst == TX_SUCCESS, "create Thread failed.");
 };
-template <u16 stack_size>
-Thread<stack_size>::~Thread() {
+
+inline Thread::~Thread() {
     tx_thread_delete(&_instance);
+    std::free(_stack);
+    _stack     = nullptr;
+    _stackSize = 0;
 };
 
-template <u16 stack_size>
-void Thread<stack_size>::start() {
+inline void Thread::start() {
     tx_thread_resume(&_instance);
 };
 

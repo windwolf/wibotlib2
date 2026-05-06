@@ -17,7 +17,7 @@ template <typename T>
 class Median {
    public:
     struct Config {
-        u8 windowSize;  // 滤波窗口大小 (1-32)
+        u8 windowSize{1};  // 滤波窗口大小 (1-32)
     };
 
     /**
@@ -25,6 +25,7 @@ class Median {
      * @param cfg 滤波配置
      */
     explicit Median(const Config& cfg) : _config(cfg), _outputLast(static_cast<T>(0)) {
+        ASSERT(isConfigValid(_config), "Invalid Median config");
         _bufferIndex = 0;
         _bufferCount = 0;
         for (u8 i = 0; i < DSP_MEDIAN_MAX_WINDOW; ++i) {
@@ -91,7 +92,7 @@ class Median {
             // 偶数：返回中间两个值的平均
             T val1 = _quickSelect(tempBuffer, 0, _bufferCount - 1, mid - 1);
             T val2 = _quickSelect(tempBuffer, 0, _bufferCount - 1, mid);
-            return (val1 + val2) / 2;
+            return static_cast<T>((static_cast<f64>(val1) + static_cast<f64>(val2)) * 0.5);
         }
     }
 

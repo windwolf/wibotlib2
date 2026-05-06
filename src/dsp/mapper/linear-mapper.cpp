@@ -15,11 +15,18 @@ f32 LinearMapper::process(f32 input) {
 
     // 限制输出范围（如果启用）
     if (_config.clampOutput) {
-        if (result < _config.outputMin) {
-            result = _config.outputMin;
+        f32 outputMin = _config.outputMin;
+        f32 outputMax = _config.outputMax;
+        if (outputMin > outputMax) {
+            f32 temp  = outputMin;
+            outputMin = outputMax;
+            outputMax = temp;
         }
-        if (result > _config.outputMax) {
-            result = _config.outputMax;
+        if (result < outputMin) {
+            result = outputMin;
+        }
+        if (result > outputMax) {
+            result = outputMax;
         }
     }
 
@@ -27,7 +34,7 @@ f32 LinearMapper::process(f32 input) {
 }
 
 bool LinearMapper::isConfigValid(const Config& cfg) {
-    return cfg.inputMax > cfg.inputMin;
+    return cfg.inputMax != cfg.inputMin;
 }
 
 }  // namespace wibot

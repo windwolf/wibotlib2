@@ -97,12 +97,22 @@ Result AdcRegularSource::_validateConfig() const {
 void AdcRegularSource::onConversionCplt(ADC_HandleTypeDef* instance) {
     auto peripheral =
         static_cast<AdcRegularSource*>(PeripheralManager::getInstance().getPeripheral(instance));
+    if (peripheral == nullptr) {
+        return;
+    }
+    if (!peripheral->_config.continuousMode) {
+        peripheral->_isRunning = false;
+    }
     peripheral->_asyncSource.setDone();
 }
 
 void AdcRegularSource::onError(ADC_HandleTypeDef* instance) {
     auto peripheral =
         static_cast<AdcRegularSource*>(PeripheralManager::getInstance().getPeripheral(instance));
+    if (peripheral == nullptr) {
+        return;
+    }
+    peripheral->_isRunning = false;
     peripheral->_asyncSource.setError(Result::kError);
 }
 

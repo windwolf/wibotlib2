@@ -7,6 +7,7 @@
 namespace wibot {
 
 Battery::Battery(const Battery::Config& config) : config_(config) {
+    ASSERT(config.serials > 0, "battery serial count must be greater than 0");
     _100OverSerials = 100.0f / config.serials;
 }
 

@@ -119,12 +119,7 @@ Result ST7735::setDisplayWindow(u16 x1, u16 y1, u16 x2, u16 y2) {
     return Result::kOk;
 };
 Result ST7735::setCursor(u16 x, u16 y) {
-    x += config.xOffset;
-    sendWriteCommand(ST7735_CMD_COLUMN_ADDRESS_SET, Slice((u8 *)&x, 2));
-    y += config.yOffset;
-    sendWriteCommand(ST7735_CMD_ROW_ADDRESS_SET, Slice((u8 *)&y, 2));
-
-    return Result::kOk;
+    return setDisplayWindow(x, y, x, y);
 };
 
 Result ST7735::display(bool on) {
@@ -144,14 +139,14 @@ Result ST7735::drawPixel(u16 x, u16 y, u16 color) {
         return ret;
     }
 
-    sendWriteCommand(ST7735_CMD_MEMORY_WRITE, Slice((u8 *)&color, 4));
+    sendWriteCommand(ST7735_CMD_MEMORY_WRITE, Slice((u8 *)&color, 2));
 
     return Result::kOk;
 };
 Result ST7735::drawHline(u16 x1, u16 y, u16 x2, u16 *data) {
     Result ret = Result::kOk;
 
-    if ((x1 > config.width) || (x2 > config.width)) {
+    if ((x1 >= config.width) || (x2 >= config.width) || (x1 > x2) || (y >= config.height)) {
         return Result::kInvalidParameter;
     }
 
@@ -168,7 +163,7 @@ Result ST7735::drawHline(u16 x1, u16 y, u16 x2, u16 *data) {
 Result ST7735::drawVline(u16 x, u16 y1, u16 y2, u16 *data) {
     Result ret = Result::kOk;
 
-    if ((y1 > config.height) || (y2 > config.height)) {
+    if ((y1 >= config.height) || (y2 >= config.height) || (y1 > y2) || (x >= config.width)) {
         return Result::kInvalidParameter;
     }
 
@@ -186,10 +181,10 @@ Result ST7735::drawVline(u16 x, u16 y1, u16 y2, u16 *data) {
 Result ST7735::drawRect(u16 x1, u16 y1, u16 x2, u16 y2, u16 *data) {
     Result ret = Result::kOk;
 
-    if (x1 > config.width || x2 > config.width) {
+    if (x1 >= config.width || x2 >= config.width || x1 > x2) {
         return Result::kInvalidParameter;
     }
-    if (y1 > config.height || y2 > config.height) {
+    if (y1 >= config.height || y2 >= config.height || y1 > y2) {
         return Result::kInvalidParameter;
     }
 
@@ -207,10 +202,10 @@ Result ST7735::drawRect(u16 x1, u16 y1, u16 x2, u16 y2, u16 *data) {
 Result ST7735::fillRect(u16 x1, u16 y1, u16 x2, u16 y2, u16 color) {
     Result ret = Result::kOk;
 
-    if (x1 > config.width || x2 > config.width) {
+    if (x1 >= config.width || x2 >= config.width || x1 > x2) {
         return Result::kInvalidParameter;
     }
-    if (y1 > config.height || y2 > config.height) {
+    if (y1 >= config.height || y2 >= config.height || y1 > y2) {
         return Result::kInvalidParameter;
     }
 
@@ -226,8 +221,13 @@ Result ST7735::fillRect(u16 x1, u16 y1, u16 x2, u16 y2, u16 color) {
     }
     u32 size = (x2 - x1 + 1) * (y2 - y1 + 1);
 
-    for (u32 i = 0; i < size / 8; i++) {
-        sendWriteCommand(ST7735_CMD_MEMORY_WRITE, Slice((u8 *)buf, size * 2));
+    for (u32 sent = 0; sent < size;) {
+        u32 chunk = size - sent;
+        if (chunk > ST7735_INTERNAL_BUFFER_SIZE) {
+            chunk = ST7735_INTERNAL_BUFFER_SIZE;
+        }
+        sendWriteCommand(ST7735_CMD_MEMORY_WRITE, Slice((u8 *)buf, chunk * 2));
+        sent += chunk;
     }
 
     // sendWriteCommand(ST7735_CMD_MEMORY_WRITE, Slice((u8 *)buf, (size % 8) / 2),

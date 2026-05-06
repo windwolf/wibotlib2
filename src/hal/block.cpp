@@ -19,6 +19,15 @@ Result Block::setConfig(const Config &config) {
 Result Block::_calculateConfig() {
     ASSERT(_config.readMode != Mode::kRandomBlock, "readReg should not RANDOM_BLOCK");
     ASSERT(_config.writeMode != Mode::kRandomBlock, "writeReg should not RANDOM_BLOCK");
+    if (_config.readBlockSize == 0 || _config.writeBlockSize == 0 ||
+        _config.eraseBlockSize == 0) {
+        return Result::kInvalidParameter;
+    }
+    if ((_config.readBlockSize & (_config.readBlockSize - 1)) != 0 ||
+        (_config.writeBlockSize & (_config.writeBlockSize - 1)) != 0 ||
+        (_config.eraseBlockSize & (_config.eraseBlockSize - 1)) != 0) {
+        return Result::kInvalidParameter;
+    }
     ASSERT(_config.writeBlockSize <= _config.eraseBlockSize,
            "writeReg block should not be great then erase block size.");
     ASSERT(_buffer.size >= max(_config.readBlockSize, _config.eraseBlockSize),
@@ -143,15 +152,17 @@ Result Block::write(void *data, u32 address, u32 size) {
                 } else {
                     // address aligned to erBlock. middle entire blocks. directly
                     // erase->write.
-                    u32 blkCount = wRemainSize / erBlkSize;
-                    rst          = erase(erBlkAddr, erBlkSize * blkCount);
+                    u32 blkCount      = wRemainSize / erBlkSize;
+                    u32 writeSize     = erBlkSize * blkCount;
+                    rst               = erase(erBlkAddr, writeSize);
                     if (rst != Result::kOk) {
                         break;
                     }
-                    rst = _writeDirectly(wData, erBlkAddr, erBlkSize * blkCount);
+                    rst = _writeDirectly(wData, erBlkAddr, writeSize);
                     if (rst != Result::kOk) {
                         break;
                     }
+                    wSizeInBlk = writeSize;
                 }
 
                 wAddr += wSizeInBlk;

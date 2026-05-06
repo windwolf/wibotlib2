@@ -16,10 +16,10 @@ class TxServer : public Worker {
    public:
     TxServer(AsyncWriter<Slice>* writer);
     ~TxServer();
+    Result send(const Buffer<MAX_TX_SERVER_FRAME_SIZE>& data);
 
    private:
-    void   run() override;
-    Result send(const Buffer<MAX_TX_SERVER_FRAME_SIZE>& data);
+    void run() override;
 
    private:
     AsyncWriter<Slice>* _writer;

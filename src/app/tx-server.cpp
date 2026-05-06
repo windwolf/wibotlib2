@@ -5,7 +5,9 @@ namespace wibot {
 TxServer::TxServer(AsyncWriter<Slice>* writer)
     : _writer(writer),
       _fifo("tx", _fifoBuffer.data, sizeof(Buffer<MAX_TX_SERVER_FRAME_SIZE>),
-            MAX_TX_SERVER_FIFO_LENGTH) {};
+            MAX_TX_SERVER_FIFO_LENGTH) {
+    ASSERT(_writer != nullptr, "TxServer writer must not be null.");
+};
 
 TxServer::~TxServer() {
 }
@@ -14,10 +16,8 @@ void TxServer::run() {
     Buffer<MAX_TX_SERVER_FRAME_SIZE> dataBuffer;
     while (true) {
         auto rst = _fifo.receive(&dataBuffer, TIMEOUT_FOREVER);
-        while (rst.isOk()) {
-            if (rst.isOk()) {
-                _writer->write(dataBuffer).wait(TIMEOUT_FOREVER);
-            }
+        if (rst.isOk()) {
+            _writer->write(dataBuffer).wait(TIMEOUT_FOREVER);
         }
     }
 }

@@ -32,6 +32,15 @@ void TrapezoidTrajectory::setInitialValue(f32 value) {
 }
 
 f32 TrapezoidTrajectory::update(f32 setPoint) {
+    if (_config.sampleTime <= 0.0f || _config.maxVelocity <= 0.0f ||
+        _config.acceleration <= 0.0f || _config.deceleration <= 0.0f) {
+        _state.output   = clampValue(setPoint);
+        _state.setPoint = _state.output;
+        _state.velocity = 0.0f;
+        _state.phase    = Phase::kCompleted;
+        return _state.output;
+    }
+
     if (std::abs(setPoint - _state.setPoint) > 1e-9f) {
         _state.setPoint = setPoint;
         calculateTrajectory(_state.output, setPoint);

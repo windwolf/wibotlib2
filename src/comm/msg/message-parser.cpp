@@ -85,13 +85,25 @@ MessageFrame::MessageFrame(Slice buffer)
       _content({0}),
       _crc({0}),
       _suffix({0}),
-      _buffer(buffer) {
+      _buffer(buffer),
+      _frameLength(0) {
 }
 
 MessageFrame::MessageFrame(Slice buffer, const MessageSchema& schema, u8* command,
                            u32 contentLength)
-    : _buffer(buffer) {
+    : _prefix({0}),
+      _command({0}),
+      _length({0}),
+      _alterData({0}),
+      _content({0}),
+      _crc({0}),
+      _suffix({0}),
+      _buffer(buffer),
+      _frameLength(0) {
+    ASSERT(command != nullptr || schema.commandSize == DataWidth::kNone,
+           "command must not be null when command size is not none.");
     auto lengthSchema = schema.getLengthSchema(command);
+    _frameLength      = schema.getLength(&lengthSchema, contentLength);
     ASSERT(_frameLength <= buffer.size, "buffer size is not enough.");
 
     _prefix.offset = 0;
@@ -109,16 +121,14 @@ MessageFrame::MessageFrame(Slice buffer, const MessageSchema& schema, u8* comman
 
     _content.offset = _alterData.offset + _alterData.length;
     _content.length = (lengthSchema.mode == MessageLengthSchemaMode::kFixedLength)
-                          ? static_cast<u8>(lengthSchema.fixed.length)
-                          : contentLength;
+                          ? static_cast<u16>(lengthSchema.fixed.length)
+                          : static_cast<u16>(contentLength);
 
     _crc.offset = _content.offset + _content.length;
     _crc.length = static_cast<u8>(schema.crcSize);
 
     _suffix.offset = _crc.offset + _crc.length;
     _suffix.length = schema.suffixSize;
-
-    _frameLength = schema.getLength(&lengthSchema, contentLength);
 }
 Slice MessageFrame::getPrefix() const {
     return Slice(this->_buffer.data + this->_prefix.offset, this->_prefix.length);
@@ -157,7 +167,16 @@ Slice MessageFrame::buildFrame(const MessageSchema& schema) {
 }
 
 MessageParser::MessageParser(const MessageSchema& schema, CircularBuffer8& buffer)
-    : _schema(schema), _buffer(buffer) {
+    : _schema(schema),
+      _buffer(buffer),
+      _stage(MessageParseStage::kInit),
+      _offset(0),
+      _freeContentStartIndex(0),
+      _lengthSchema(nullptr),
+      _contentLength(0),
+      _contentOverhead(0),
+      _frame(nullptr),
+      _command{0} {
     _checkSchema();
 }
 
@@ -250,7 +269,15 @@ Result MessageParser::parse(MessageFrame* parsedFrame, bool interFrameGap) {
                 auto result = _fetch(lengthBuf, static_cast<u8>(_lengthSchema->dynamic.lengthSize));
                 if (result) {
                     auto lengthOverhead = _schema.getDynamicLengthOverhead(_lengthSchema);
-                    _contentLength      = _parseLength(_lengthSchema, lengthBuf) - lengthOverhead;
+                    auto parsedLength   = _parseLength(_lengthSchema, lengthBuf);
+                    if (parsedLength < lengthOverhead) {
+                        _buffer.readVirtual(1);
+                        _offset     = 0;
+                        stage       = MessageParseStage::kPreparing;
+                        needNewEpic = true;
+                        continue;
+                    }
+                    _contentLength = parsedLength - lengthOverhead;
                     // check length limitation.
                     if ((_contentLength + _contentOverhead) > _frame->_buffer.size) {
                         _buffer.readVirtual(1);
@@ -357,6 +384,7 @@ Result MessageParser::parse(MessageFrame* parsedFrame, bool interFrameGap) {
                     _offset     = 0;
                     stage       = MessageParseStage::kPreparing;
                     needNewEpic = true;
+                    continue;
                 }
                 if (result) {
                     _contentLength          = _offset - _freeContentStartIndex;
@@ -372,6 +400,13 @@ Result MessageParser::parse(MessageFrame* parsedFrame, bool interFrameGap) {
         }
 
         if (stage == MessageParseStage::kDone) {
+            if (!_validateCrc()) {
+                _buffer.readVirtual(1);
+                _offset     = 0;
+                stage       = MessageParseStage::kPreparing;
+                needNewEpic = true;
+                continue;
+            }
             _frame->_frameLength = _offset;
             _buffer.read(_frame->_buffer.data, _offset);
             _offset = 0;
@@ -420,6 +455,10 @@ void MessageParser::_checkSchema() const {
            "cmd length must not less than %lu.", kMessageParserCmdLengthCrcBufferSize);
     ASSERT(static_cast<u8>(_schema.crcSize) <= kMessageParserCmdLengthCrcBufferSize,
            "crc length must not less than %lu.", kMessageParserCmdLengthCrcBufferSize);
+    ASSERT(_schema.crcSize == DataWidth::kNone || _schema.crcSize == DataWidth::k8Bits,
+           "message parser only supports 8-bit checksum.");
+    ASSERT(_schema.crcSize == DataWidth::kNone || _schema.crcRange != 0,
+           "crc range must not be empty.");
 
     for (u32 i = 0; i < _schema.lengthSchemaCount; ++i) {
         auto& def = _schema.lengthSchemas[i];
@@ -511,6 +550,34 @@ u32 MessageParser::_parseLength(const MessageLengthSchema* lengthSchema,
     } else {
         return 0;
     }
+}
+bool MessageParser::_validateCrc() const {
+    if (_schema.crcSize == DataWidth::kNone) {
+        return true;
+    }
+    if (_schema.crcSize != DataWidth::k8Bits || _frame == nullptr) {
+        return false;
+    }
+
+    auto sum = static_cast<u8>(0);
+    auto addSegment = [this, &sum](const MessageFrameSegment& segment,
+                                   MessageSchemaRange         range) {
+        if ((_schema.crcRange & range) == 0) {
+            return;
+        }
+        for (u16 i = 0; i < segment.length; ++i) {
+            sum += *_buffer.peekPtr(segment.offset + i);
+        }
+    };
+
+    addSegment(_frame->_prefix, kMessageSchemaRangePrefix);
+    addSegment(_frame->_command, kMessageSchemaRangeCmd);
+    addSegment(_frame->_length, kMessageSchemaRangeLength);
+    addSegment(_frame->_alterData, kMessageSchemaRangeAlterdata);
+    addSegment(_frame->_content, kMessageSchemaRangeContent);
+    addSegment(_frame->_suffix, kMessageSchemaRangeSuffix);
+
+    return sum == *_buffer.peekPtr(_frame->_crc.offset);
 }
 void MessageParser::_prepareFrame() {
     _freeContentStartIndex = 0;

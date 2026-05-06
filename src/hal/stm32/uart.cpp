@@ -9,12 +9,18 @@ LOGGER("uart")
 
 void Uart::_onWriteCplt(UART_HandleTypeDef *handle) {
     auto perip = (Uart *)PeripheralManager::getInstance().getPeripheral(handle);
+    if (perip == nullptr) {
+        return;
+    }
     perip->txCount++;
     perip->_txAsyncSource.setDone();
 };
 
 void Uart::_onReadCplt(UART_HandleTypeDef *handle) {
-    auto perip        = (Uart *)PeripheralManager::getInstance().getPeripheral(handle);
+    auto perip = (Uart *)PeripheralManager::getInstance().getPeripheral(handle);
+    if (perip == nullptr) {
+        return;
+    }
     auto rxUserBuffer = perip->_rxUserBuffer;
     if (rxUserBuffer != nullptr) {
 #ifdef STM32H7xx
@@ -23,12 +29,16 @@ void Uart::_onReadCplt(UART_HandleTypeDef *handle) {
 #endif
 #endif
         perip->rxCount++;
+        perip->_rxUserBuffer = nullptr;
         perip->_rxAsyncSource.setDone();
     }
 };
 
 void Uart::_onCircularDataReceived(UART_HandleTypeDef *handle, u16 pos) {
-    auto perip    = (Uart *)PeripheralManager::getInstance().getPeripheral(handle);
+    auto perip = (Uart *)PeripheralManager::getInstance().getPeripheral(handle);
+    if (perip == nullptr || perip->_rxBuffer == nullptr) {
+        return;
+    }
     auto rxBuffer = perip->_rxBuffer;
 #ifdef STM32H7xx
 #if CHIP_UART_READ_DMA_ENABLED
@@ -37,7 +47,14 @@ void Uart::_onCircularDataReceived(UART_HandleTypeDef *handle, u16 pos) {
 #endif
     perip->rxCount++;
 
-    auto length     = rxBuffer->getLengthByMemIndex(pos, perip->_lastPos);
+#if CHIP_UART_READ_DMA_ENABLED
+    auto isFullTransferFromStart =
+        pos == rxBuffer->getMemCapacity() && perip->_lastPos == 0;
+    auto length = isFullTransferFromStart ? rxBuffer->getMemCapacity()
+                                          : rxBuffer->getLengthByMemIndex(pos, perip->_lastPos);
+#else
+    auto length = rxBuffer->getLengthByMemIndex(pos, perip->_lastPos);
+#endif
     perip->_lastPos = pos;
     rxBuffer->writeVirtual(length);
     perip->_rxAsyncSource.setDone();
@@ -45,14 +62,17 @@ void Uart::_onCircularDataReceived(UART_HandleTypeDef *handle, u16 pos) {
 
 void Uart::_onError(UART_HandleTypeDef *handle) {
     Uart *perip = (Uart *)PeripheralManager::getInstance().getPeripheral(handle);
+    if (perip == nullptr) {
+        return;
+    }
 #ifdef STM32H7xx
 #if CHIP_UART_READ_DMA_ENABLED
     if (perip->_rxBuffer != nullptr) {
-        SCB_InvalidateDCache_by_Addr((u8 *)perip->_rxBuffer.getDataPtr(),
-                                     perip->_rxBuffer.getMemCapacity());
+        SCB_InvalidateDCache_by_Addr((u8 *)perip->_rxBuffer->getDataPtr(),
+                                     perip->_rxBuffer->getMemCapacity());
     }
     if (perip->_rxUserBuffer != nullptr) {
-        SCB_InvalidateDCache_by_Addr(perip->_rxUserBuffer.data, perip->_rxUserBuffer.size);
+        SCB_InvalidateDCache_by_Addr(perip->_rxUserBuffer->data, perip->_rxUserBuffer->size);
     }
 #endif
 #endif
@@ -71,6 +91,7 @@ void Uart::_onError(UART_HandleTypeDef *handle) {
     // TODO: clear related error flag, according to error ignore config.
 
     auto errCode = HAL_UART_GetError(handle);
+    auto result  = Result(Result::ResultStatus::kError, errCode);
 #ifdef STM32F1xx
     LOG_E("%s: on error ISR=%lX,err=%lX,uec=%lu", perip->_name, perip->_handle->Instance->SR,
           HAL_UART_GetError(handle), perip->errorCount);
@@ -84,9 +105,9 @@ void Uart::_onError(UART_HandleTypeDef *handle) {
     perip->_readedLength = 0;
     perip->_rxUserBuffer = nullptr;
 
-    perip->_rxAsyncSource.setError(errCode);
+    perip->_rxAsyncSource.setError(result);
 
-    perip->_txAsyncSource.setError(errCode);
+    perip->_txAsyncSource.setError(result);
 };
 
 Uart::Uart(UART_HandleTypeDef &handle, const char *name, CircularBuffer8 *rxBuffer)
@@ -128,6 +149,41 @@ bool Uart::_isCircularMode() const {
     return _rxBuffer != nullptr;
 };
 
+bool Uart::_isRxTransferArmed() const {
+    if (_handle->ReceptionType != HAL_UART_RECEPTION_TOIDLE) {
+        return false;
+    }
+
+#if CHIP_UART_READ_DMA_ENABLED
+    if (_handle->hdmarx == nullptr) {
+        return false;
+    }
+    return HAL_IS_BIT_SET(_handle->Instance->CR3, USART_CR3_DMAR) &&
+           HAL_IS_BIT_SET(_handle->hdmarx->Instance->CCR, DMA_CCR_EN) &&
+           HAL_IS_BIT_SET(_handle->Instance->CR1, USART_CR1_IDLEIE);
+#else
+    return _handle->RxISR != nullptr && HAL_IS_BIT_SET(_handle->Instance->CR1, USART_CR1_IDLEIE);
+#endif
+}
+
+void Uart::_clearRxErrorFlags() {
+    LL_USART_ClearFlag_ORE(_handle->Instance);
+    LL_USART_ClearFlag_FE(_handle->Instance);
+    LL_USART_ClearFlag_NE(_handle->Instance);
+    LL_USART_ClearFlag_PE(_handle->Instance);
+    LL_USART_ClearFlag_IDLE(_handle->Instance);
+#ifdef USART_ICR_CMCF
+    LL_USART_ClearFlag_CM(_handle->Instance);
+#endif
+#ifdef USART_ICR_RTOCF
+    LL_USART_ClearFlag_RTO(_handle->Instance);
+#endif
+#ifdef UART_RXDATA_FLUSH_REQUEST
+    __HAL_UART_SEND_REQ(_handle, UART_RXDATA_FLUSH_REQUEST);
+#endif
+    _handle->ErrorCode = HAL_UART_ERROR_NONE;
+}
+
 AsyncResult Uart::subscribe() {
     return _rxAsyncSource.getResult(true);
 };
@@ -137,17 +193,21 @@ AsyncResult Uart::read(const Slice &data) {
         return AsyncResult::fromError(Result::kNotSupport);
     }
 
-    if ((HAL_UART_GetState(_handle) & HAL_UART_STATE_BUSY_RX) || _rxUserBuffer != nullptr) {
+    if ((HAL_UART_GetState(_handle) & HAL_UART_STATE_BUSY_RX) == HAL_UART_STATE_BUSY_RX ||
+        _rxUserBuffer != nullptr) {
         return AsyncResult::fromError(Result::kBusy);
     }
 
+    _clearRxErrorFlags();
+    _rxAsyncSource.reset();
     _rxUserBuffer = &data;
 
+    HAL_StatusTypeDef rst = HAL_ERROR;
 #if CHIP_UART_READ_DMA_ENABLED
-    auto rst = HAL_UART_Receive_DMA(_handle, (u8 *)_rxUserBuffer->data, (u16)_rxUserBuffer->size);
+    rst = HAL_UART_Receive_DMA(_handle, (u8 *)_rxUserBuffer->data, (u16)_rxUserBuffer->size);
 #endif
 #if CHIP_UART_READ_IT_ENABLED
-    auto rst = HAL_UART_Receive_IT(_handle, (u8 *)data, (u16)size);
+    rst = HAL_UART_Receive_IT(_handle, (u8 *)data.data, (u16)data.size);
 #endif
     if (rst != HAL_OK) {
         _rxUserBuffer = nullptr;
@@ -162,6 +222,7 @@ AsyncResult Uart::write(const Slice &data) {
     }
 
     //_txUserBuffer = &data;
+    _txAsyncSource.reset();
 
 #if CHIP_UART_WRITE_DMA_ENABLED
 #ifdef STM32H7xx
@@ -180,33 +241,47 @@ AsyncResult Uart::write(const Slice &data) {
 };
 
 Result Uart::start() {
-    if (!_isCircularMode() || _handle->hdmarx->Init.Mode != DMA_CIRCULAR) {
+    if (!_isCircularMode()) {
         return Result::kNotSupport;
     }
+#if CHIP_UART_READ_DMA_ENABLED
+    if (_handle->hdmarx == nullptr || _handle->hdmarx->Init.Mode != DMA_CIRCULAR) {
+        return Result::kNotSupport;
+    }
+#endif
     if ((HAL_UART_GetState(_handle) & HAL_UART_STATE_BUSY_RX) == HAL_UART_STATE_BUSY_RX) {
-        return Result::kBusy;
+        if (_isRxTransferArmed()) {
+            return Result::kBusy;
+        }
+        LOG_W("%s: recover stale rx state.", _name);
+        Result abortResult = (Result)HAL_UART_AbortReceive(_handle);
+        if (!abortResult.isOk()) {
+            return abortResult;
+        }
     }
 
+    _clearRxErrorFlags();
+    _rxAsyncSource.reset();
+    _lastPos      = 0;
+    _readedLength = 0;
+
 #if CHIP_UART_READ_DMA_ENABLED
-    return (Result)HAL_UARTEx_ReceiveToIdle_DMA(_handle, (u8 *)_rxBuffer->getDataPtr(),
-                                                _rxBuffer->getMemCapacity());
+    auto rst = HAL_UARTEx_ReceiveToIdle_DMA(_handle, (u8 *)_rxBuffer->getDataPtr(),
+                                            _rxBuffer->getMemCapacity());
 #else
-    return (Result)HAL_UARTEx_ReceiveToIdle_IT(_handle, (u8 *)_rxBuffer->getDataPtr(),
-                                               _rxBuffer->getMemCapacity());
+    auto rst = HAL_UARTEx_ReceiveToIdle_IT(_handle, (u8 *)_rxBuffer->getDataPtr(),
+                                           _rxBuffer->getMemCapacity());
 #endif
+    if (rst != HAL_OK) {
+        HAL_UART_AbortReceive(_handle);
+        _clearRxErrorFlags();
+    }
+    return (Result)rst;
 };
 
 Result Uart::stop() {
-    Result rst = Result::kOk;
-
-#if CHIP_UART_READ_DMA_ENABLED
-    rst = (Result)HAL_UART_DMAStop(_handle);
-
-#else
-    rst = (Result)HAL_UART_AbortReceive_IT(_handle);
-
-#endif
-    HAL_UART_Abort(_handle);
+    Result rst = (Result)HAL_UART_AbortReceive(_handle);
+    _clearRxErrorFlags();
     _lastPos      = 0;
     _readedLength = 0;
     _rxUserBuffer = nullptr;

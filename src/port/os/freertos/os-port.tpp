@@ -3,6 +3,8 @@
 #include "cmsis_os2.h"
 #include "os/os.hpp"
 
+#include <cstdlib>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,16 +14,26 @@ void runStub(void* instance);
 #endif
 
 namespace wibot {
-template <u16 stack_size>
-Thread<stack_size>::Thread(const char* name, Worker& worker, u32 priority,
-                           const ThreadConfig& config) {
+
+inline Thread::Thread(const char* name, Worker& worker, u32 priority,
+                      const ThreadConfig& config)
+    : Thread(name, worker, priority, kDefaultStackSize, config) {
+}
+
+inline Thread::Thread(const char* name, Worker& worker, u32 priority, u16 stackSize,
+                      const ThreadConfig& config) {
+    ASSERT(stackSize > 0, "Thread stack size must be greater than 0.");
+    _stack = static_cast<u8*>(std::malloc(stackSize));
+    ASSERT(_stack != nullptr, "allocate Thread stack failed.");
+    _stackSize = stackSize;
+
     osThreadAttr_t attr = {
         .name       = name,
         .attr_bits  = 0,
         .cb_mem     = &(_instance),
         .cb_size    = sizeof(_instance),
         .stack_mem  = _stack,
-        .stack_size = stack_size,
+        .stack_size = _stackSize,
         .priority   = static_cast<osPriority_t>(priority),
         //.tz_module
     };
@@ -29,11 +41,14 @@ Thread<stack_size>::Thread(const char* name, Worker& worker, u32 priority,
     auto rst = osThreadNew(static_cast<void (*)(void*)>(runStub), &worker, &attr);
     ASSERT(rst != NULL, "create Thread failed.")
 };
-template <u16 stack_size>
-Thread<stack_size>::~Thread(){};
 
-template <u16 stack_size>
-void Thread<stack_size>::start() {
+inline Thread::~Thread() {
+    std::free(_stack);
+    _stack     = nullptr;
+    _stackSize = 0;
+};
+
+inline void Thread::start() {
     osThreadResume(&_instance);
 };
 

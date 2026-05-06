@@ -27,7 +27,7 @@ class XW09A {
 
    private:
     I2cMaster& _i2c;
-    u16        _state;
+    u16        _state{0};
 };
 
 } // namespace wibot

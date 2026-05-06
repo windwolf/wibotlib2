@@ -5,13 +5,12 @@
 namespace wibot {
 
 IIR::IIR(const Config& cfg) : _config(cfg), _y_last(0.0f), _first(true) {
+    ASSERT(isConfigValid(_config), "Invalid IIR config");
     _updateCoefficients();
 }
 
 bool IIR::applyConfig() {
-    if (!isConfigValid(_config)) {
-        return false;
-    }
+    ASSERT(isConfigValid(_config), "Invalid IIR config");
     _updateCoefficients();
     return true;
 }

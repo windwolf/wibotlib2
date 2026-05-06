@@ -43,6 +43,8 @@ class AsyncSource {
      */
     void setError(Result result);
 
+    void reset();
+
     /**
      * @brief 创建一个关联到此源的异步结果对象
      * 

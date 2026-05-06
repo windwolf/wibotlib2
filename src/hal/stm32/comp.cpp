@@ -4,12 +4,21 @@ namespace wibot {
 
 void Comparer::_onCompareTrigger(COMP_HandleTypeDef* hcomp) {
     auto instance = (Comparer*)PeripheralManager::getInstance().getPeripheral(hcomp);
+    if (instance == nullptr) {
+        return;
+    }
     instance->_compareEventSource.setDone();
 }
 
 Comparer::Comparer(COMP_HandleTypeDef& ins) : _ins(&ins), _compareEventSource() {
     HAL_COMP_RegisterCallback(&ins, HAL_COMP_TRIGGER_CB_ID, _onCompareTrigger);
     PeripheralManager::getInstance().registerPeripheral(this, _ins);
+}
+
+Comparer::~Comparer() {
+    HAL_COMP_Stop(_ins);
+    HAL_COMP_UnRegisterCallback(_ins, HAL_COMP_TRIGGER_CB_ID);
+    PeripheralManager::getInstance().unregisterPeripheral(this);
 }
 
 AsyncResult Comparer::start() {

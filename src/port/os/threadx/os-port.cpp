@@ -118,8 +118,8 @@ Result EventGroup::set(u32 flags) {
 };
 
 Result EventGroup::reset(u32 flags) {
-    return (tx_event_flags_set(&(_instance), flags, TX_AND) == TX_SUCCESS) ? Result::kOk
-                                                                           : Result::kError;
+    return (tx_event_flags_set(&(_instance), ~flags, TX_AND) == TX_SUCCESS) ? Result::kOk
+                                                                            : Result::kError;
 };
 
 Result EventGroup::wait(u32 flags, u32& actualFlags, EventOptions options, u32 timeout) {

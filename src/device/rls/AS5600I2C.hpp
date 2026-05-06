@@ -39,6 +39,10 @@ class As5600I2c {
 
    private:
     I2cMaster& _i2c;
+    u16        _angle;
+    u16        _config;
+    u8         _status;
+    u16        _zpos;
+    u16        _mpos;
 };
 } // namespace wibot
-

@@ -132,9 +132,9 @@ class WibotRcController : public EventDrivenControlLoop {
    private:
     DShot                            _dshot;
     u8                               _timChannel;
-    u16                              _throttle;
-    WibotRcCommand                               _command;
-    u16                              _slopedThrottle;
+    u16                              _throttle{0};
+    WibotRcCommand                   _command{WibotRcCommand::kStop};
+    u16                              _slopedThrottle{0};
     SlopeTrajectoryFast<u16>::Config _slopeConfig;
     SlopeTrajectoryFast<u16>         _trajectory;
 

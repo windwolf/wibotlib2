@@ -71,6 +71,14 @@ DShot::DShot(TIM_HandleTypeDef& tim, DShotProtocol protocol) : _tim(tim), _proto
 }
 
 DShot::~DShot() {
+    auto activeChannel = _activeChannel;
+    _isTransmitting   = false;
+    _activeChannel    = 0;
+    if (activeChannel != 0) {
+        HAL_TIM_PWM_Stop_DMA(&_tim, activeChannel);
+    }
+    HAL_TIM_UnRegisterCallback(&_tim, HAL_TIM_PWM_PULSE_FINISHED_CB_ID);
+    HAL_TIM_UnRegisterCallback(&_tim, HAL_TIM_ERROR_CB_ID);
     PeripheralManager::getInstance().unregisterPeripheral(this);
 }
 
@@ -90,6 +98,13 @@ u16 add_checksum(u16 packet_telemetry) {
 }
 
 AsyncResult DShot::send(u8 channel, u16 command, bool telemetry) {
+    if (command > 0x7FF) {
+        return AsyncResult::fromResult(Result::kInvalidParameter);
+    }
+    if (_isTransmitting) {
+        return AsyncResult::fromResult(Result::kBusy);
+    }
+
     u32 halChannel = 0;
     switch (channel) {
         case 1:
@@ -120,6 +135,8 @@ AsyncResult DShot::send(u8 channel, u16 command, bool telemetry) {
     }
 
     // 计算数据帧
+    _asyncSource.reset();
+
     u16 data = (command << 1) | telemetry;
 
     data = add_checksum(data);
@@ -131,8 +148,12 @@ AsyncResult DShot::send(u8 channel, u16 command, bool telemetry) {
     }
     _framebuffer[16] = 0;
 
+    _activeChannel  = halChannel;
+    _isTransmitting = true;
     auto rst = HAL_TIM_PWM_Start_DMA(&_tim, halChannel, (u32*)_framebuffer, 17);
     if (rst != HAL_OK) {
+        _isTransmitting = false;
+        _activeChannel  = 0;
         return AsyncResult::fromResult((Result)rst);
     }
     return _asyncSource.getResult();
@@ -140,12 +161,20 @@ AsyncResult DShot::send(u8 channel, u16 command, bool telemetry) {
 
 void DShot::onCplt(TIM_HandleTypeDef* tim) {
     DShot* dshot = static_cast<DShot*>(PeripheralManager::getInstance().getPeripheral(tim));
+    if (dshot == nullptr) {
+        return;
+    }
+    dshot->_isTransmitting = false;
     dshot->_asyncSource.setDone();
 };
 
 void DShot::onError(TIM_HandleTypeDef* tim) {
     DShot* dshot = static_cast<DShot*>(PeripheralManager::getInstance().getPeripheral(tim));
+    if (dshot == nullptr) {
+        return;
+    }
 
+    dshot->_isTransmitting = false;
     dshot->_asyncSource.setError(Result::kError);
 };
 

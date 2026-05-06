@@ -14,12 +14,18 @@ struct SizeInfo {
 
 void Spi::_onWriteCplt(SPI_HandleTypeDef* handle) {
     Spi* perip = (Spi*)PeripheralManager::getInstance().getPeripheral(handle);
+    if (perip == nullptr) {
+        return;
+    }
 
     perip->_asyncSource.setDone();
 };
 
 void Spi::_onReadCplt(SPI_HandleTypeDef* handle) {
     Spi* perip = (Spi*)PeripheralManager::getInstance().getPeripheral(handle);
+    if (perip == nullptr) {
+        return;
+    }
 
 #ifdef STM32H7xx
 #if CHIP_SPI_READ_DMA_ENABLED
@@ -31,6 +37,9 @@ void Spi::_onReadCplt(SPI_HandleTypeDef* handle) {
 
 void Spi::_onWriteReadCplt(SPI_HandleTypeDef* handle) {
     Spi* perip = (Spi*)PeripheralManager::getInstance().getPeripheral(handle);
+    if (perip == nullptr) {
+        return;
+    }
 
 #ifdef STM32H7xx
 #if CHIP_SPI_READ_DMA_ENABLED
@@ -42,6 +51,9 @@ void Spi::_onWriteReadCplt(SPI_HandleTypeDef* handle) {
 
 void Spi::_onError(SPI_HandleTypeDef* handle) {
     Spi* perip = (Spi*)PeripheralManager::getInstance().getPeripheral(handle);
+    if (perip == nullptr) {
+        return;
+    }
 
 #ifdef STM32H7xx
 #if CHIP_SPI_READ_DMA_ENABLED
@@ -107,6 +119,10 @@ Spi::Spi(SPI_HandleTypeDef& handle, Pin* csPin, const SpiConfig& config)
 };
 
 Spi::~Spi() {
+    HAL_SPI_UnRegisterCallback(_handle, HAL_SPI_TX_COMPLETE_CB_ID);
+    HAL_SPI_UnRegisterCallback(_handle, HAL_SPI_RX_COMPLETE_CB_ID);
+    HAL_SPI_UnRegisterCallback(_handle, HAL_SPI_TX_RX_COMPLETE_CB_ID);
+    HAL_SPI_UnRegisterCallback(_handle, HAL_SPI_ERROR_CB_ID);
     PeripheralManager::getInstance().unregisterPeripheral(this);
 };
 
@@ -115,7 +131,7 @@ AsyncResult Spi::read(const Slice& data) {
 #ifdef STM32H7xx
     _rxUserBuffer = data;
 #endif
-    auto rst = HAL_SPI_Receive_DMA(_handle, data.data, data.data,
+    auto rst = HAL_SPI_Receive_DMA(_handle, data.data,
                                    data.size >> (static_cast<u8>(_config.dataWidth) - 1));
 #endif
 #if CHIP_SPI_READ_IT_ENABLED

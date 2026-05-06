@@ -38,7 +38,7 @@ void RolaE22Uart::setMode(RolaE22Mode mode) {
     _mode = mode;
 }
 RolaE22Uart::RolaE22Uart(UartStream& uart, Pin& m0, Pin& m1, Pin& aux)
-    : _uart(uart), _m0(m0), _m1(m1), _aux(aux) {
+    : _uart(uart), _m0(m0), _m1(m1), _aux(aux), _mode(RolaE22Mode::kTransmition) {
     _config.address         = 0x0000;
     _config.netId           = 0x00;
     _config.uartBaudrate    = RolaE22UartBaudrate::k9600;
@@ -74,11 +74,11 @@ Result RolaE22Uart::setConfig(RolaE22Config& config) {
     cmd[3] = (config.address >> 8) & 0xFF;
     cmd[4] = (config.address) & 0xFF;
     cmd[5] = config.netId;
-    cmd[6] = (u8)config.uartBaudrate & (u8)config.uartParity & (u8)config.baudrate;
-    cmd[7] = (u8)config.packing & (u8)config.rssi & (u8)config.rfPower;
+    cmd[6] = (u8)config.uartBaudrate | (u8)config.uartParity | (u8)config.baudrate;
+    cmd[7] = (u8)config.packing | (u8)config.rssi | (u8)config.rfPower;
     cmd[8] = (config.channel) & 0xFF;
-    cmd[9] = (u8)config.rssiByte & (u8)config.transmitionMode & (u8)config.relayMode &
-             (u8)config.lbtMode & (u8)config.worMode & (u8)config.worCycle;
+    cmd[9] = (u8)config.rssiByte | (u8)config.transmitionMode | (u8)config.relayMode |
+             (u8)config.lbtMode | (u8)config.worMode | (u8)config.worCycle;
     cmd[10]  = (config.key >> 8) & 0xFF;
     cmd[11]  = (config.key) & 0xFF;
     auto ar  = _uart.write(Slice(cmd, 12));
@@ -86,6 +86,9 @@ Result RolaE22Uart::setConfig(RolaE22Config& config) {
     waitAux();
     setMode(old_mode);
     waitAux();
+    if (rst == Result::kOk) {
+        _config = config;
+    }
     return rst;
 }
 AsyncResult RolaE22Uart::send(const Slice& data) {

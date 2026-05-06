@@ -41,12 +41,16 @@ class Binning {
 
    private:
     u32 mapToBinSimple(T value) const {
-        if (_config.binCount == 0 || _config.boundaries == nullptr) {
+        if (_config.binCount == 0) {
             return INVALID_BIN_INDEX;
         }
 
         if (_config.binCount == 1) {
             return 0;
+        }
+
+        if (_config.boundaries == nullptr) {
+            return INVALID_BIN_INDEX;
         }
 
         // 查找值所属的分桶
@@ -75,12 +79,13 @@ class Binning {
             (currentBin == _state.currentBin + 1) || (currentBin + 1 == _state.currentBin);
 
         if (isAdjacent && _config.hysteresisWidth > 0) {
-            u32  boundaryIndex = (currentBin < _state.currentBin) ? currentBin : _state.currentBin;
-            auto boundary      = _config.boundaries[boundaryIndex];
-            auto halfWidth     = _config.hysteresisWidth * static_cast<T>(0.5);
+            u32 boundaryIndex = (currentBin < _state.currentBin) ? currentBin : _state.currentBin;
+            f32 boundary      = static_cast<f32>(_config.boundaries[boundaryIndex]);
+            f32 halfWidth     = static_cast<f32>(_config.hysteresisWidth) * 0.5;
+            f32 inputValue    = static_cast<f32>(value);
 
             // 如果值在滞回区间内，保持上次结果
-            if (value >= (boundary - halfWidth) && value <= (boundary + halfWidth)) {
+            if (inputValue >= (boundary - halfWidth) && inputValue <= (boundary + halfWidth)) {
                 return _state.currentBin;
             }
         }
@@ -89,8 +94,8 @@ class Binning {
     }
 
    private:
-    Config&      _config;
-    State _state{};
+    Config& _config;
+    State   _state{};
 };
 
 } // namespace wibot

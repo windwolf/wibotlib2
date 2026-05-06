@@ -32,6 +32,9 @@ class System {
 
 class SystemTick {
    public:
+    SystemTick() : _lastTickMs(System::getTickMs()) {
+    }
+
     static u32 getTickMs() {
         return System::getTickMs();
     }

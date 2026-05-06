@@ -21,11 +21,17 @@ u32 Mt6816Spi::getAngle() {
     _cmd[0]   = MT6816_SPI_READ_ANGLE1_REG;
     _cmd[1]   = 0;
     _cmd[2]   = 0;
-    _spi.begin();
+    Result rst = _spi.begin();
+    if (rst != Result::kOk) {
+        return _angle;
+    }
     auto ar = _spi.writeRead(Slice(_cmd, 3), Slice(_cmd, 3));
-    _spi.end();
     _parity.reset();
-    ar.wait(TIMEOUT_FOREVER);
+    rst = ar.wait(TIMEOUT_FOREVER);
+    _spi.end();
+    if (rst != Result::kOk) {
+        return _angle;
+    }
     _parity.calculate(&_cmd[1], 2);
     if (_parity.validate(nullptr)) {
         angle = _cmd[1] << 6;

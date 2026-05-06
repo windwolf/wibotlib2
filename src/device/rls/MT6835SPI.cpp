@@ -14,11 +14,21 @@ namespace wibot {
 u32 Mt6835Spi::getAngle() {
     _buf[0] = MT6835SPI_READ_CMD;
     _buf[1] = MT6835SPI_ANGLE_REG;
-    _spi.begin();
+    _buf[2] = 0;
+    _buf[3] = 0;
+    _buf[4] = 0;
+    _buf[5] = 0;
+    Result rst = _spi.begin();
+    if (rst != Result::kOk) {
+        return _angle;
+    }
     auto ar = _spi.writeRead(Slice(_buf, 6), Slice(_buf, 6));
-    _spi.end();
     _crc.reset();
-    ar.wait(TIMEOUT_FOREVER);
+    rst = ar.wait(TIMEOUT_FOREVER);
+    _spi.end();
+    if (rst != Result::kOk) {
+        return _angle;
+    }
     _crc.calculate(_buf + 2, 3);
     if (_crc.validate(_buf + 5)) {
         _angle             = (_buf[2] << 13) | (_buf[3] << 5) | (_buf[4] >> 3);

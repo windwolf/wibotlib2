@@ -17,6 +17,7 @@ enum class ComparerLevel {
 class Comparer : private PeripheralBase {
    public:
     Comparer(COMP_HandleTypeDef& ins);
+    ~Comparer();
 
     AsyncResult start();
     Result      stop();

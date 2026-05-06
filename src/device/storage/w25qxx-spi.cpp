@@ -125,6 +125,10 @@ namespace wibot {
 
 W25qxxSpi::W25qxxSpi(SpiMaster &spi, u32 timeout) : _spi(spi), _timeout(timeout) {};
 
+Result W25qxxSpi::switchMode(W25qxxCommandMode cmdMode) {
+    return cmdMode == kSpi ? Result::kOk : Result::kNotSupport;
+}
+
 Result W25qxxSpi::_spiWriteRead(u8 *writeData, u16 writeLength, u8 *readData, u16 readLength) {
     Result rst;
     do {
@@ -347,8 +351,17 @@ Result W25qxxSpi::_readCommmand(u8 *pData, u32 readAddr, u32 size) {
 };
 
 Result W25qxxSpi::_resetCommand() {
-    Result rst = Result::kOk;
+    u8     enableReset = W25QXX_SPI_ENABLE_RESET_CMD;
+    Result rst         = _spiWriteRead(&enableReset, 1, nullptr, 0);
+    if (rst != Result::kOk) {
+        return rst;
+    }
 
+    u8 reset = W25QXX_SPI_RESET_DEVICE_CMD;
+    rst      = _spiWriteRead(&reset, 1, nullptr, 0);
+    if (rst == Result::kOk) {
+        sleep(1);
+    }
     return rst;
 };
 
@@ -359,7 +372,7 @@ Result W25qxxSpi::_eraseCommand(W25qxxEraseMode mode, u32 address) {
                            : ((mode == k32K) ? W25QXX_SPI_BLOCK_ERASE_32K_CMD
                                              : W25QXX_SPI_BLOCK_ERASE_64K_CMD);
     buf[1] = (address >> 16) & 0xff;
-    buf[2] = (address >> 0) & 0xff;
+    buf[2] = (address >> 8) & 0xff;
     buf[3] = (address) & 0xff;
 
     rst = _spiWriteRead(buf, 4, nullptr, 0);

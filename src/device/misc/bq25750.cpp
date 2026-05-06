@@ -10,9 +10,12 @@ Bq25750::~Bq25750() {
 Bq25750::State Bq25750::getState() {
     Buffer<4> data;
     auto      ar = _i2c.readReg(0x21, data);
-    ar.wait(TIMEOUT_FOREVER);
+    auto      rst = ar.wait(TIMEOUT_FOREVER);
 
-    Bq25750::State sta;
+    Bq25750::State sta{};
+    if (rst != Result::kOk) {
+        return sta;
+    }
     sta.chargerStatus1.raw = data[0];
     sta.chargerStatus2.raw = data[1];
     sta.chargerStatus3.raw = data[2];
@@ -24,9 +27,12 @@ Bq25750::State Bq25750::getState() {
 Bq25750::IntFlag Bq25750::getFlag() {
     Buffer<3> data;
     auto      ar = _i2c.readReg(0x25, data);
-    ar.wait(TIMEOUT_FOREVER);
+    auto      rst = ar.wait(TIMEOUT_FOREVER);
 
-    Bq25750::IntFlag flag;
+    Bq25750::IntFlag flag{};
+    if (rst != Result::kOk) {
+        return flag;
+    }
     flag.intFlag1.raw  = data[0];
     flag.intFlag2.raw  = data[1];
     flag.faultFlag.raw = data[2];

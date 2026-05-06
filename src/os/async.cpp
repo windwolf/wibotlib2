@@ -29,6 +29,13 @@ void AsyncSource::setError(Result result) {
     }
 }
 
+void AsyncSource::reset() {
+    _result = Result::kOk;
+    if (_eventGroup.eventGroup != nullptr) {
+        _eventGroup.eventGroup->reset(_eventGroup.doneFlag | _eventGroup.errorFlag);
+    }
+}
+
 AsyncResult AsyncSource::getResult(bool autoReset) {
     return AsyncResult::fromSource(*this, autoReset);
 }
@@ -43,7 +50,10 @@ AsyncResult::AsyncResult(AsyncSource::State initialState)
 }
 
 AsyncResult::AsyncResult(AsyncResult&& other) noexcept
-    : _state(other._state), _source(other._source), _autoReset(other._autoReset) {
+    : _state(other._state),
+      _source(other._source),
+      _ErrorResult(other._ErrorResult),
+      _autoReset(other._autoReset) {
     other._source = nullptr;
 }
 
@@ -51,6 +61,7 @@ AsyncResult& AsyncResult::operator=(AsyncResult&& other) noexcept {
     if (this != &other) {
         _state        = other._state;
         _source       = other._source;
+        _ErrorResult  = other._ErrorResult;
         _autoReset    = other._autoReset;
         other._source = nullptr;
     }

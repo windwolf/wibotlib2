@@ -38,17 +38,23 @@ EventFlag EventGroup::fetchFlagPair() {
         oldFlag      = _usedFlags;
         currentFlag1 = 1;
         while (oldFlag & currentFlag1) {
-            if (currentFlag1 == LAST_BIT_MASK) {
+            if (currentFlag1 >= LAST_TWO_BIT_MASK) {
                 return 0;
             }
             currentFlag1 <<= 1;
         }
         currentFlag2 = currentFlag1 << 1;
+        if (currentFlag2 == 0) {
+            return 0;
+        }
         while (oldFlag & currentFlag2) {
             if (currentFlag2 == LAST_BIT_MASK) {
                 return 0;
             }
             currentFlag2 <<= 1;
+            if (currentFlag2 == 0) {
+                return 0;
+            }
         }
     } while (
         !arch::syncCompareAndSwap(&_usedFlags, oldFlag, oldFlag | currentFlag1 | currentFlag2));

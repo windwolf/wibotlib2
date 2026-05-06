@@ -3,7 +3,7 @@
 
 namespace wibot {
 
-PeripheralManager::PeripheralManager() {};
+PeripheralManager::PeripheralManager() : _head(nullptr) {};
 
 PeripheralManager &PeripheralManager::getInstance() {
     static PeripheralManager instance;
@@ -11,6 +11,14 @@ PeripheralManager &PeripheralManager::getInstance() {
 }
 
 void PeripheralManager::registerPeripheral(PeripheralBase *peripheral, void *instance) {
+    if (peripheral == nullptr) {
+        return;
+    }
+
+    if (peripheral->_instance != nullptr || peripheral->_next != nullptr || _head == peripheral) {
+        unregisterPeripheral(peripheral);
+    }
+
     if (_head == nullptr) {
         _head                 = peripheral;
         peripheral->_next     = nullptr;
@@ -30,7 +38,9 @@ void PeripheralManager::unregisterPeripheral(PeripheralBase *peripheral) {
         peripheral->_next     = nullptr;
         peripheral->_instance = nullptr;
     } else {
-        _head->remove(peripheral);
+        if (_head->remove(peripheral) != nullptr) {
+            peripheral->_instance = nullptr;
+        }
     }
 }
 
