@@ -88,17 +88,14 @@ void Uart::_onError(UART_HandleTypeDef *handle) {
 
     perip->_txAsyncSource.setError(errCode);
 };
-Uart::Uart(UART_HandleTypeDef &handle, const char *name, CircularBuffer8 &rxBuffer)
-    : Uart(handle, name) {
-    _rxBuffer = &rxBuffer;
-};
-Uart::Uart(UART_HandleTypeDef &handle, const char *name)
+
+Uart::Uart(UART_HandleTypeDef &handle, const char *name, CircularBuffer8 *rxBuffer)
     : _handle(&handle),
       _name(name),
 
       _txAsyncSource(),
       _rxAsyncSource(),
-      _rxBuffer(nullptr),
+      _rxBuffer(rxBuffer),
       _rxUserBuffer(nullptr),
       _lastPos(0),
       _readedLength(0),
