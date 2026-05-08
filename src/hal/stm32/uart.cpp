@@ -39,6 +39,25 @@ void Uart::_onCircularDataReceived(UART_HandleTypeDef *handle, u16 pos) {
     if (perip == nullptr || perip->_rxBuffer == nullptr) {
         return;
     }
+
+    FeedEvent eventMask = FeedEvent::kFeedOnIdle;
+    switch (HAL_UARTEx_GetRxEventType(handle)) {
+        case HAL_UART_RXEVENT_IDLE:
+            eventMask = FeedEvent::kFeedOnIdle;
+            break;
+        case HAL_UART_RXEVENT_HT:
+            eventMask = FeedEvent::kFeedOnHalf;
+            break;
+        case HAL_UART_RXEVENT_TC:
+            eventMask = FeedEvent::kFeedOnFull;
+            break;
+        default:
+            return;
+    }
+    if ((static_cast<u8>(perip->_rxFeedEvents) & static_cast<u8>(eventMask)) == 0) {
+        return;
+    }
+
     auto rxBuffer = perip->_rxBuffer;
 #ifdef STM32H7xx
 #if CHIP_UART_READ_DMA_ENABLED
@@ -48,14 +67,16 @@ void Uart::_onCircularDataReceived(UART_HandleTypeDef *handle, u16 pos) {
     perip->rxCount++;
 
 #if CHIP_UART_READ_DMA_ENABLED
-    auto isFullTransferFromStart =
-        pos == rxBuffer->getMemCapacity() && perip->_lastPos == 0;
-    auto length = isFullTransferFromStart ? rxBuffer->getMemCapacity()
-                                          : rxBuffer->getLengthByMemIndex(pos, perip->_lastPos);
+    auto isFullTransferFromStart = pos == rxBuffer->getMemCapacity() && perip->_lastPos == 0;
+    auto length                  = isFullTransferFromStart ? rxBuffer->getMemCapacity()
+                                                           : rxBuffer->getLengthByMemIndex(pos, perip->_lastPos);
 #else
     auto length = rxBuffer->getLengthByMemIndex(pos, perip->_lastPos);
 #endif
     perip->_lastPos = pos;
+    if (length == 0) {
+        return;
+    }
     rxBuffer->writeVirtual(length);
     perip->_rxAsyncSource.setDone();
 };
@@ -110,25 +131,23 @@ void Uart::_onError(UART_HandleTypeDef *handle) {
     perip->_txAsyncSource.setError(result);
 };
 
-Uart::Uart(UART_HandleTypeDef &handle, const char *name, CircularBuffer8 *rxBuffer)
+Uart::Uart(UART_HandleTypeDef &handle, const char *name)
     : _handle(&handle),
       _name(name),
 
       _txAsyncSource(),
       _rxAsyncSource(),
-      _rxBuffer(rxBuffer),
+      _rxBuffer(nullptr),
       _rxUserBuffer(nullptr),
+      _rxFeedEvents(FeedEvent::kFeedOnAll),
+      _rxEventCbRegistered(false),
       _lastPos(0),
       _readedLength(0),
 
       errorCount(0),
       rxCount(0),
       txCount(0) {
-    if (_isCircularMode()) {
-        HAL_UART_RegisterRxEventCallback(&handle, &_onCircularDataReceived);
-    } else {
-        HAL_UART_RegisterCallback(&handle, HAL_UART_RX_COMPLETE_CB_ID, &_onReadCplt);
-    }
+    HAL_UART_RegisterCallback(&handle, HAL_UART_RX_COMPLETE_CB_ID, &_onReadCplt);
     HAL_UART_RegisterCallback(&handle, HAL_UART_TX_COMPLETE_CB_ID, &_onWriteCplt);
     HAL_UART_RegisterCallback(&handle, HAL_UART_ERROR_CB_ID, &_onError);
     PeripheralManager::getInstance().registerPeripheral(this, &handle);
@@ -136,11 +155,10 @@ Uart::Uart(UART_HandleTypeDef &handle, const char *name, CircularBuffer8 *rxBuff
 
 Uart::~Uart() {
     PeripheralManager::getInstance().unregisterPeripheral(this);
-    if (_isCircularMode()) {
+    if (_rxEventCbRegistered) {
         HAL_UART_UnRegisterRxEventCallback(_handle);
-    } else {
-        HAL_UART_UnRegisterCallback(_handle, HAL_UART_RX_COMPLETE_CB_ID);
     }
+    HAL_UART_UnRegisterCallback(_handle, HAL_UART_RX_COMPLETE_CB_ID);
     HAL_UART_UnRegisterCallback(_handle, HAL_UART_TX_COMPLETE_CB_ID);
     HAL_UART_UnRegisterCallback(_handle, HAL_UART_ERROR_CB_ID);
 };
@@ -184,7 +202,8 @@ void Uart::_clearRxErrorFlags() {
     _handle->ErrorCode = HAL_UART_ERROR_NONE;
 }
 
-AsyncResult Uart::subscribe() {
+AsyncResult Uart::subscribe(FeedEvent feedEvents) {
+    _rxFeedEvents = feedEvents;
     return _rxAsyncSource.getResult(true);
 };
 
@@ -240,7 +259,14 @@ AsyncResult Uart::write(const Slice &data) {
     return _txAsyncSource.getResult();
 };
 
-Result Uart::start() {
+Result Uart::start(CircularBuffer8 &rxBuffer) {
+    _rxBuffer = &rxBuffer;
+
+    if (!_rxEventCbRegistered) {
+        HAL_UART_RegisterRxEventCallback(_handle, &_onCircularDataReceived);
+        _rxEventCbRegistered = true;
+    }
+
     if (!_isCircularMode()) {
         return Result::kNotSupport;
     }
@@ -251,7 +277,7 @@ Result Uart::start() {
 #endif
     if ((HAL_UART_GetState(_handle) & HAL_UART_STATE_BUSY_RX) == HAL_UART_STATE_BUSY_RX) {
         if (_isRxTransferArmed()) {
-            return Result::kBusy;
+            return Result::kOk;
         }
         LOG_W("%s: recover stale rx state.", _name);
         Result abortResult = (Result)HAL_UART_AbortReceive(_handle);

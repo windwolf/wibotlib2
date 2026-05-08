@@ -6,8 +6,16 @@
 
 #include "type.hpp"
 #include "os/async.hpp"
+#include "circular-buffer.hpp"
 
 namespace wibot {
+
+enum class FeedEvent : u8 {
+    kFeedOnIdle = 0x01,
+    kFeedOnHalf = 0x02,
+    kFeedOnFull = 0x04,
+    kFeedOnAll  = kFeedOnIdle | kFeedOnHalf | kFeedOnFull,
+};
 
 /**
  * @brief 周期性异步事件源
@@ -20,9 +28,9 @@ class AsyncEventSource {
     * 
     * @return AsyncResult 
     */
-    virtual AsyncResult subscribe() = 0;
-    virtual Result      start()     = 0;
-    virtual Result      stop()      = 0;
+    virtual AsyncResult subscribe(FeedEvent feedEvents)  = 0;
+    virtual Result      start(CircularBuffer8 &rxBuffer) = 0;
+    virtual Result      stop()                           = 0;
 };
 
 template <typename T>

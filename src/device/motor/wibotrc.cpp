@@ -25,7 +25,7 @@ typedef struct __attribute__((packed)) {
 } kiss_telem_pkt_t;
 
 WibotRcTelemetry::WibotRcTelemetry(UART_HandleTypeDef& uart)
-    : RxServer(_reader, TIMEOUT_FOREVER), _uart{uart, "escrx", &_msgCircBuffer} {};
+    : RxServer(_reader, TIMEOUT_FOREVER), _uart{uart, "escrx"} {};
 
 bool WibotRcTelemetry::validateFrame(const MessageFrame& frame) {
     _crcValidator.reset();
@@ -34,10 +34,11 @@ bool WibotRcTelemetry::validateFrame(const MessageFrame& frame) {
 
     auto rst = _crcValidator.validate(frameData.data + sizeof(kiss_telem_pkt_t) - 1);
     if (!rst) {
-        LOG_E("invalid frame: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X",
-              frameData.data[0], frameData.data[1], frameData.data[2], frameData.data[3],
-              frameData.data[4], frameData.data[5], frameData.data[6], frameData.data[7],
-              frameData.data[8], frameData.data[9]);
+        LOG_E(
+            "invalid frame: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X",
+            frameData.data[0], frameData.data[1], frameData.data[2], frameData.data[3],
+            frameData.data[4], frameData.data[5], frameData.data[6], frameData.data[7],
+            frameData.data[8], frameData.data[9]);
     }
     return rst;
 };

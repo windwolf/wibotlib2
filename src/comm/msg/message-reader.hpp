@@ -11,7 +11,7 @@ namespace wibot {
 class MessageReader : public SyncReader<MessageFrame> {
    public:
     MessageReader(AsyncEventSource* source, CircularBuffer8& buffer, const MessageSchema& schema,
-                  bool interFrameGap = false);
+                  bool interFrameGap = false, FeedEvent feedEvents = FeedEvent::kFeedOnAll);
 
     Result open();
     Result read(MessageFrame& frame, u32 timeout);
@@ -25,6 +25,7 @@ class MessageReader : public SyncReader<MessageFrame> {
     AsyncEventSource& _source;
     CircularBuffer8&  _buffer;
     const bool        _interFrameGap;
+    const FeedEvent   _feedEvents;
     MessageParser     _mp;
     AsyncResult       _rxWaitHandler;
 };
