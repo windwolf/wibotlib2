@@ -44,7 +44,7 @@ class WibotRcTelemetry : public RxServer {
     /**
     * @brief Construct a new Wibot Rc Telemetry object
     * 
-    * @param uart 115200 baud, 8N1, no flow control
+    * @param uart 19200 baud, 8N1, no flow control
     */
     WibotRcTelemetry(UART_HandleTypeDef& uart);
 
@@ -77,7 +77,7 @@ class WibotRcTelemetry : public RxServer {
     Buffer<32>      _msgBuffer;
     CircularBuffer8 _msgCircBuffer{_msgBuffer};
     Uart            _uart;
-    MessageReader   _reader{&_uart, _msgCircBuffer, schema, true};
+    MessageReader   _reader{&_uart, _msgCircBuffer, schema, true, FeedEvent::kFeedOnIdle};
     Crc8Validator   _crcValidator{0x07, 0x00, 0x00, false};
     WibotRcState    _state{};
 };
@@ -103,9 +103,8 @@ class WibotRcController : public EventDrivenControlLoop {
     * @param throttle 0.0 - 1.0
     */
     void setThrottle(u16 throttle) {
-        _command = WibotRcCommand::kNone;
+        _command  = WibotRcCommand::kNone;
         _throttle = throttle;
-
     };
     /**
      * @brief Set the Throttle object
@@ -113,7 +112,7 @@ class WibotRcController : public EventDrivenControlLoop {
      * @param throttle 0 - 2000
      */
     void setThrottle(f32 throttle) {
-        _command = WibotRcCommand::kNone;
+        _command  = WibotRcCommand::kNone;
         _throttle = throttle * 2000;  // scale to 0-2000 for DShot command
     };
 

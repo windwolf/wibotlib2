@@ -15,16 +15,16 @@ namespace wibot {
  */
 class Uart : public UartStream, public PeripheralBase {
    public:
-    Uart(UART_HandleTypeDef &handle, const char *name, CircularBuffer8 *rxBuffer = nullptr);
+    Uart(UART_HandleTypeDef &handle, const char *name);
     ~Uart();
     Result setConfig(UartConfig &config) override;
 
-    AsyncResult subscribe() override;
+    AsyncResult subscribe(FeedEvent feedEvents) override;
     /**
    * To use listen, underlying UART must be configured Rx with DMA.
    * @return
    */
-    Result      start() override;
+    Result      start(CircularBuffer8 &rxBuffer) override;
     Result      stop() override;
 
     /**
@@ -69,6 +69,8 @@ class Uart : public UartStream, public PeripheralBase {
     CircularBuffer8    *_rxBuffer;
     // const Slice       *_txUserBuffer;
     const Slice        *_rxUserBuffer;
+    FeedEvent           _rxFeedEvents;
+    bool                _rxEventCbRegistered;
     u16                 _lastPos;
     u16                 _readedLength;
 
