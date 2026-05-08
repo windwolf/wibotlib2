@@ -24,26 +24,18 @@ class Worker {
     virtual void run() = 0;
 };
 
+template <u16 stack_size>
 class Thread {
    public:
-    static constexpr u16 kDefaultStackSize = 1024;
-
-   public:
-    Thread(const char* name, Worker& worker, u32 priority, u8* stackBuf, u16 stackSize,
+    Thread(const char* name, Worker& worker, u32 priority,
            const ThreadConfig& config = ThreadConfig());
-    template <u16 N>
-    Thread(const char* name, Worker& worker, u32 priority, Buffer8<N>& stack,
-           const ThreadConfig& config = ThreadConfig())
-        : Thread(name, worker, priority, stack.data, N, config) {
-    }
     ~Thread();
 
     void start();
 
    private:
     THREAD_TYPEDEF _instance;
-    u8*            _stack     = nullptr;
-    u16            _stackSize = 0;
+    u8             _stack[stack_size];
 };
 
 class OsTimer {

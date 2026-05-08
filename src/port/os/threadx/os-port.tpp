@@ -12,30 +12,27 @@ void runStub(ULONG instance);
 
 namespace wibot {
 
-inline Thread::Thread(const char* name, Worker& worker, u32 priority, u8* stackBuf, u16 stackSize,
-                      const ThreadConfig& config) {
-    ASSERT(stackBuf != nullptr, "Thread stack buffer must not be null.");
-    ASSERT(stackSize > 0, "Thread stack size must be greater than 0.");
-    _stack     = stackBuf;
-    _stackSize = stackSize;
-
+template <u16 stack_size>
+inline Thread<stack_size>::Thread(const char* name, Worker& worker, u32 priority,
+                                  const ThreadConfig& config) {
+    static_assert(stack_size > 0, "Thread stack size must be greater than 0.");
     auto preemptionThreshold = config.preemptionThreshold;
     if (preemptionThreshold == 0) {
         preemptionThreshold = priority;
     }
     auto rst = tx_thread_create(&_instance, const_cast<CHAR*>(name), runStub,
-                                reinterpret_cast<ULONG>(&worker), _stack, _stackSize, priority,
+                                reinterpret_cast<ULONG>(&worker), _stack, stack_size, priority,
                                 preemptionThreshold, config.timeSlice, TX_DONT_START);
     ASSERT(rst == TX_SUCCESS, "create Thread failed.");
 };
 
-inline Thread::~Thread() {
+template <u16 stack_size>
+inline Thread<stack_size>::~Thread() {
     tx_thread_delete(&_instance);
-    _stack     = nullptr;
-    _stackSize = 0;
 };
 
-inline void Thread::start() {
+template <u16 stack_size>
+inline void Thread<stack_size>::start() {
     tx_thread_resume(&_instance);
 };
 

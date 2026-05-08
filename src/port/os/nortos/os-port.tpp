@@ -4,24 +4,22 @@
 
 namespace wibot {
 
-inline Thread::Thread(const char* name, Worker& worker, u32 priority, u8* stackBuf, u16 stackSize,
-                      const ThreadConfig& config)
+template <u16 stack_size>
+inline Thread<stack_size>::Thread(const char* name, Worker& worker, u32 priority,
+                                  const ThreadConfig& config)
     : _instance(&worker) {
     (void)name;
     (void)priority;
     (void)config;
-    ASSERT(stackBuf != nullptr, "Thread stack buffer must not be null.");
-    ASSERT(stackSize > 0, "Thread stack size must be greater than 0.");
-    _stack     = stackBuf;
-    _stackSize = stackSize;
+    static_assert(stack_size > 0, "Thread stack size must be greater than 0.");
 };
 
-inline Thread::~Thread() {
-    _stack     = nullptr;
-    _stackSize = 0;
+template <u16 stack_size>
+inline Thread<stack_size>::~Thread() {
 };
 
-inline void Thread::start() {
+template <u16 stack_size>
+inline void Thread<stack_size>::start() {
     _instance->run();
 };
 
