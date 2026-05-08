@@ -29,11 +29,13 @@ class Thread {
     static constexpr u16 kDefaultStackSize = 1024;
 
    public:
-    Thread(const char* name, Worker& worker, u32 priority,
+    Thread(const char* name, Worker& worker, u32 priority, u8* stackBuf, u16 stackSize,
            const ThreadConfig& config = ThreadConfig());
-    Thread(const char* name, Worker& worker, u32 priority,
-           u16 stackSize,
-           const ThreadConfig& config = ThreadConfig());
+    template <u16 N>
+    Thread(const char* name, Worker& worker, u32 priority, Buffer8<N>& stack,
+           const ThreadConfig& config = ThreadConfig())
+        : Thread(name, worker, priority, stack.data, N, config) {
+    }
     ~Thread();
 
     void start();
@@ -99,7 +101,7 @@ class EventGroup {
 
    private:
     EVENTGROUP_TYPEDEF _instance;
-    u32           _usedFlags{};
+    u32                _usedFlags{};
 };
 
 class MessageQueue {

@@ -2,8 +2,6 @@
 
 #include "os/os.hpp"
 
-#include <cstdlib>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -14,16 +12,11 @@ void runStub(ULONG instance);
 
 namespace wibot {
 
-inline Thread::Thread(const char* name, Worker& worker, u32 priority,
-                      const ThreadConfig& config)
-    : Thread(name, worker, priority, kDefaultStackSize, config) {
-}
-
-inline Thread::Thread(const char* name, Worker& worker, u32 priority, u16 stackSize,
+inline Thread::Thread(const char* name, Worker& worker, u32 priority, u8* stackBuf, u16 stackSize,
                       const ThreadConfig& config) {
+    ASSERT(stackBuf != nullptr, "Thread stack buffer must not be null.");
     ASSERT(stackSize > 0, "Thread stack size must be greater than 0.");
-    _stack = static_cast<u8*>(std::malloc(stackSize));
-    ASSERT(_stack != nullptr, "allocate Thread stack failed.");
+    _stack     = stackBuf;
     _stackSize = stackSize;
 
     auto preemptionThreshold = config.preemptionThreshold;
@@ -38,7 +31,6 @@ inline Thread::Thread(const char* name, Worker& worker, u32 priority, u16 stackS
 
 inline Thread::~Thread() {
     tx_thread_delete(&_instance);
-    std::free(_stack);
     _stack     = nullptr;
     _stackSize = 0;
 };

@@ -3,6 +3,9 @@
 #include "type.hpp"
 #include "hal/system.hpp"
 
+#include "logger.hpp"
+LOGGER("wibotrc")
+
 #if defined(HAL_TIM_MODULE_ENABLED) && defined(HAL_UART_MODULE_ENABLED)
 
 namespace wibot {
@@ -29,7 +32,14 @@ bool WibotRcTelemetry::validateFrame(const MessageFrame& frame) {
     auto frameData = frame.getWholeBuffer();
     _crcValidator.calculate(frameData.data, sizeof(kiss_telem_pkt_t) - 1);
 
-    return _crcValidator.validate(frameData.data + sizeof(kiss_telem_pkt_t) - 1);
+    auto rst = _crcValidator.validate(frameData.data + sizeof(kiss_telem_pkt_t) - 1);
+    if (!rst) {
+        LOG_E("invalid frame: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X",
+              frameData.data[0], frameData.data[1], frameData.data[2], frameData.data[3],
+              frameData.data[4], frameData.data[5], frameData.data[6], frameData.data[7],
+              frameData.data[8], frameData.data[9]);
+    }
+    return rst;
 };
 void WibotRcTelemetry::processCommandFrame(const MessageFrame& frame) {
     auto buf           = reinterpret_cast<kiss_telem_pkt_t*>(frame.getWholeBuffer().data);
