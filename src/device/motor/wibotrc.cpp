@@ -53,18 +53,18 @@ void WibotRcTelemetry::processCommandFrame(const MessageFrame& frame) {
 
 void WibotRcController::init() {
     _throttle       = 0;
-    _command        = WibotRcCommand::kStop;
+    _command        = WibotRcCommand::kNone;
     _slopedThrottle = 0;
     _trajectory.setInitialValue(0);
     _lastUpdateTick = System::getTickMs();
 };
 
 void WibotRcController::doLoop() {
-    u16 dShotCommand;
+    u16  dShotCommand;
+    auto tick = System::getTickMs();
     if (_command != WibotRcCommand::kNone) {
         dShotCommand = static_cast<u16>(_command);
     } else {
-        auto tick       = System::getTickMs();
         _slopedThrottle = _trajectory.update(_throttle, tick - _lastUpdateTick);
         _lastUpdateTick = tick;
         dShotCommand    = static_cast<u16>(
@@ -73,6 +73,8 @@ void WibotRcController::doLoop() {
     }
 
     auto rst = _dshot.send(_timChannel, dShotCommand, false);
+    LOG_I_INTERVAL(250, "thr: %d, sthr: %d, cmd: %d, tick: %d", _throttle, _slopedThrottle,
+                   static_cast<u8>(_command), tick);
     rst.wait(TIMEOUT_NOWAIT);
 };
 

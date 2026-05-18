@@ -17,25 +17,25 @@
 namespace wibot {
 extern "C" struct WibotRcState {
     /**
-   * 100 rpm
-   */
+    * 100 rpm
+    */
     u16 erpm;
     /**
-   * 1 degree. 0-255C 
-   */
+    * 1 degree. 0-255C 
+    */
     u8  temperature;
     /**
-   * 0.01V
-   */
+    * 0.01V
+    */
     u16 voltage;
     /**
-   * 0.01A
-   */
+    * 0.01A
+    */
     u16 current;
 
     /**
-   * mAH
-   */
+    * mAH
+    */
     u16 consumption;
 };
 
@@ -90,7 +90,7 @@ enum class WibotRcCommand : u8 {
 class WibotRcController : public EventDrivenControlLoop {
    public:
     WibotRcController(TIM_HandleTypeDef& tim, u8 timChannel, u16 slopeRate = 2000 /* unit/s */)
-        : _dshot(tim, DShotProtocol::DShot600),
+        : _dshot(tim, DShotProtocol::DShot300),
           _timChannel(timChannel),
           _slopeConfig{
               .slopeRate = slopeRate, .enableClamp = false, .minValue = 0, .maxValue = 2000},
@@ -100,7 +100,7 @@ class WibotRcController : public EventDrivenControlLoop {
     /**
     * @brief Set the Throttle object
     * 
-    * @param throttle 0.0 - 1.0
+    * @param throttle 0 - 2000
     */
     void setThrottle(u16 throttle) {
         _command  = WibotRcCommand::kNone;
@@ -109,13 +109,17 @@ class WibotRcController : public EventDrivenControlLoop {
     /**
      * @brief Set the Throttle object
      * 
-     * @param throttle 0 - 2000
+     * @param throttle 0.0 - 1.0
      */
     void setThrottle(f32 throttle) {
         _command  = WibotRcCommand::kNone;
         _throttle = throttle * 2000;  // scale to 0-2000 for DShot command
     };
-
+    /**
+     * @brief Set the Command object
+     * 
+     * @param cmd 0-47
+     */
     void setCommand(WibotRcCommand cmd) {
         _command  = cmd;
         _throttle = 0;
