@@ -76,6 +76,7 @@ void WibotRcController::doLoop() {
     LOG_I_INTERVAL(250, "thr: %d, sthr: %d, cmd: %d, tick: %d", _throttle, _slopedThrottle,
                    static_cast<u8>(_command), tick);
     rst.wait(TIMEOUT_NOWAIT);
+    _commandCounter++;
 };
 
 }  // namespace wibot

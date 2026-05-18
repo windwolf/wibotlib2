@@ -20,6 +20,12 @@ class FsmExecutor {
     }
 
    public:
+    void init() {
+        // 为初始状态生成一个onChange时间, 并执行一次状态动作
+        onStateChange(_currentState, _currentState);
+        doStateAction(_currentState);
+    }
+
     void update() {
         T fromState = _currentState;
         T toState   = transitState(fromState);
@@ -39,4 +45,3 @@ class FsmExecutor {
     T _currentState;
 };
 }  // namespace wibot
-
