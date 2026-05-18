@@ -23,7 +23,7 @@ inline Thread<stack_size>::Thread(const char* name, Worker& worker, u32 priority
     auto rst = tx_thread_create(&_instance, const_cast<CHAR*>(name), runStub,
                                 reinterpret_cast<ULONG>(&worker), _stack, stack_size, priority,
                                 preemptionThreshold, config.timeSlice, TX_DONT_START);
-    ASSERT(rst == TX_SUCCESS, "create Thread failed.");
+    ASSERT(rst == TX_SUCCESS, "Thread[%s] create failed.", name);
 };
 
 template <u16 stack_size>

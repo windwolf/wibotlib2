@@ -74,6 +74,7 @@ void WibotRcController::doLoop() {
 
     auto rst = _dshot.send(_timChannel, dShotCommand, false);
     rst.wait(TIMEOUT_NOWAIT);
+    _commandCounter++;
 };
 
 }  // namespace wibot

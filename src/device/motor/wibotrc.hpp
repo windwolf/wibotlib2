@@ -129,6 +129,10 @@ class WibotRcController : public EventDrivenControlLoop {
         return _slopedThrottle;
     };
 
+    u32 getCommandCounter() const {
+        return _commandCounter;
+    };
+
     void init() override;
     void doLoop() override;
 
@@ -140,6 +144,7 @@ class WibotRcController : public EventDrivenControlLoop {
     u16                              _slopedThrottle{0};
     SlopeTrajectoryFast<u16>::Config _slopeConfig;
     SlopeTrajectoryFast<u16>         _trajectory;
+    u32                              _commandCounter = 0;
 
     u32 _lastUpdateTick = 0;
 };
