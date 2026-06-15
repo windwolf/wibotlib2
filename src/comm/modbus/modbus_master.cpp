@@ -92,7 +92,7 @@ Result ModbusMaster::write(RegisterType type, u8 deviceAddr, u16 addr, u16 lengt
     Result result;
     if (length == 1) {
         u16 value = data.getUint16(0, Endian::kBig);
-        result    = sendSimpleCommand(deviceAddr, functionCode, addr, value).wait(TIMEOUT_FOREVER);
+        result    = sendSimpleCommand(deviceAddr, functionCode, addr, value).wait(1000);
         if (!result.isOk()) {
             return result;
         }
@@ -106,7 +106,7 @@ Result ModbusMaster::write(RegisterType type, u8 deviceAddr, u16 addr, u16 lengt
     }
 
     // 读取并验证响应（8字节固定格式）
-    result = _uart.read(_buffer.toSlice(kModbusSimpleResponseSize)).wait(TIMEOUT_FOREVER);
+    result = _uart.read(_buffer.toSlice(kModbusSimpleResponseSize)).wait(1000);
     if (!result.isOk()) {
         return result;
     }
