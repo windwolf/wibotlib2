@@ -57,11 +57,13 @@ class GpioDigitalSourceNode : public INode {
     }
 
     bool ready() override {
-        return outputs.status.bound();
+        return true;
     }
 
     void process() override {
-        outputs.status.ref() = readAllGpioChannels();
+        if (outputs.status.bound()) {
+            outputs.status.ref() = readAllGpioChannels();
+        }
     }
 
     void reset() override {

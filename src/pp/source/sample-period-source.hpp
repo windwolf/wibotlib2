@@ -19,13 +19,21 @@ class SamplePeriodSource : public INode {
     }
 
     bool ready() override {
-        return outputs.samplePeriod.bound() && outputs.samplePeriodMs.bound();
+        return true;
     }
 
     void process() override {
-        u32 period                   = _core.getSamplePeriodMs();
-        outputs.samplePeriodMs.ref() = period;
-        outputs.samplePeriod.ref()   = static_cast<f32>(period) / 1000.0f;
+        if (!outputs.samplePeriod.bound() && !outputs.samplePeriodMs.bound()) {
+            return;
+        }
+
+        u32 period = _core.getSamplePeriodMs();
+        if (outputs.samplePeriodMs.bound()) {
+            outputs.samplePeriodMs.ref() = period;
+        }
+        if (outputs.samplePeriod.bound()) {
+            outputs.samplePeriod.ref() = static_cast<f32>(period) / 1000.0f;
+        }
     }
 
     void reset() override {

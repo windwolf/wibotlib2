@@ -6,12 +6,18 @@ TrapezoidTrajectoryNode::TrapezoidTrajectoryNode(Config& config) : _trajectory(c
 }
 
 bool TrapezoidTrajectoryNode::ready() {
-    return inputs.setPoint.bound() && outputs.position.bound();
+    return inputs.setPoint.bound();
 }
 
 void TrapezoidTrajectoryNode::process() {
+    if (!outputs.position.bound() && !outputs.velocity.bound() && !outputs.phase.bound()) {
+        return;
+    }
+
     f32 pos                = _trajectory.update(inputs.setPoint.get());
-    outputs.position.ref() = pos;
+    if (outputs.position.bound()) {
+        outputs.position.ref() = pos;
+    }
     if (outputs.velocity.bound()) {
         outputs.velocity.ref() = _trajectory.getVelocity();
     }

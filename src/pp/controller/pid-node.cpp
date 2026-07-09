@@ -6,10 +6,13 @@ PidNode::PidNode(Pid::Config& config) : _pid(config) {
 }
 
 bool PidNode::ready() {
-    return inputs.measurement.bound() && inputs.setPoint.bound() && outputs.output.bound();
+    return inputs.measurement.bound() && inputs.setPoint.bound();
 }
 
 void PidNode::process() {
+    if (!outputs.output.bound()) {
+        return;
+    }
     outputs.output.ref() = _pid.update(inputs.measurement.get(), inputs.setPoint.get());
 }
 

@@ -23,10 +23,13 @@ class BinningNode : public INode {
     }
 
     bool ready() override {
-        return inputs.value.bound() && outputs.binIndex.bound() && configValid();
+        return inputs.value.bound() && configValid();
     }
 
     void process() override {
+        if (!outputs.binIndex.bound()) {
+            return;
+        }
         outputs.binIndex.ref() = _binning.process(inputs.value.get());
     }
 

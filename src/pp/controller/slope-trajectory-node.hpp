@@ -24,10 +24,13 @@ class SlopeTrajectoryNode : public INode {
     }
 
     bool ready() override {
-        return inputs.setPoint.bound() && inputs.samplePeriod.bound() && outputs.output.bound();
+        return inputs.setPoint.bound() && inputs.samplePeriod.bound();
     }
 
     void process() override {
+        if (!outputs.output.bound()) {
+            return;
+        }
         outputs.output.ref() = _trajectory.update(inputs.setPoint.get(), inputs.samplePeriod.get());
     }
 

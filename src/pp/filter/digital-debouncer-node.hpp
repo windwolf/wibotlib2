@@ -25,10 +25,13 @@ class DigitalDebouncerNode : public INode {
     }
 
     bool ready() override {
-        return inputs.rawMask.bound() && inputs.samplePeriodMs.bound() && outputs.status.bound();
+        return inputs.rawMask.bound() && inputs.samplePeriodMs.bound();
     }
 
     void process() override {
+        if (!outputs.status.bound()) {
+            return;
+        }
         _core.updateRawValues(inputs.rawMask.get());
         outputs.status.ref() = _core.process(inputs.samplePeriodMs.get());
     }

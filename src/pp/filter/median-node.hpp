@@ -22,10 +22,13 @@ class MedianNode : public INode {
     }
 
     bool ready() override {
-        return inputs.x.bound() && outputs.y.bound() && Median<T>::isConfigValid(_config);
+        return inputs.x.bound() && Median<T>::isConfigValid(_config);
     }
 
     void process() override {
+        if (!outputs.y.bound()) {
+            return;
+        }
         outputs.y.ref() = _filter.filter(inputs.x.get());
     }
 

@@ -6,10 +6,13 @@ LinearMapperNode::LinearMapperNode(Config& config) : _config(config), _mapper(co
 }
 
 bool LinearMapperNode::ready() {
-    return inputs.x.bound() && outputs.y.bound() && LinearMapper::isConfigValid(_config);
+    return inputs.x.bound() && LinearMapper::isConfigValid(_config);
 }
 
 void LinearMapperNode::process() {
+    if (!outputs.y.bound()) {
+        return;
+    }
     outputs.y.ref() = _mapper.process(inputs.x.get());
 }
 

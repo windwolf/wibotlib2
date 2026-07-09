@@ -34,13 +34,21 @@
 //     ClarkeNode() = default;
 
 //     bool ready() override {
-//         return inputs.ia.bound() && inputs.ib.bound() && outputs.alpha.bound() &&
-//                outputs.beta.bound();
+//         return inputs.ia.bound() && inputs.ib.bound();
 //     }
 
 //     void process() override {
-//         Clarke::transform(inputs.ia.get(), inputs.ib.get(), outputs.alpha.ref(),
-//                           outputs.beta.ref());
+//         if (!outputs.alpha.bound() && !outputs.beta.bound()) {
+//             return;
+//         }
+//         f32 alpha, beta;
+//         Clarke::transform(inputs.ia.get(), inputs.ib.get(), alpha, beta);
+//         if (outputs.alpha.bound()) {
+//             outputs.alpha.ref() = alpha;
+//         }
+//         if (outputs.beta.bound()) {
+//             outputs.beta.ref() = beta;
+//         }
 //     }
 
 //     void reset() override {
@@ -79,13 +87,21 @@
 //     ParkNode() = default;
 
 //     bool ready() override {
-//         return inputs.alpha.bound() && inputs.beta.bound() && inputs.theta.bound() &&
-//                outputs.d.bound() && outputs.q.bound();
+//         return inputs.alpha.bound() && inputs.beta.bound() && inputs.theta.bound();
 //     }
 
 //     void process() override {
-//         Park::transform(inputs.alpha.get(), inputs.beta.get(), inputs.theta.get(), outputs.d.ref(),
-//                         outputs.q.ref());
+//         if (!outputs.d.bound() && !outputs.q.bound()) {
+//             return;
+//         }
+//         f32 d, q;
+//         Park::transform(inputs.alpha.get(), inputs.beta.get(), inputs.theta.get(), d, q);
+//         if (outputs.d.bound()) {
+//             outputs.d.ref() = d;
+//         }
+//         if (outputs.q.bound()) {
+//             outputs.q.ref() = q;
+//         }
 //     }
 
 //     void reset() override {
@@ -124,16 +140,22 @@
 //     InvParkNode() = default;
 
 //     bool ready() override {
-//         return inputs.d.bound() && inputs.q.bound() && inputs.theta.bound() &&
-//                outputs.alpha.bound() && outputs.beta.bound();
+//         return inputs.d.bound() && inputs.q.bound() && inputs.theta.bound();
 //     }
 
 //     void process() override {
+//         if (!outputs.alpha.bound() && !outputs.beta.bound()) {
+//             return;
+//         }
 //         f32 alpha, beta;
 //         InvPark::transform(inputs.d.get(), inputs.q.get(), inputs.theta.get(), alpha, beta);
 
-//         outputs.alpha.ref() = alpha;
-//         outputs.beta.ref()  = beta;
+//         if (outputs.alpha.bound()) {
+//             outputs.alpha.ref() = alpha;
+//         }
+//         if (outputs.beta.bound()) {
+//             outputs.beta.ref() = beta;
+//         }
 //     }
 
 //     void reset() override {

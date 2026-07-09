@@ -29,11 +29,11 @@ class MemorySourceNode : public INode {
     }
 
     bool ready() override {
-        return outputs.x.bound() && _storage.size > 0;
+        return _storage.size > 0;
     }
 
     void process() override {
-        if (_storage.size > 0) {
+        if (outputs.x.bound() && _storage.size > 0) {
             outputs.x.ref() = _storage.buffer[_storage.index];
             _storage.index  = (_storage.index + 1) % _storage.size;
         }
@@ -59,5 +59,5 @@ class MemorySourceNode : public INode {
     Storage& _storage;
 };
 
-} // namespace wibot
+}  // namespace wibot
 

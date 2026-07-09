@@ -7,10 +7,13 @@ PiecewiseLinearMapperNode::PiecewiseLinearMapperNode(Config& config)
 }
 
 bool PiecewiseLinearMapperNode::ready() {
-    return inputs.x.bound() && outputs.y.bound() && PiecewiseLinearMapper::isConfigValid(_config);
+    return inputs.x.bound() && PiecewiseLinearMapper::isConfigValid(_config);
 }
 
 void PiecewiseLinearMapperNode::process() {
+    if (!outputs.y.bound()) {
+        return;
+    }
     outputs.y.ref() = _mapper.map(inputs.x.get());
 }
 

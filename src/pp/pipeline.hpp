@@ -36,7 +36,8 @@ struct Out {
 
 // 简单节点接口：无递归，由调度器迭代调用。
 struct INode {
-    virtual bool ready()   = 0;  // 所有输入是否已绑定
+    // 检查必需输入是否已绑定、配置是否有效。输出允许不绑定。
+    virtual bool ready()   = 0;
     virtual void process() = 0;
     virtual void reset()   = 0;
     virtual ~INode()       = default;
@@ -78,7 +79,7 @@ class PipelineChainBuilder {
    public:
     static constexpr u8 MaxEdges = MaxNodes * 4;
 
-    PipelineChainBuilder() : _nodeCount(0), _edgeCount(0) {
+    PipelineChainBuilder() : _nodeCount(0), _edgeCount(0), _valid(true) {
     }
 
     // 添加节点（支持链式调用）。
@@ -86,6 +87,8 @@ class PipelineChainBuilder {
         if (_nodeCount < MaxNodes) {
             _nodes[_nodeCount] = &node;
             _nodeCount++;
+        } else {
+            _valid = false;
         }
         return *this;
     }
@@ -110,19 +113,22 @@ class PipelineChainBuilder {
         u8 fromId = findNodeId_(from);
         u8 toId   = findNodeId_(to);
         if (fromId == invalidId_() || toId == invalidId_()) {
-            return false;
+            return fail_();
         }
         return connect_(fromId, out, toId, in);
     }
 
     // 计算拓扑顺序并构建 PipelineChain（_edges 随 Builder 析构释放）。
     bool build(PipelineChain<MaxNodes>& chain) {
+        if (!_valid) {
+            return false;
+        }
         if (_nodeCount == 0) {
             chain._nodeCount = 0;
             return true;
         }
 
-        // 在 build 阶段检查一次：所有节点是否 ready（所有输入已绑定）
+        // 在 build 阶段检查一次：所有节点的必需输入和配置是否 ready。
         for (u8 i = 0; i < _nodeCount; i++) {
             if (!_nodes[i]->ready()) {
                 return false;  // 节点未 ready，构建失败
@@ -190,21 +196,26 @@ class PipelineChainBuilder {
         return invalidId_();
     }
 
+    bool fail_() {
+        _valid = false;
+        return false;
+    }
+
     // 基于ID的连接（内部使用）。
     template <typename T>
     bool connect_(u8 fromId, Out<T>& out, u8 toId, In<T>& in) {
         // 约束: 每个输入只能绑定一个输出；每个输出可扇出至多个输入。
         if (fromId >= _nodeCount || toId >= _nodeCount) {
-            return false;
+            return fail_();
         }
         if (_edgeCount >= MaxEdges) {
-            return false;
+            return fail_();
         }
         if (in.bound()) {  // 输入已绑定，拒绝重复绑定
-            return false;
+            return fail_();
         }
         if (!out.bound()) {  // 输出未绑定外部存储，无法连接
-            return false;
+            return fail_();
         }
 
         in.ptr                  = out.ptr;
@@ -225,6 +236,7 @@ class PipelineChainBuilder {
 
     u8 _nodeCount;
     u8 _edgeCount;
+    bool _valid;
 };
 
 }  // namespace wibot

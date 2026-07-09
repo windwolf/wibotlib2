@@ -3,10 +3,14 @@
 namespace wibot {
 
 bool OffsetCalibratorNode::ready() {
-    return inputs.sample.bound() && outputs.offset.bound();
+    return inputs.sample.bound();
 }
 
 void OffsetCalibratorNode::process() {
+    if (!outputs.offset.bound() && !outputs.sampleCount.bound() && !outputs.calculated.bound()) {
+        return;
+    }
+
     if (inputs.requestReset.bound() && inputs.requestReset.get()) {
         _calibrator.reset();
     }

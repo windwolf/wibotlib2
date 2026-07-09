@@ -25,21 +25,24 @@ class KeyScanerNode : public INode {
     }
 
     bool ready() override {
-        if (!inputs.pinStatusMask.bound() || !inputs.samplePeriodMs.bound()) {
-            return false;
-        }
-        for (u8 ch = 0; ch < CHANNELS; ++ch) {
-            if (!outputs.events[ch].bound()) {
-                return false;
-            }
-        }
-        return true;
+        return inputs.pinStatusMask.bound() && inputs.samplePeriodMs.bound();
     }
 
     void process() override {
+        // 前置检查太耗费, 不如不检查
+        // bool outputRequested = false;
+        // for (u8 ch = 0; ch < CHANNELS; ++ch) {
+        //     outputRequested = outputRequested || outputs.events[ch].bound();
+        // }
+        // if (!outputRequested) {
+        //     return;
+        // }
+
         _core.scan(inputs.pinStatusMask.get(), inputs.samplePeriodMs.get());
         for (u8 ch = 0; ch < CHANNELS; ++ch) {
-            outputs.events[ch].ref() = _core.getCurrentEvent(ch);
+            if (outputs.events[ch].bound()) {
+                outputs.events[ch].ref() = _core.getCurrentEvent(ch);
+            }
         }
     }
 

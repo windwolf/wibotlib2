@@ -22,10 +22,13 @@ class CustomMapperNode : public INode {
     }
 
     bool ready() override {
-        return inputs.x.bound() && outputs.y.bound() && _mapper.isConfigValid();
+        return inputs.x.bound() && _mapper.isConfigValid();
     }
 
     void process() override {
+        if (!outputs.y.bound()) {
+            return;
+        }
         outputs.y.ref() = _mapper.map(inputs.x.get());
     }
 

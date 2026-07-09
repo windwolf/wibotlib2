@@ -18,30 +18,30 @@ class ConstantSourceNode : public INode {
 
     /**
      * @brief 构造函数
-     * @param storage 外部存储
      * @param defaultValue 默认值
      */
-    ConstantSourceNode(T defaultValue = T{}) {
-        _value.value = defaultValue;
+    explicit ConstantSourceNode(T defaultValue = T{}) : _value(defaultValue) {
     }
 
     bool ready() override {
-        return outputs.x.bound();
+        return true;
     }
 
     void process() override {
-        outputs.x.ref() = _value.value;
+        if (outputs.x.bound()) {
+            outputs.x.ref() = _value;
+        }
     }
 
     void reset() override {
-        _value.value = T{};
+        _value = T{};
     }
 
     /**
      * @brief 设置常量值
      */
     void setValue(T value) {
-        _value.value = value;
+        _value = value;
     }
 
    private:

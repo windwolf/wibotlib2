@@ -22,11 +22,13 @@ class SystemTickSourceNode : public INode {
     SystemTickSourceNode() = default;
 
     bool ready() override {
-        return outputs.tick.bound();
+        return true;
     }
 
     void process() override {
-        outputs.tick.ref() = System::getTickMs();
+        if (outputs.tick.bound()) {
+            outputs.tick.ref() = System::getTickMs();
+        }
     }
 
     void reset() override {
